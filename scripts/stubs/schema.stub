@@ -1,0 +1,7 @@
+import { z } from 'zod';
+
+export const {{LOWER_NAME}}Schema = z.object({
+  // define schema here
+});
+
+export type {{NAME}} = z.infer<typeof {{LOWER_NAME}}Schema>;

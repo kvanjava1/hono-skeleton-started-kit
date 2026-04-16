@@ -1,0 +1,6 @@
+import * as Repository from '../../repositories/{{TYPE}}/{{LOWER_NAME}}.repository.ts';
+import { logger } from '../../utils/logger.util.ts';
+
+export const get{{NAME}}s = async () => {
+  return await Repository.findAll();
+};

@@ -1,0 +1,12 @@
+import { getPgSql } from '../../database/pg.connection.ts';
+
+export const findAll = async () => {
+  const sql = getPgSql('pg1');
+  return await sql`SELECT * FROM {{LOWER_NAME}}s ORDER BY id DESC`;
+};
+
+export const findById = async (id: number) => {
+  const sql = getPgSql('pg1');
+  const rows = await sql`SELECT * FROM {{LOWER_NAME}}s WHERE id = ${id}`;
+  return rows[0] || null;
+};

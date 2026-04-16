@@ -1,0 +1,13 @@
+import { getMysqlPool } from '../../database/mysql.connection.ts';
+
+export const findAll = async () => {
+  const pool = getMysqlPool('mysql1');
+  const [rows] = await pool.execute('SELECT * FROM {{LOWER_NAME}}s ORDER BY id DESC');
+  return rows;
+};
+
+export const findById = async (id: number) => {
+  const pool = getMysqlPool('mysql1');
+  const [rows] = await pool.execute('SELECT * FROM {{LOWER_NAME}}s WHERE id = ?', [id]);
+  return rows[0] || null;
+};

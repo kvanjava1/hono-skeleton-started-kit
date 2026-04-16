@@ -1,0 +1,15 @@
+import type { MongoMigration } from '../runner.ts';
+import type { Db } from 'mongodb';
+
+export const name = '{{FILENAME}}';
+export const target: MongoMigration['target'] = 'mongo1';
+
+export const up = async (db: Db): Promise<void> => {
+  // Add your UP migration logic here
+  // Example: await db.collection('users').createIndex({ email: 1 }, { unique: true });
+};
+
+export const down = async (db: Db): Promise<void> => {
+  // Add your DOWN migration logic here
+  // Example: await db.collection('users').dropIndex('email_1');
+};

@@ -1,0 +1,17 @@
+import type { PgMigration } from '../runner.ts';
+import type postgres from 'postgres';
+
+export const name = '{{FILENAME}}';
+export const target: PgMigration['target'] = 'pg1';
+
+export const up = async (sql: postgres.Sql): Promise<void> => {
+  await sql`
+    -- Add your UP migration SQL here
+  `;
+};
+
+export const down = async (sql: postgres.Sql): Promise<void> => {
+  await sql`
+    -- Add your DOWN migration SQL here
+  `;
+};

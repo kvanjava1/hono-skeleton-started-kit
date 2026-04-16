@@ -1,0 +1,17 @@
+import type { SqliteMigration } from '../runner.ts';
+import type { Database } from 'bun:sqlite';
+
+export const name = '{{FILENAME}}';
+export const target: SqliteMigration['target'] = 'sqlite1';
+
+export const up = async (db: Database): Promise<void> => {
+  db.run(`
+    -- Add your UP migration SQL here for sqlite1
+  `);
+};
+
+export const down = async (db: Database): Promise<void> => {
+  db.run(`
+    -- Add your DOWN migration SQL here for sqlite1
+  `);
+};

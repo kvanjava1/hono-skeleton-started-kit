@@ -1,0 +1,25 @@
+import { createQueue } from '../queues/base.queue.ts';
+import type { Job } from 'bullmq';
+import { logger } from '../utils/logger.util.ts';
+
+export const {{LOWER_NAME}}Queue = createQueue('{{LOWER_NAME}}-queue');
+
+/**
+ * Processor logic for {{NAME}}
+ */
+export const {{LOWER_NAME}}Processor = async (job: Job) => {
+  const { data } = job;
+  logger.info(`Processing {{NAME}} job ${job.id}`);
+  
+  // Add your business logic here
+  // Example: await sendEmail(data.to, data.subject);
+
+  return { success: true };
+};
+
+/**
+ * Helper to dispatch this job
+ */
+export const dispatch{{NAME}} = async (data: any) => {
+  return await {{LOWER_NAME}}Queue.add('{{LOWER_NAME}}-task', data);
+};

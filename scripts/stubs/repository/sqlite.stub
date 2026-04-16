@@ -1,0 +1,11 @@
+import { getSqliteDb } from '../../database/sqlite.connection.ts';
+
+export const findAll = async () => {
+  const db = getSqliteDb('sqlite1');
+  return db.query('SELECT * FROM {{LOWER_NAME}}s ORDER BY id DESC').all();
+};
+
+export const findById = async (id: number) => {
+  const db = getSqliteDb('sqlite1');
+  return db.query('SELECT * FROM {{LOWER_NAME}}s WHERE id = ?').get(id);
+};

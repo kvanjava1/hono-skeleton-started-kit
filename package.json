@@ -1,0 +1,38 @@
+{
+  "name": "hono-multi-db-api",
+  "version": "1.0.0",
+  "description": "Production-ready Hello World API with multi-database support (MySQL, MongoDB, SQLite)",
+  "type": "module",
+  "scripts": {
+    "migrate:dev": "SERVICE_NAME=cli bun run --env-file=.env.dev scripts/migrate.ts up",
+    "migrate:prod": "SERVICE_NAME=cli bun run --env-file=.env.prod scripts/migrate.ts up",
+    "seed:dev": "SERVICE_NAME=cli bun run --env-file=.env.dev scripts/seed.ts",
+    "make": "bun run scripts/make.ts",
+    "build": "bun build ./src/index.ts --compile --outfile server",
+    "dev": "SERVICE_NAME=app bun run --watch --env-file=.env.dev src/index.ts",
+    "prod": "SERVICE_NAME=app bun run --env-file=.env.prod src/index.ts",
+    "worker:dev": "SERVICE_NAME=queue bun run --env-file=.env.dev src/workers/index.ts",
+    "worker:prod": "SERVICE_NAME=queue bun run --env-file=.env.prod src/workers/index.ts",
+    "server:bin:dev": "SERVICE_NAME=app env $(cat .env.dev | grep -v '^#' | xargs) ./server",
+    "server:bin:prod": "SERVICE_NAME=app env $(cat .env.prod | grep -v '^#' | xargs) ./server",
+    "worker:bin:dev": "SERVICE_NAME=queue env $(cat .env.dev | grep -v '^#' | xargs) ./server --worker",
+    "worker:bin:prod": "SERVICE_NAME=queue env $(cat .env.prod | grep -v '^#' | xargs) ./server --worker"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.7.6",
+    "bullmq": "^5.69.3",
+    "hono": "^4.6.0",
+    "ioredis": "^5.9.3",
+    "mongodb": "^7.1.0",
+    "mysql2": "^3.12.0",
+    "postgres": "^3.4.8",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.9",
+    "@types/ioredis": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.16.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,17 @@
+import type { MySqlMigration } from '../runner.ts';
+import type { Pool } from 'mysql2/promise';
+
+export const name = '{{FILENAME}}';
+export const target: MySqlMigration['target'] = 'mysql1';
+
+export const up = async (pool: Pool): Promise<void> => {
+  await pool.execute(`
+    // Add your UP migration SQL here
+  `);
+};
+
+export const down = async (pool: Pool): Promise<void> => {
+  await pool.execute(`
+    // Add your DOWN migration SQL here
+  `);
+};

@@ -1,0 +1,11 @@
+import { getMongoDb } from '../../database/mongo.connection.ts';
+
+export const findAll = async () => {
+  const db = getMongoDb('mongo1');
+  return db.collection('{{LOWER_NAME}}s').find().toArray();
+};
+
+export const findById = async (id: string) => {
+  const db = getMongoDb('mongo1');
+  return db.collection('{{LOWER_NAME}}s').findOne({ _id: id });
+};
