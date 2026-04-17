@@ -4,7 +4,7 @@
   "description": "Production-ready Hello World API with multi-database support (MySQL, MongoDB, SQLite)",
   "type": "module",
   "scripts": {
-    "typecheck": "bunx tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "migrate:dev": "SERVICE_NAME=cli bun run --env-file=.env.dev scripts/migrate.ts up",
     "migrate:prod": "SERVICE_NAME=cli bun run --env-file=.env.prod scripts/migrate.ts up",
     "seed:dev": "SERVICE_NAME=cli bun run --env-file=.env.dev scripts/seed.ts",

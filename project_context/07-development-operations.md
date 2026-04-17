@@ -10,6 +10,7 @@ Berdasarkan `package.json`, script utama adalah:
 - `bun run migrate:dev`
 - `bun run migrate:prod`
 - `bun run seed:dev`
+- `bun run typecheck`
 - `bun run make`
 - `bun run worker:dev`
 - `bun run worker:prod`
@@ -125,4 +126,4 @@ Yang belum ada:
 - logger menulis ke filesystem, jadi environment read-only bisa membatasi file logging
 - rate limiter in-memory tidak cocok untuk multi-instance production
 - worker sekarang sudah punya job referensi `create-example`, tetapi project turunan tetap perlu mengganti atau menghapusnya sesuai domain nyata
-- `tsc` penuh saat ini masih tergantung environment yang menyediakan `node`
+- type checking kini dapat dieksekusi as-is menggunakan `bun run typecheck` (menjalankan `tsc --noEmit`) yang memastikan strict type safety tanpa intervensi build murni node.
