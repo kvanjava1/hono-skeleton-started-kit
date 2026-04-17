@@ -17,6 +17,7 @@ Documentation in this repository is organized by purpose, not by historical topi
 - [Queues](./guides/queues.md)
 - [Logging](./guides/logging.md)
 - [Make CLI](./guides/make-cli.md)
+- [Frontend & Vue Integration](./guides/frontend-vue-integration.md)
 - [Examples CRUD Guide](./guides/examples-crud-guide.md)
 
 ### Standards

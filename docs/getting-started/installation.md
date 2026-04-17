@@ -111,6 +111,37 @@ Compatibility note:
 - legacy `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE` fall back to `pg1`
 - new code should use explicit named connections such as `pg1` and `pg2`
 
+## Running the App
+
+### Development (Dual Server)
+It is recommended to run both Hono and Vite during development:
+
+```bash
+bun run dev:all
+```
+
+- **Hono (SSR + API)**: http://localhost:8080
+- **Vite (Frontend Dev)**: http://localhost:5173
+
+You can also run them separately:
+- `bun run dev` (Hono only)
+- `bun run dev:client` (Vite only)
+
+### Production
+To build and run in production:
+
+```bash
+# Build frontend assets
+bun run build:client
+
+# Start production server
+bun run prod
+```
+
+## Default Health Checks
+- API Health: `GET /api/health`
+- Web SSR Bridge: `GET /welcome`
+
 ## Run Migrations
 
 ```bash
@@ -125,18 +156,6 @@ bun run migrate:dev mysql
 bun run seed:dev
 bun run seed:dev sqlite
 bun run seed:dev pg
-```
-
-## Start the App
-
-```bash
-bun run dev
-```
-
-Default health check:
-
-```text
-GET /api/health
 ```
 
 ## Generate Files

@@ -1,83 +1,48 @@
 # 02 Architecture Structure
 
-## High-Level Architecture
+## High-Level Architecture: Hybrid Fullstack
 
-Dokumentasi repo menetapkan layered architecture:
+Dokumentasi repo menetapkan arsitektur dua wilayah:
 
-`Routes -> Controllers -> Services -> Repositories -> Database`
+1. **Server Region (`src/`)**: 
+   `Routes -> Controllers -> Services -> Repositories -> Database`
+   Ditambah **Hono JSX** untuk Server-Side Rendering (SSR).
 
-Ini adalah intent arsitektur yang jelas dan cukup sehat untuk aplikasi backend modular.
+2. **Asset Region (`resources/`)**: 
+   `Vue SFC -> Vue Router -> Vite -> Assets`
+   Pusat interaksi client-side (SPA).
 
 ## Important Reality Check
 
-Implementasi default sekarang sudah memiliki satu modul referensi netral yang menembus layer utama tersebut, tetapi fondasi tetap menjadi fokus utama repo. Yang sudah ada secara nyata:
-
-- app bootstrap
-- middleware global
-- connection layer dengan named multi-connections untuk seluruh engine utama
-- util error/response/logger/cache/context
-- queue factory
-- worker bootstrap
-- CLI generator
-- modul referensi `example` yang mencakup route, controller, service, repository, schema, job, migration, cache, dan test
-
-Yang belum ada sebagai bawaan:
-
-- domain bisnis nyata
-- relasi antar modul bisnis
-- bounded context production yang benar-benar merepresentasikan aplikasi turunan
-
-Jadi arsitektur repo ini bisa dibaca sebagai:
-
-- arsitektur target: layered modular API
-- status aktual: foundational skeleton dengan satu executable reference module
+Proyek ini menggunakan pola **"The Bridge"**:
+- Hono merender shell HTML awal (SSR) dan menyuntikkan data server (`initialData`).
+- Vue.js mengambil alih (hydration) untuk interaktivitas di sisi client.
+- Vite mengelola bundling aset (JS/CSS/Vue) dan manifest di produksi.
 
 ## Entry Points
 
-### API entry point
+### App Composition & SSR
+- [src/app.ts](src/app.ts): Bootstrap middleware, route aggregator, dan SPA fallback handler.
+- [src/views/Welcome.tsx](src/views/Welcome.tsx): Master layout/shell yang memuat Vue dan menyuntikkan data server.
 
-- [src/index.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/index.ts)
+### Frontend Entry (Client)
+- [resources/js/app.ts](resources/js/app.ts): Entry point utama Vue yang melakukan mounting ke `#app`.
 
-Tanggung jawab:
-
-- mendeteksi mode API vs worker
-- connect semua database yang aktif
-- start server Hono
-- shutdown handling
-
-### App composition
-
-- [src/app.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/app.ts)
-
-Tanggung jawab:
-
-- membuat instance Hono
-- memasang middleware global
-- register seluruh route
-- menetapkan global 404 handler
-
-### Worker entry point
-
-- [src/workers/index.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/workers/index.ts)
-
-Tanggung jawab:
-
-- bootstrap worker mode
-- menjadi tempat registrasi worker BullMQ
+### Worker Entry
+- [src/workers/index.ts](src/workers/index.ts): Bootstrap untuk background processing.
 
 ## Root and Subdirectory Structure
 
-### Source
+### Backend Logic (`src/`)
+- `src/views`: Komponen Hono JSX (Layouts & Pages).
+- `src/routes`: Modular routing (`api.routes.ts`, `web.routes.tsx`).
+- `src/middlewares`: Termasuk `spaFallback.middleware.ts` untuk navigasi SPA.
+- `src/database`, `src/configs`, `src/queues`, `src/utils`.
 
-- `src/configs`: konfigurasi runtime, database, queue, env helper, dan named connection discovery
-- `src/database`: connection factory / registry untuk MySQL, PostgreSQL, MongoDB, Redis, SQLite
-- `src/middlewares`: cross-cutting HTTP concerns
-- `src/routes`: route wiring
-- `src/queues`: queue dan worker factory
-- `src/workers`: startup worker
-- `src/utils`: helper response, error, cache, context, logging
-
-### Tooling
+### Frontend Assets (`resources/`)
+- `resources/js`: Vue components, pages, dan router logic.
+- `resources/css`: Tailwind CSS v4 entry.
+- `resources/public`: Aset statis mentah (favicon, robots).
 
 - `scripts/migrations`: migration framework untuk semua target database, sekarang dengan target connection eksplisit untuk SQLite, MySQL, MongoDB, dan PostgreSQL
 - `scripts/seeders`: seeder runner

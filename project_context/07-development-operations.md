@@ -1,26 +1,24 @@
 # 07 Development Operations
 
-## Scripts
+## Fullstack Development Workflow
 
-Berdasarkan `package.json`, script utama adalah:
+Aplikasi menjalankan dua server di mode pengembangan:
+1. **Hono Server (Port 8080)**: Melayani API dan merender HTML awal (SSR).
+2. **Vite Dev Server (Port 5173)**: Melayani aset JS/Vue dengan Hot Module Replacement (HMR).
 
-- `bun run dev`
-- `bun run prod`
-- `bun run build`
-- `bun run migrate:dev`
-- `bun run migrate:prod`
-- `bun run seed:dev`
-- `bun run typecheck`
-- `bun run make`
-- `bun run worker:dev`
-- `bun run worker:prod`
+### Development Scripts
+- `bun run dev:all`: Menjalankan Hono dan Vite secara bersamaan (disarankan).
+- `bun run dev`: Menjalankan Hono (backend).
+- `bun run dev:client`: Menjalankan Vite (frontend).
+- `bun run build:client`: Membangun aset Vue ke dalam folder `dist/` dan membuat `manifest.json`.
+- `bun run typecheck`: Melakukan pengecekan tipe TypeScript di seluruh proyek.
+- `bun run prod`: Menjalankan aplikasi di mode produksi.
 
-Ada juga jalur binary hasil compile:
+### Build and Deployment Shape
+Build backend dilakukan dengan:
+- `bun build ./src/index.ts --compile --outfile server`
 
-- `server:bin:dev`
-- `server:bin:prod`
-- `worker:bin:dev`
-- `worker:bin:prod`
+Deployment Fullstack memerlukan folder `dist/` (hasil build frontend) agar Hono bisa melayani aset statis dan melakukan fallback SPA.
 
 ## Environment Separation
 

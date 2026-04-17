@@ -1,18 +1,11 @@
 import { Hono } from "hono";
-import { MESSAGES } from "../configs/constants.ts";
-import { exampleRoutes } from "./example.routes.ts";
-import { successResponse } from "../utils/response.util.ts";
+import { apiRoutes } from "./api.routes.ts";
+import { webRoutes } from "./web.routes.tsx";
 
 export const registerAllRoutes = (app: Hono) => {
-  const api = new Hono();
+  // Register web routes directly on root
+  app.route("/", webRoutes);
 
-  api.get("/health", (c) => {
-    return successResponse(c, MESSAGES.HEALTH_OK, {
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-    });
-  });
-
-  api.route("/examples", exampleRoutes);
-  app.route("/api", api);
+  // Register api routes under /api
+  app.route("/api", apiRoutes);
 };

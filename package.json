@@ -9,6 +9,9 @@
     "migrate:prod": "SERVICE_NAME=cli bun run --env-file=.env.prod scripts/migrate.ts up",
     "seed:dev": "SERVICE_NAME=cli bun run --env-file=.env.dev scripts/seed.ts",
     "make": "bun run scripts/make.ts",
+    "dev:client": "vite",
+    "build:client": "vite build",
+    "dev:all": "concurrently \"bun run dev\" \"bun run dev:client\"",
     "build": "bun build ./src/index.ts --compile --outfile server",
     "dev": "SERVICE_NAME=app bun run --watch --env-file=.env.dev src/index.ts",
     "prod": "SERVICE_NAME=app bun run --env-file=.env.prod src/index.ts",
@@ -27,13 +30,20 @@
     "mongodb": "^7.1.0",
     "mysql2": "^3.12.0",
     "postgres": "^3.4.8",
+    "vue": "^3.5.32",
+    "vue-router": "^5.0.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
     "@types/bun": "1.3.9",
     "@types/ioredis": "^5.0.0",
     "@types/node": "^22.10.0",
     "@types/pg": "^8.16.0",
-    "typescript": "^5.7.0"
+    "@vitejs/plugin-vue": "^6.0.6",
+    "concurrently": "^9.2.1",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.7.0",
+    "vite": "^8.0.8"
   }
 }

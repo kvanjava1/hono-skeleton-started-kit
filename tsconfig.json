@@ -36,7 +36,9 @@
       "@middlewares/*": ["src/middlewares/*"],
       "@utils/*": ["src/utils/*"]
     },
-    "types": ["bun-types"]
+    "types": ["bun-types"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
   },
   "include": ["src/**/*", "seed.ts", "seeders/**/*"],
   "exclude": ["node_modules", "dist"]

@@ -156,6 +156,22 @@ Asumsi paling aman untuk task berikutnya:
 - baca modul `example` sebagai baseline teknis, bukan domain bisnis yang harus diwariskan
 - jangan invent pattern baru tanpa alasan kuat
 
+## Fullstack Conventions
+
+### Hono JSX (SSR)
+- Gunakan ekstensi `.tsx` untuk komponen yang mengandung JSX.
+- Tambahkan pragma `/** @jsxImportSource hono/jsx */` di bagian atas file jika IDE mengalami masalah tipe.
+- Gunakan `await Welcome(...)` untuk komponen asinkron di dalam handler.
+
+### Vue.js (CSR)
+- Gunakan **Composition API** dengan `<script setup lang="ts">`.
+- Pisahkan logika halaman di `resources/js/pages/` dan komponen kecil di `resources/js/components/`.
+- Gunakan data dari `window.__INITIAL_STATE__` untuk sinkronisasi awal data dari server.
+
+### Styling (Tailwind v4)
+- Gunakan direktif `@import "tailwindcss";` di `resources/css/app.css`.
+- Hindari penggunaan file `tailwind.config.js` karena v4 menggunakan konfigurasi berbasis CSS.
+
 ## Post-Implementation Checklist
 
 Setelah implementasi:

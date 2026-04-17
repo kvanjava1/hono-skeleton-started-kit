@@ -2,48 +2,41 @@
 
 ## Project Identity
 
-- Project name: `hono-multi-db-api`
-- Type: backend skeleton / starter kit
+- Project name: `hono-multi-db-fullstack`
+- Type: Hybrid Fullstack Boilerplate (SSR + SPA)
 - Runtime: Bun
-- Framework: Hono
+- Framework: Hono (Backend/SSR) & Vue.js (Frontend SPA)
 - Language: TypeScript
-- Repository purpose: menyediakan fondasi API yang siap dikembangkan dengan pilihan beberapa database, named multi-connections, worker background, dan tooling operasional.
+- Repository purpose: menyediakan fondasi aplikasi fullstack modern yang menggabungkan kecepatan Hono JSX (SSR) dengan fleksibilitas Vue.js 3 (SPA), didukung oleh multi-database dan background worker.
 
 ## Primary Purpose
 
-Repo ini tidak memodelkan bisnis tertentu. Tujuan utamanya adalah memberi baseline teknis untuk:
+Repo ini menyediakan baseline teknis untuk:
 
-- HTTP API
-- koneksi beberapa database dengan named multi-connections
-- migration dan seeder
-- background queue
-- logging
-- file generation untuk layer kode baru
-
-Dengan kata lain, ini adalah repo infra-first, bukan aplikasi bisnis yang sudah lengkap.
+- **Hybrid Rendering**: Hono JSX untuk SSR/SEO-critical pages dan Vue.js untuk Dashboard/Interactive SPA.
+- **Frontend Tooling**: Integrasi Vite 8 dengan Tailwind CSS v4 (zero-config).
+- **Multi-Database**: Koneksi beberapa database dengan named multi-connections.
+- **Backend Power**: Migration, Seeder, Background Queue, dan Logging.
 
 ## Technology Stack
 
-### Backend
+### Backend & SSR
+- Bun & Hono
+- Hono JSX (Server-side Rendering)
+- Zod & `@hono/zod-validator`
 
-- Bun
-- Hono
-- TypeScript
-- Zod
-- `@hono/zod-validator`
+### Frontend (Assets)
+- Vue.js 3 (Composition API)
+- Vue Router 5
+- Vite 8
+- Tailwind CSS v4
 
 ### Database and storage
-
-- SQLite
-- MySQL
-- PostgreSQL
-- MongoDB
-- Redis
+- SQLite, MySQL, PostgreSQL, MongoDB
+- Redis (Cache & Queue Transport)
 
 ### Background processing
-
 - BullMQ
-- Redis sebagai transport queue
 
 ## Named Connection Model
 
