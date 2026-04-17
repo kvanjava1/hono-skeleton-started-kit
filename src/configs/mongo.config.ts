@@ -22,6 +22,7 @@ const MONGO_CONNECTION_DEFAULTS = {
       port: "MONGO_PORT_2",
       dbName: "MONGO_DB_NAME_2",
     },
+    legacyEnvKeys: undefined,
     defaults: {
       host: "localhost",
       port: 27017,

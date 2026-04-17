@@ -20,6 +20,7 @@ const REDIS_CONNECTION_DEFAULTS = {
       host: "REDIS_HOST_2",
       port: "REDIS_PORT_2",
     },
+    legacyEnvKeys: undefined,
     defaults: {
       host: "localhost",
       port: 6379,

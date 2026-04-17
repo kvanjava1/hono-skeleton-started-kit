@@ -30,6 +30,7 @@ const MYSQL_CONNECTION_DEFAULTS = {
       password: "MYSQL_PASSWORD_2",
       database: "MYSQL_DATABASE_2",
     },
+    legacyEnvKeys: undefined,
     defaults: {
       host: "localhost",
       port: 3306,

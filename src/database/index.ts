@@ -49,7 +49,6 @@ export {
   closeAllSqliteConnections,
   testSqliteConnection,
   testAllSqliteConnections,
-  type SqliteConnectionName,
 } from "./sqlite.connection.ts";
 
 export {

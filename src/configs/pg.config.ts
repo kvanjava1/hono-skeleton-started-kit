@@ -30,6 +30,7 @@ const PG_CONNECTION_DEFAULTS = {
       password: "PG_PASSWORD_2",
       database: "PG_DATABASE_2",
     },
+    legacyEnvKeys: undefined,
     defaults: {
       host: "localhost",
       port: 5432,
