@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
@@ -40,6 +40,6 @@
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
-  "include": ["src/**/*", "seed.ts", "seeders/**/*"],
+  "include": ["src/**/*", "resources/views/**/*", "seed.ts", "seeders/**/*"],
   "exclude": ["node_modules", "dist"]
 }

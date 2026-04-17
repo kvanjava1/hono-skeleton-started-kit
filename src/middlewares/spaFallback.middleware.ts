@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
 import { configApp } from "../configs/app.config.ts";
-import { Welcome } from "../views/Welcome.tsx";
+import { Welcome } from "../../resources/views/Welcome.tsx";
 
 export const setupSpaFallback = (app: Hono) => {
   // Hanya layani file statis dari dist jika di mode produksi

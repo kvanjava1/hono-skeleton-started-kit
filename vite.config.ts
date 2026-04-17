@@ -4,6 +4,10 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig({
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
   plugins: [
     vue(),
     tailwindcss(),
@@ -16,15 +20,6 @@ export default defineConfig({
     rollupOptions: {
       // Kita gunakan app.ts sebagai satu-satunya entry point
       input: path.resolve(__dirname, 'resources/js/app.ts'),
-    }
-  },
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
-      }
     }
   }
 })

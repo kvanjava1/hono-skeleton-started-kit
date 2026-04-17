@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Kita tetap butuh ini karena file TSX di-render oleh Hono, bukan oleh Vite/JS */
+@source "../views/**/*.{ts,tsx}";
+
 @theme {
   --color-primary: #3b82f6;
 }
