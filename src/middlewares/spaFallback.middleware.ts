@@ -1,12 +1,11 @@
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
+import { configApp } from "../configs/app.config.ts";
 import { Welcome } from "../views/Welcome.tsx";
 
 export const setupSpaFallback = (app: Hono) => {
-  const isProd = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "prod";
-
   // Hanya layani file statis dari dist jika di mode produksi
-  if (isProd) {
+  if (configApp.isProduction) {
     app.use("/*", serveStatic({ root: "./dist" }));
   }
 
