@@ -35,7 +35,10 @@ Proyek ini menggunakan pola **"The Bridge"**:
 
 ### Backend Logic (`src/`)
 - `src/views`: Komponen Hono JSX (Layouts & Pages).
-- `src/routes`: Modular routing (`api.routes.ts`, `web.routes.tsx`).
+- `src/routes`: Modular routing structure:
+    - `src/routes/api/`: Semua endpoint REST API (prefix `/api`).
+    - `src/routes/web/`: Semua rute SSR/Hybrid (Hono JSX).
+    - `src/routes/index.ts`: Aggregator utama rute.
 - `src/middlewares`: Termasuk `spaFallback.middleware.ts` untuk navigasi SPA.
 - `src/database`, `src/configs`, `src/queues`, `src/utils`.
 
