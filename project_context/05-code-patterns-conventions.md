@@ -155,3 +155,8 @@ Asumsi paling aman untuk task berikutnya:
 - anggap migration untuk SQLite, MySQL, MongoDB, dan PostgreSQL harus target-aware
 - baca modul `example` sebagai baseline teknis, bukan domain bisnis yang harus diwariskan
 - jangan invent pattern baru tanpa alasan kuat
+
+## Post-Implementation Checklist
+
+Setelah implementasi:
+1. Wajib jalankan `bun run typecheck` untuk memverifikasi tidak ada error sintaks TypeScript di keseluruhan project sebelum menganggap pekerjaan dan bugfix selesai.
