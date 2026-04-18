@@ -1,17 +1,20 @@
-# Hono Multi-Database Skeleton
+# Hono + Vue Hybrid Fullstack Skeleton
 
-Skeleton API berbasis Bun dan Hono untuk memulai project baru dengan fondasi backend generik, named multi-connections, worker background, migration, dan seeder tooling.
+Skeleton aplikasi berarsitektur Hybrid Fullstack (Bun + Hono + Vue 3) dengan fondasi SSR, SPA Bridge, Tailwind v4, named multi-connections database, worker background, migration, dan seeder tooling.
 
 ## Features
 
 - Bun runtime
 - Hono web framework
 - TypeScript
+- Vue 3 SPA with Vite integration (The Bridge)
+- Hono JSX for pure Server-Side Rendering (SSR)
+- Tailwind CSS v4 setup
 - Named multi-connections for SQLite, MySQL, MongoDB, Redis, and PostgreSQL
 - Redis connection helpers and cache utilities
 - BullMQ base queue and worker factory
 - Migration and seeder tooling
-- Common middleware: CORS, secure headers, compression, rate limiting, request logging
+- Modular Middlewares: Isolated `api/`, `web/`, and `common/` namespaces
 - File-based logging with daily rotation
 - Health endpoint at `GET /api/health`
 
@@ -30,14 +33,18 @@ Compatibility defaults still exist for some helpers, but new code should prefer 
 ```bash
 bun install
 cp .env.example .env.dev
-bun run dev
+bun run dev:all
 ```
 
 ## Available Scripts
 
 | Script | Description |
 |--------|-------------|
-| `bun run dev` | Start development server |
+| `bun run dev:all` | Start both Hono (backend) and Vite (frontend) servers |
+| `bun run dev` | Start Hono backend server only |
+| `bun run dev:client` | Start Vite frontend server only |
+| `bun run build:client` | Build Vue assets for production |
+| `bun run typecheck` | Run TypeScript type checking |
 | `bun run prod` | Start production server |
 | `bun run worker:dev` | Start development worker process |
 | `bun run worker:prod` | Start production worker process |
@@ -69,16 +76,16 @@ Example response:
 ## Documentation
 
 - [Docs Index](./docs/README.md)
-- [Project Context](./project_context/README.md)
+- [Project Context](./context/README.md)
 
 Recommended reading order:
 
 1. `docs/README.md` for usage, guides, standards, and reference
-2. `project_context/README.md` for repo-specific current-state context
+2. `context/README.md` for repo-specific current-state context
 
 ## Notes
 
-- Tidak ada domain-specific route, controller, service, atau worker bawaan.
-- Worker skeleton tetap tersedia, tetapi default-nya tidak mendaftarkan job apa pun.
-- Dukungan database, Redis, cache, queue, migrasi, dan seeding tetap dipertahankan untuk project baru.
-- SQLite, MySQL, MongoDB, Redis, dan PostgreSQL sekarang sama-sama memakai named connection model.
+- Proyek ini dirancang sebagai fondasi. Namun, saat ini menyertakan referensi modul `example` (CRUD, Job) dan rute UI (`Index.tsx`, `IndexVue.tsx`) sebagai contoh implementasi.
+- Worker skeleton tersedia, dan job `create-example` diregistrasikan sebagai acuan.
+- Dukungan database, Redis, cache, queue, migrasi, dan seeding sepenuhnya modular.
+- Arsitektur routing secara jelas memisahkan Pure SSR (`/`) dan Vue SPA Bridge (`/dashboard/*`).
