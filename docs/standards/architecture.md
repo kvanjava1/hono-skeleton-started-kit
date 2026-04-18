@@ -3,6 +3,10 @@
 ## Project Structure
 
 ```text
+resources/
+├── css/
+├── js/
+└── views/
 src/
 ├── index.ts
 ├── app.ts

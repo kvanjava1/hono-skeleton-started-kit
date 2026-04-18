@@ -1,5 +1,5 @@
 import type { Context, Next } from "hono";
-import { logger } from "../utils/logger.util.ts";
+import { logger } from "../../utils/logger.util.ts";
 
 export const requestLoggerMiddleware = async (
   c: Context,

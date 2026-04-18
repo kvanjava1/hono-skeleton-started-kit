@@ -1,38 +1,28 @@
-import type { Hono } from "hono";
-import { cors } from "hono/cors";
-import { secureHeaders } from "hono/secure-headers";
-import { configCors } from "../configs/index.ts";
-import { requestId } from "hono/request-id";
-import { compress } from "hono/compress";
-import { errorHandler } from "./errorHandler.middleware.ts";
-import { rateLimiterMiddleware } from "./rateLimiter.middleware.ts";
-import { requestLoggerMiddleware } from "./logger.middleware.ts";
-import { jsonOnlyMiddleware } from "./contentType.middleware.ts";
-import { contextMiddleware } from "./context.middleware.ts";
+import { Hono } from "hono";
+import { setupCommonMiddlewares, errorHandler } from "./common/index.ts";
+import { setupApiMiddlewares } from "./api/index.ts";
+import { setupWebMiddlewares } from "./web/index.ts";
 
-export { errorHandler } from "./errorHandler.middleware.ts";
-export { rateLimiterMiddleware } from "./rateLimiter.middleware.ts";
-export { requestLoggerMiddleware } from "./logger.middleware.ts";
-export { jsonOnlyMiddleware } from "./contentType.middleware.ts";
+// Re-exporting everything for convenience and backward compatibility
+export * from "./common/index.ts";
+export * from "./api/index.ts";
+export * from "./web/index.ts";
 
+/**
+ * Main middleware entry point.
+ * Dispatches middlewares based on the request path (API vs Web).
+ */
 export const setupMiddlewares = (app: Hono) => {
-  app.use("*", requestId());
-  app.use("*", contextMiddleware);
-  app.use("*", compress());
-  app.use(
-    "*",
-    cors({
-      origin: configCors.origin,
-      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowHeaders: ["Content-Type", "Authorization"],
-    }),
-  );
+  // 1. Global / Common Middlewares (requestId, logger, compress, etc.)
+  setupCommonMiddlewares(app);
 
-  app.use("*", secureHeaders());
-  app.use("*", jsonOnlyMiddleware);
-  app.use("*", rateLimiterMiddleware);
-  app.use("*", requestLoggerMiddleware);
+  // 2. API Specific Middlewares (cors, jsonOnly)
+  // These are strictly applied to /api/* paths
+  setupApiMiddlewares(app);
 
-  // Global Error Handler
+  // 3. Web Specific Middlewares (static files, spa fallback)
+  setupWebMiddlewares(app);
+  
+  // 4. Global Error Handler
   app.onError(errorHandler);
 };

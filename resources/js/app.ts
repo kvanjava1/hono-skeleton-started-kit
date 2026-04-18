@@ -2,26 +2,36 @@ import { createApp, h } from 'vue'
 import { createRouter, createWebHistory, RouterView } from 'vue-router'
 import '../css/app.css'
 
-import Home from './pages/Home.vue'
-import Dashboard from './pages/Dashboard.vue'
+// Import new modular components
+import DashboardHome from './pages/DashboardHome.vue'
+import UserProfile from './pages/UserProfile.vue'
 
-// Ambil data dari "The Bridge" (Hono SSR)
-const initialState = (window as any).__INITIAL_STATE__ || {};
-console.log('📦 Data dari Hono SSR:', initialState);
-
-// Menggunakan Render Function agar tidak butuh Runtime Compiler (lebih ringan & cepat)
+/**
+ * Vue SPA Application Shell
+ * 
+ * We use createWebHistory('/dashboard') to mount the entire Vue app 
+ * under the /dashboard sub-path of our Hono server.
+ */
 const App = {
-  render: () => h('div', [h(RouterView)])
+  render: () => h('div', { class: 'min-h-screen bg-slate-50' }, [h(RouterView)])
 }
 
 const routes = [
-  { path: '/', component: Home },
-  { path: '/welcome', component: Home },
-  { path: '/dashboard', component: Dashboard },
+  { 
+    path: '/', 
+    component: DashboardHome,
+    name: 'dashboard-home'
+  },
+  { 
+    path: '/user', 
+    component: UserProfile,
+    name: 'user-profile'
+  },
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  // IMPORTANT: The base path must match the Hono mount point
+  history: createWebHistory('/dashboard'),
   routes
 })
 

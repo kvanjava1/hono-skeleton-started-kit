@@ -1,19 +1,19 @@
 import { Hono } from "hono";
 import { setupMiddlewares } from "./middlewares/index.ts";
 import { registerAllRoutes } from "./routes/index.ts";
-import { NotFoundError } from "./utils/errors.util.ts";
-import { setupSpaFallback } from "./middlewares/spaFallback.middleware.ts";
 
 const app = new Hono();
 
+/**
+ * 1. Global Middleware Setup
+ * Includes Logger, CORS, Security Headers, and Static File serving (SPA Fallback)
+ */
 setupMiddlewares(app);
+
+/**
+ * 2. Route Registration
+ * Includes API endpoints, SSR Web routes, and Global 404 handling
+ */
 registerAllRoutes(app);
-
-setupSpaFallback(app);
-
-// Global 404 Handler
-app.notFound((c) => {
-  throw new NotFoundError(`Endpoint ${c.req.path} not found`);
-});
 
 export { app };

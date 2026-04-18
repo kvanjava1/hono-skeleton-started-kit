@@ -23,7 +23,7 @@ Dokumen konteks proyek dipecah per kategori agar lebih mudah dipakai saat discov
 
 ## Current Understanding
 
-Repo ini adalah skeleton backend `Bun + Hono` dengan dukungan multi-database, queue worker, logging, migration, seeder, dan generator file. Saat ini repo sudah mendukung **named multi-connections** untuk seluruh engine utama:
+Repo ini adalah skeleton hybrid fullstack `Bun + Hono + Vue` dengan dukungan multi-database, queue worker, logging, migration, seeder, dan generator file. Saat ini repo sudah mendukung **named multi-connections** untuk seluruh engine utama:
 
 - SQLite: `sqlite1`
 - MySQL: `mysql1`, `mysql2`

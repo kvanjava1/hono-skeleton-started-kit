@@ -22,9 +22,9 @@ Proyek ini menggunakan pola **"The Bridge"**:
 ## Entry Points
 
 ### App Composition & SSR
-- [src/app.ts](src/app.ts): Bootstrap middleware, route aggregator, dan SPA fallback handler.
-- [src/views/Welcome.tsx](src/views/Welcome.tsx): Master layout/shell yang memuat Vue dan menyuntikkan data server.
-
+- [src/app.ts](src/app.ts): Bootstrap middleware and route aggregator.
+- [resources/views/Index.tsx](resources/views/Index.tsx): Pure SSR landing page entry point.
+- [resources/views/IndexVue.tsx](resources/views/IndexVue.tsx): Master layout/shell yang memuat Vue dan menyuntikkan data server.
 ### Frontend Entry (Client)
 - [resources/js/app.ts](resources/js/app.ts): Entry point utama Vue yang melakukan mounting ke `#app`.
 
@@ -34,15 +34,15 @@ Proyek ini menggunakan pola **"The Bridge"**:
 ## Root and Subdirectory Structure
 
 ### Backend Logic (`src/`)
-- `src/views`: Komponen Hono JSX (Layouts & Pages).
 - `src/routes`: Modular routing structure:
     - `src/routes/api/`: Semua endpoint REST API (prefix `/api`).
     - `src/routes/web/`: Semua rute SSR/Hybrid (Hono JSX).
-    - `src/routes/index.ts`: Aggregator utama rute.
-- `src/middlewares`: Termasuk `spaFallback.middleware.ts` untuk navigasi SPA.
+    - `src/routes/index.ts`: Aggregator utama rute (termasuk Global 404).
+- `src/middlewares`: Modular middlewares terbagi menjadi `common/`, `api/`, dan `web/` dengan dispatching berbasis path.
 - `src/database`, `src/configs`, `src/queues`, `src/utils`.
 
-### Frontend Assets (`resources/`)
+### Frontend Assets & UI (`resources/`)
+- `resources/views`: Komponen Hono JSX (Layouts & SSR Pages) - The Bridge.
 - `resources/js`: Vue components, pages, dan router logic.
 - `resources/css`: Tailwind CSS v4 entry.
 - `resources/public`: Aset statis mentah (favicon, robots).

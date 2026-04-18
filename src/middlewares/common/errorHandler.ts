@@ -1,15 +1,15 @@
 import type { Context } from "hono";
 import { ZodError } from "zod";
 import { HTTPException } from "hono/http-exception";
-import { HTTP_STATUS, MESSAGES } from "../configs/constants.ts";
-import { errorResponse } from "../utils/response.util.ts";
-import { logger } from "../utils/logger.util.ts";
-import { configApp } from "../configs/index.ts";
+import { HTTP_STATUS, MESSAGES } from "../../configs/constants.ts";
+import { errorResponse } from "../../utils/response.util.ts";
+import { logger } from "../../utils/logger.util.ts";
+import { configApp } from "../../configs/index.ts";
 import {
   AppError,
   ConflictError,
   ValidationError,
-} from "../utils/errors.util.ts";
+} from "../../utils/errors.util.ts";
 
 const DUPLICATE_ENTRY_MESSAGE = "The data you provided already exists.";
 

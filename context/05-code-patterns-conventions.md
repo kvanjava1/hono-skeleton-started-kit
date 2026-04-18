@@ -17,7 +17,8 @@ Berdasarkan dokumentasi:
 - services: `camelCase.service.ts` atau `snake_case.service.ts`
 - repositories: `camelCase.repository.ts`
 - schemas: `camelCase.schema.ts` atau `snake_case.schema.ts`
-- middlewares: `camelCase.middleware.ts`
+- middlewares: `camelCase.middleware.ts` atau `snake_case.ts`
+  - Simpan di folder yang sesuai: `api/` (khusus API), `web/` (khusus Web), atau `common/` (Global).
 - utils: `snake_case.util.ts`
 - jobs: `PascalCase.job.ts`
 - database connection: `snake_case.connection.ts`
@@ -161,7 +162,8 @@ Asumsi paling aman untuk task berikutnya:
 ### Hono JSX (SSR)
 - Gunakan ekstensi `.tsx` untuk komponen yang mengandung JSX.
 - Tambahkan pragma `/** @jsxImportSource hono/jsx */` di bagian atas file jika IDE mengalami masalah tipe.
-- Gunakan `await Welcome(...)` untuk komponen asinkron di dalam handler.
+- Komponen harus ditempatkan di `resources/views/`.
+- Gunakan komponen dasar seperti `await Layout(...)` atau `await IndexVue(...)` untuk merakit halaman.
 
 ### Vue.js (CSR)
 - Gunakan **Composition API** dengan `<script setup lang="ts">`.

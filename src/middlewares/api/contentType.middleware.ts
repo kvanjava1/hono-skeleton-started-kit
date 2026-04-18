@@ -1,5 +1,5 @@
 import type { Context, Next } from "hono";
-import { ValidationError } from "../utils/errors.util.ts";
+import { ValidationError } from "../../utils/errors.util.ts";
 
 /**
  * Middleware to enforce application/json Content-Type for mutation requests.

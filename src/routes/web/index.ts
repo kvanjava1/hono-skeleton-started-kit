@@ -1,18 +1,17 @@
 import { Hono } from "hono";
-import { welcomeHandler } from "../../../resources/views/Welcome.tsx";
-import { aboutHandler } from "../../../resources/views/About.tsx";
+import { indexVueHandler } from "../../../resources/views/IndexVue.tsx";
+import { indexHandler } from "../../../resources/views/Index.tsx";
 
 export const webRoutes = new Hono();
 
 /**
- * Web / SSR Routes
- * Komponen ini menangani rute yang merender HTML via Hono JSX (The Bridge)
+ * Web Routing Configuration
  */
 
-// Home: Hybrid SSR + Vue Bridge
-webRoutes.get("/", welcomeHandler);
+// 1. Pure SSR Landing Page
+webRoutes.get("/", indexHandler);
 
-// About: Pure SSR (No Vue)
-webRoutes.get("/about", aboutHandler);
-
-// Tambahkan rute web lainnya di sini...
+// 2. Vue SPA Entry Point (Mounted at /dashboard)
+// Every path starting with /dashboard will be handled by the same Vue Shell
+webRoutes.get("/dashboard", indexVueHandler);
+webRoutes.get("/dashboard/*", indexVueHandler);

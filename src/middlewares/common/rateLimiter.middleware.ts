@@ -1,8 +1,8 @@
 import type { Context, Next } from "hono";
-import { configRateLimiter } from "../configs/index.ts";
-import { HTTP_STATUS, MESSAGES } from "../configs/constants.ts";
-import { errorResponse } from "../utils/response.util.ts";
-import { logger } from "../utils/logger.util.ts";
+import { configRateLimiter } from "../../configs/index.ts";
+import { HTTP_STATUS, MESSAGES } from "../../configs/constants.ts";
+import { errorResponse } from "../../utils/response.util.ts";
+import { logger } from "../../utils/logger.util.ts";
 
 interface RateLimitStore {
   count: number;

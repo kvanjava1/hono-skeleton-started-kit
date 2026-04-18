@@ -30,13 +30,7 @@ Environment dipisah lewat:
 
 Pemisahan ini dipakai langsung di script `bun run --env-file=...`.
 
-## Build and Deployment Shape
 
-Build dilakukan dengan:
-
-- `bun build ./src/index.ts --compile --outfile server`
-
-Ini berarti deploy bisa dilakukan dengan binary hasil compile, bukan hanya source + Bun runtime.
 
 ## Migration and Seeder Strategy
 

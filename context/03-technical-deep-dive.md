@@ -34,20 +34,16 @@ Route modular per feature sekarang sudah ada dalam bentuk modul referensi `examp
 
 ## Middleware Stack
 
-Middleware dipasang di [src/middlewares/index.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/middlewares/index.ts).
+Middleware diatur secara modular di `src/middlewares/` dengan pola dispatcher berbasis path.
 
-Urutan middleware:
+Urutan eksekusi secara umum:
 
-1. `requestId()`
-2. `contextMiddleware`
-3. `compress()`
-4. `cors()`
-5. `secureHeaders()`
-6. `jsonOnlyMiddleware`
-7. `rateLimiterMiddleware`
-8. `requestLoggerMiddleware`
-9. `app.onError(errorHandler)`
+1. **Common (Semua Request)**: `requestId`, `context`, `compress`, `secureHeaders`, `rateLimiter`, `requestLogger`.
+2. **API Specific (`/api/*`)**: `cors` (ketat), `jsonOnlyMiddleware`.
+3. **Web Specific (Non-API)**: `spaFallback` (static assets dari dist).
+4. **Global**: `app.onError(errorHandler)`
 
+Dispatcher utama ada di `src/middlewares/index.ts` yang mengarahkan middleware ke Sub-App atau Path yang tepat.
 ### Notes
 
 - request id dibuat sebelum context dijalankan
@@ -193,13 +189,16 @@ Yang tersedia:
 
 ## State Management
 
-Tidak ada frontend atau state management client-side.
-
 State backend yang terlihat:
 
 - request-scoped context via `AsyncLocalStorage`
 - in-memory rate-limit store
 - cache optional via Redis `redis1` secara default
+
+State frontend (Vue):
+
+- Initial state dikirim dari Hono via `window.__INITIAL_STATE__`.
+- Vue mengambil alih manajemen state interaktif di rute `/dashboard/*` dan turunannya.
 
 ## File Storage and Upload
 
