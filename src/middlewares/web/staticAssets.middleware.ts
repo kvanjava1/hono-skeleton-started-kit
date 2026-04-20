@@ -3,10 +3,11 @@ import { serveStatic } from "hono/bun";
 import { configApp } from "../../configs/app.config.ts";
 
 /**
- * Middleware to handle static files in Production mode.
- * SPA navigation is explicitly handled in webRoutes.
+ * Middleware to handle static files and assets.
+ * 1. In Production: Serves bundled assets from ./dist
+ * 2. In Development: Serves raw assets from ./public
  */
-export const setupSpaFallback = (app: Hono) => {
+export const setupStaticAssets = (app: Hono) => {
   // Only serve static files from the dist folder in production mode
   if (configApp.isProduction) {
     app.use("/*", serveStatic({ root: "./dist" }));
@@ -16,6 +17,4 @@ export const setupSpaFallback = (app: Hono) => {
   if (configApp.isDevelopment) {
     app.use("/*", serveStatic({ root: "./public" }));
   }
-  
-  // Note: Catch-all logic for /dashboard/* has been moved to src/routes/web/index.ts
 };
