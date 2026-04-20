@@ -16,6 +16,8 @@
 
 > [!NOTE]
 > **Modular Structure**: New domain features should be placed in sub-folders (e.g., `src/controllers/product/`).
+> **SPA Apps**: Different Vue applications should be isolated in `resources/js/apps/[app-name]/`.
+> **Static Assets**: Put static files in the root `/public/` directory.
 
 ## Imports
 

@@ -24,12 +24,12 @@ Berdasarkan dokumentasi:
 - database connection: `snake_case.connection.ts`
 
 ### Modular Folder Pattern
-Untuk setiap modul domain baru (misal: `example`), buatlah sub-folder di setiap layer:
+Untuk setiap modul domain atau aplikasi SPA baru:
 - `src/controllers/example/`
 - `src/services/sqlite/example/`
 - `src/routes/api/example/`
+- `resources/js/apps/example1/pages/` (Halaman khusus aplikasi)
 - `resources/views/example/`
-- dst.
 
 ## Import Conventions
 

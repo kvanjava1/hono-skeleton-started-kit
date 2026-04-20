@@ -47,6 +47,16 @@ The module follows:
 - `src/workers/index.ts` (Registration)
 - `tests/example/crudWithJob.test.ts`
 
+## Web Views (Multi-SPA)
+
+Module ini juga menyertakan contoh implementasi Multi-SPA:
+
+- `resources/js/apps/example1/`: Aplikasi Vue pertama.
+- `resources/js/apps/example2/`: Aplikasi Vue kedua.
+- `src/controllers/example/exampleLoadView.controller.ts`: Controller pengelola View.
+- `src/routes/web/example/exampleLoadView.router.ts`: Router untuk akses web.
+- `resources/views/example/`: Komponen Hono JSX (SSR Shell).
+
 ## Queue Behavior
 
 Both `POST /api/examples` and `PUT /api/examples/:id` are asynchronous.

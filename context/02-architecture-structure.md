@@ -24,7 +24,7 @@ Proyek ini menggunakan pola **"The Bridge"**:
 ### App Composition & SSR
 - [src/app.ts](src/app.ts): Bootstrap middleware and route aggregator.
 - [resources/views/example/Index.tsx](resources/views/example/Index.tsx): Pure SSR landing page entry point (Modular).
-- [resources/views/example/IndexVue.tsx](resources/views/example/IndexVue.tsx): Master layout/shell yang memuat Vue (Modular).
+- [resources/views/example/IndexVue.tsx](resources/views/example/IndexVue.tsx): Generic SPA Shell yang memuat berbagai aplikasi Vue.
 ### Frontend Entry (Client)
 - [resources/js/app.ts](resources/js/app.ts): Entry point utama Vue yang melakukan mounting ke `#app`.
 
@@ -45,10 +45,12 @@ Proyek ini menggunakan pola **"The Bridge"**:
 - `src/database`, `src/configs`, `src/queues`, `src/utils`.
 
 ### Frontend Assets & UI (`resources/`)
-- `resources/views`: Komponen Hono JSX (Layouts & SSR Pages) - The Bridge.
-- `resources/js`: Vue components, pages, dan router logic.
+- `resources/js/apps/`: Folder untuk masing-masing aplikasi SPA (misal: `example1`, `example2`).
+- `resources/js/pages/`: Halaman yang dienkapsulasi di dalam folder masing-masing aplikasi.
 - `resources/css`: Tailwind CSS v4 entry.
-- `resources/public`: Aset statis mentah (favicon, robots).
+
+### Static Assets
+- `public/`: Folder di **root proyek** untuk aset statis mentah (favicon, robots.txt, dll). Aset di sini akan disalin langsung ke `dist/` saat build.
 
 - `scripts/migrations`: migration framework untuk semua target database, sekarang dengan target connection eksplisit untuk SQLite, MySQL, MongoDB, dan PostgreSQL
 - `scripts/seeders`: seeder runner
