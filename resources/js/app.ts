@@ -17,13 +17,13 @@ const App = {
 }
 
 const routes = [
-  { 
-    path: '/', 
+  {
+    path: '/',
     component: DashboardHome,
     name: 'dashboard-home'
   },
-  { 
-    path: '/user', 
+  {
+    path: '/user',
     component: UserProfile,
     name: 'user-profile'
   },
@@ -31,7 +31,7 @@ const routes = [
 
 const router = createRouter({
   // IMPORTANT: The base path must match the Hono mount point
-  history: createWebHistory('/dashboard'),
+  history: createWebHistory('/example/dashboard'),
   routes
 })
 

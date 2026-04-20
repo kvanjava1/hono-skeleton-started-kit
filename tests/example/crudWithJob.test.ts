@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { closeAllSqliteConnections, getSqliteDb } from "../src/database/index.ts";
+import { closeAllSqliteConnections, getSqliteDb } from "../../src/database/index.ts";
 import {
   createExample as createExampleRecord,
   findExampleById,
-} from "../src/repositories/sqlite/example.repository.ts";
-import * as baseExamplesMigration from "../scripts/migrations/sqlite/files/20260410080127_create_examples.ts";
-import * as examplesCrudMigration from "../scripts/migrations/sqlite/files/20260415170000_prepare_examples_crud.ts";
+} from "../../src/repositories/sqlite/example/crudWithJob.repository.ts";
+import * as baseExamplesMigration from "../../scripts/migrations/sqlite/files/20260410080127_create_examples.ts";
+import * as examplesCrudMigration from "../../scripts/migrations/sqlite/files/20260415170000_prepare_examples_crud.ts";
 
 const queuedPayloads: Array<{
   full_name: string;
@@ -19,7 +19,7 @@ const cacheOps = {
   deleteByPattern: [] as string[],
 };
 
-mock.module("../src/jobs/CreateExample.job.ts", () => ({
+mock.module("../../src/jobs/example/crudWithJobCreate.job.ts", () => ({
   dispatchCreateExample: async (payload: {
     full_name: string;
     email: string;
@@ -34,7 +34,22 @@ mock.module("../src/jobs/CreateExample.job.ts", () => ({
   createExampleProcessor: async () => ({ exampleId: 1 }),
 }));
 
-mock.module("../src/utils/cache.util.ts", () => ({
+mock.module("../../src/jobs/example/crudWithJobUpdate.job.ts", () => ({
+  dispatchUpdateExample: async (payload: {
+    id: number;
+    full_name: string;
+    email: string;
+    passwordHash: string;
+  }) => {
+    return { id: "job-update-example-1" };
+  },
+  updateExampleFromJob: async () => {
+    throw new Error("updateExampleFromJob should not be called in HTTP CRUD tests");
+  },
+  updateExampleProcessor: async () => ({ exampleId: 1 }),
+}));
+
+mock.module("../../src/utils/cache.util.ts", () => ({
   cacheGet: async <T>(key: string): Promise<T | null> => {
     cacheOps.get.push(key);
     return (cacheStore.get(key) as T | undefined) ?? null;
@@ -68,8 +83,8 @@ mock.module("../src/utils/cache.util.ts", () => ({
   },
 }));
 
-const { app } = await import("../src/app.ts");
-const { createExampleFromJob } = await import("../src/services/sqlite/example.service.ts");
+const { app } = await import("../../src/app.ts");
+const { createExampleFromJob } = await import("../../src/services/sqlite/example/crudWithJob.service.ts");
 
 const configureTestEnv = () => {
   process.env.NODE_ENV = "test";
@@ -116,7 +131,7 @@ afterEach(() => {
   closeAllSqliteConnections();
 });
 
-describe("examples CRUD", () => {
+describe("examples CRUD (Modular)", () => {
   test("create still works after crud migration down and up cycle", async () => {
     const db = getSqliteDb("sqlite1");
 
@@ -236,13 +251,9 @@ describe("examples CRUD", () => {
     });
   });
 
-  test("PUT /api/examples/:id updates full_name, email, and password", async () => {
+  test("PUT /api/examples/:id queues async update and returns 202", async () => {
     const example = await seedExample();
-    cacheStore.set("examples:list:limit=10&page=1", {
-      items: [],
-      pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
-    });
-
+    
     const response = await app.request(`/api/examples/${example.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -254,19 +265,13 @@ describe("examples CRUD", () => {
     });
 
     const body = await response.json();
-    const updatedExample = findExampleById(example.id);
 
-    expect(response.status).toBe(200);
-    expect(body.data).toMatchObject({
-      id: example.id,
-      full_name: "Example Updated",
-      email: "example.updated@example.com",
+    expect(response.status).toBe(202);
+    expect(body.message).toBe("Example update queued");
+    expect(body.data).toEqual({
+      job_id: "job-update-example-1",
+      status: "queued",
     });
-    expect(updatedExample?.password).toBeDefined();
-    expect(
-      await Bun.password.verify("newsecret123", updatedExample!.password),
-    ).toBe(true);
-    expect(cacheOps.deleteByPattern).toContain("examples:list:*");
   });
 
   test("DELETE /api/examples/:id performs soft delete", async () => {

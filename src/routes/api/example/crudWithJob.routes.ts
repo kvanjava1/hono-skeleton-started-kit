@@ -6,12 +6,12 @@ import {
   getExample,
   getExamples,
   updateExample,
-} from "../../controllers/example.controller.ts";
+} from "../../../controllers/example/crudWithJob.controller.ts";
 import {
   createExampleSchema,
   listExamplesQuerySchema,
   updateExampleSchema,
-} from "../../schemas/example.schema.ts";
+} from "../../../schemas/example/crudWithJob.schema.ts";
 
 const exampleRoutes = new Hono();
 

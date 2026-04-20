@@ -28,13 +28,13 @@ Examples:
 ## Generate Job File
 
 ```bash
-bun run make job SendEmail
+bun run make job example/sendEmail
 ```
 
 File path:
 
 ```text
-src/jobs/SendEmail.job.ts
+src/jobs/example/sendEmail.job.ts
 ```
 
 ## Example Job
@@ -88,7 +88,7 @@ Example:
 ```ts
 import { createWorker } from '../queues/base.queue.ts';
 import { logger } from '../utils/logger.util.ts';
-import { sendEmailProcessor } from '../jobs/SendEmail.job.ts';
+import { sendEmailProcessor } from '../jobs/example/sendEmail.job.ts';
 
 const startWorkers = () => {
   logger.info('Background workers starting...');

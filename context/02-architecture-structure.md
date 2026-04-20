@@ -23,8 +23,8 @@ Proyek ini menggunakan pola **"The Bridge"**:
 
 ### App Composition & SSR
 - [src/app.ts](src/app.ts): Bootstrap middleware and route aggregator.
-- [resources/views/Index.tsx](resources/views/Index.tsx): Pure SSR landing page entry point.
-- [resources/views/IndexVue.tsx](resources/views/IndexVue.tsx): Master layout/shell yang memuat Vue dan menyuntikkan data server.
+- [resources/views/example/Index.tsx](resources/views/example/Index.tsx): Pure SSR landing page entry point (Modular).
+- [resources/views/example/IndexVue.tsx](resources/views/example/IndexVue.tsx): Master layout/shell yang memuat Vue (Modular).
 ### Frontend Entry (Client)
 - [resources/js/app.ts](resources/js/app.ts): Entry point utama Vue yang melakukan mounting ke `#app`.
 
@@ -38,6 +38,9 @@ Proyek ini menggunakan pola **"The Bridge"**:
     - `src/routes/api/`: Semua endpoint REST API (prefix `/api`).
     - `src/routes/web/`: Semua rute SSR/Hybrid (Hono JSX).
     - `src/routes/index.ts`: Aggregator utama rute (termasuk Global 404).
+- `src/controllers`, `src/services`, `src/repositories`, `src/schemas`, `src/jobs`: 
+    - Menggunakan struktur folder modular berbasis domain (misal: `src/controllers/example/`).
+    - File dalam folder domain menggunakan penamaan **camelCase** (misal: `crudWithJob.controller.ts`).
 - `src/middlewares`: Modular middlewares terbagi menjadi `common/`, `api/`, dan `web/` dengan dispatching berbasis path.
 - `src/database`, `src/configs`, `src/queues`, `src/utils`.
 

@@ -8,7 +8,7 @@ import { NotFoundError } from "../utils/errors.util.ts";
  */
 export const registerAllRoutes = (app: Hono) => {
   // 1. API Routes (JSON responses)
-  app.route("/api", apiRoutes);
+  app.route("/", apiRoutes);
 
   // 2. Web Routes (SSR & Hybrid SPA Bridge)
   app.route("/", webRoutes);
@@ -19,7 +19,7 @@ export const registerAllRoutes = (app: Hono) => {
     if (c.req.path.startsWith("/api/")) {
       throw new NotFoundError(`API Endpoint ${c.req.path} not found`);
     }
-    
+
     // For other web routes, throw a standard NotFoundError or render a custom 404 page
     throw new NotFoundError(`Page ${c.req.path} not found`);
   });

@@ -1,24 +1,28 @@
-import { MESSAGES } from "../../configs/constants.ts";
+import { MESSAGES } from "../../../configs/constants.ts";
 import {
   cacheDeleteByPattern,
   cacheGet,
   cacheSet,
-} from "../../utils/cache.util.ts";
+} from "../../../utils/cache.util.ts";
 import {
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "../../utils/errors.util.ts";
-import { logger } from "../../utils/logger.util.ts";
+} from "../../../utils/errors.util.ts";
+import { logger } from "../../../utils/logger.util.ts";
 import {
   dispatchCreateExample,
   type CreateExampleJobPayload,
-} from "../../jobs/CreateExample.job.ts";
+} from "../../../jobs/example/crudWithJobCreate.job.ts";
+import {
+  dispatchUpdateExample,
+  type UpdateExampleJobPayload,
+} from "../../../jobs/example/crudWithJobUpdate.job.ts";
 import type {
   CreateExampleInput,
   ListExamplesQuery,
   UpdateExampleInput,
-} from "../../schemas/example.schema.ts";
+} from "../../../schemas/example/crudWithJob.schema.ts";
 import {
   countExamples,
   createExample,
@@ -28,7 +32,7 @@ import {
   softDeleteExample,
   updateExample,
   type ExampleRecord,
-} from "../../repositories/sqlite/example.repository.ts";
+} from "../../../repositories/sqlite/example/crudWithJob.repository.ts";
 
 export interface ExampleResponse {
   id: number;
@@ -135,6 +139,57 @@ export const createExampleFromJob = async (
   await invalidateExamplesListCache();
 
   return createdExample;
+};
+
+export const queueUpdateExample = async (
+  id: number,
+  input: UpdateExampleInput,
+) => {
+  const existingExample = findExampleById(id);
+
+  if (!existingExample) {
+    throw new NotFoundError(MESSAGES.EXAMPLE_NOT_FOUND);
+  }
+
+  assertEmailAvailable(input.email, id);
+
+  const payload: UpdateExampleJobPayload = {
+    id,
+    full_name: input.full_name,
+    email: input.email,
+    passwordHash: await hashPassword(input.password),
+  };
+
+  const job = await dispatchUpdateExample(payload);
+
+  logger.info(`[ExampleService] Example update queued`, {
+    id,
+    email: input.email,
+    jobId: job.id,
+  });
+
+  return {
+    job_id: job.id,
+    status: "queued" as const,
+  };
+};
+
+export const updateExampleFromJob = async (
+  payload: UpdateExampleJobPayload,
+) => {
+  const updatedExample = updateExample(payload.id, {
+    full_name: payload.full_name,
+    email: payload.email,
+    password: payload.passwordHash,
+  });
+
+  if (!updatedExample) {
+    throw new NotFoundError(MESSAGES.EXAMPLE_NOT_FOUND);
+  }
+
+  await invalidateExamplesListCache();
+
+  return updatedExample;
 };
 
 export const listExamples = async (query: ListExamplesQuery) => {

@@ -5,14 +5,17 @@
 | Layer | Format | Example |
 |---|---|---|
 | Routes | `camelCase.routes.ts` | `product.routes.ts` |
-| Controllers | `camelCase.controller.ts` or `snake_case.controller.ts` | `product.controller.ts` |
-| Services | `camelCase.service.ts` or `snake_case.service.ts` | `product.service.ts` |
+| Controllers | `camelCase.controller.ts` | `product.controller.ts` |
+| Services | `camelCase.service.ts` | `product.service.ts` |
 | Repositories | `camelCase.repository.ts` | `product.repository.ts` |
-| Schemas | `camelCase.schema.ts` or `snake_case.schema.ts` | `product.schema.ts` |
+| Schemas | `camelCase.schema.ts` | `product.schema.ts` |
 | Middlewares | `camelCase.middleware.ts` | `errorHandler.middleware.ts` |
 | Utils | `snake_case.util.ts` | `logger.util.ts` |
-| Jobs | `PascalCase.job.ts` | `SendEmail.job.ts` |
+| Jobs | `camelCase.job.ts` | `sendEmail.job.ts` |
 | Database | `snake_case.connection.ts` | `sqlite.connection.ts` |
+
+> [!NOTE]
+> **Modular Structure**: New domain features should be placed in sub-folders (e.g., `src/controllers/product/`).
 
 ## Imports
 

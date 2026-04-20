@@ -1,17 +1,15 @@
 import { Hono } from "hono";
-import { indexVueHandler } from "../../../resources/views/IndexVue.tsx";
-import { indexHandler } from "../../../resources/views/Index.tsx";
+import { exampleLoadViewRoutes } from "./example/exampleLoadView.router.ts";
+import { renderLandingPage, renderDashboard } from "../../controllers/example/exampleLoadView.controller.ts";
+import { ROUTES } from "../../configs/routes.config.ts";
 
 export const webRoutes = new Hono();
 
 /**
  * Web Routing Configuration
+ * Mount modular web routers here.
  */
 
-// 1. Pure SSR Landing Page
-webRoutes.get("/", indexHandler);
-
-// 2. Vue SPA Entry Point (Mounted at /dashboard)
-// Every path starting with /dashboard will be handled by the same Vue Shell
-webRoutes.get("/dashboard", indexVueHandler);
-webRoutes.get("/dashboard/*", indexVueHandler);
+// Mount Example View Routes
+webRoutes.get("/", renderLandingPage);
+webRoutes.route(ROUTES.WEB.EXAMPLE.LANDING, exampleLoadViewRoutes);

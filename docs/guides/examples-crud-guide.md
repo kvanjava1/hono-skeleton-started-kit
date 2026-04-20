@@ -35,30 +35,30 @@ The module follows:
 7. job
 8. worker registration
 
-## Files
+## Files (Modular Structure)
 
-- `src/routes/example.routes.ts`
-- `src/controllers/example.controller.ts`
-- `src/services/sqlite/example.service.ts`
-- `src/repositories/sqlite/example.repository.ts`
-- `src/schemas/example.schema.ts`
-- `src/jobs/CreateExample.job.ts`
-- `src/workers/index.ts`
-- `scripts/migrations/sqlite/files/20260410080127_create_examples.ts`
-- `scripts/migrations/sqlite/files/20260415170000_prepare_examples_crud.ts`
-- `tests/examples.crud.test.ts`
+- `src/routes/api/example/crudWithJob.routes.ts`
+- `src/controllers/example/crudWithJob.controller.ts`
+- `src/services/sqlite/example/crudWithJob.service.ts`
+- `src/repositories/sqlite/example/crudWithJob.repository.ts`
+- `src/schemas/example/crudWithJob.schema.ts`
+- `src/jobs/example/crudWithJobCreate.job.ts`
+- `src/jobs/example/crudWithJobUpdate.job.ts`
+- `src/workers/index.ts` (Registration)
+- `tests/example/crudWithJob.test.ts`
 
 ## Queue Behavior
 
-`POST /api/examples` is asynchronous.
+Both `POST /api/examples` and `PUT /api/examples/:id` are asynchronous.
 
 Flow:
 
-1. request is validated
-2. password is hashed
-3. `create-example` job is queued
-4. API returns `202 Accepted`
-5. worker inserts into SQLite
+1. Request is validated (Zod)
+2. Sensitive data (password) is hashed
+3. Job is dispatched to Redis via BullMQ (`crudWithJobCreate` or `crudWithJobUpdate`)
+4. API returns `202 Accepted` with a `job_id`
+5. Worker processes the job and persists data to SQLite
+6. Worker invalidates relevant Redis cache patterns
 
 ## Cache Behavior
 
@@ -87,5 +87,5 @@ Rules:
 bun run migrate:dev sqlite
 bun run dev
 bun run worker:dev
-bun test tests/examples.crud.test.ts
+bun test tests/example/crudWithJob.test.ts
 ```

@@ -1,12 +1,13 @@
 import { Hono } from "hono";
 import { MESSAGES } from "../../configs/constants.ts";
 import { successResponse } from "../../utils/response.util.ts";
-import { exampleRoutes } from "./example.routes.ts";
+import { exampleRoutes } from "./example/crudWithJob.routes.ts";
+import { ROUTES } from "../../configs/routes.config.ts";
 
 export const apiRoutes = new Hono();
 
 // Health check endpoint
-apiRoutes.get("/health", (c) => {
+apiRoutes.get(ROUTES.API.HEALTH, (c) => {
   return successResponse(c, MESSAGES.HEALTH_OK, {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
@@ -14,4 +15,4 @@ apiRoutes.get("/health", (c) => {
 });
 
 // Module routes
-apiRoutes.route("/examples", exampleRoutes);
+apiRoutes.route(ROUTES.API.EXAMPLE.BASE, exampleRoutes);

@@ -1,19 +1,19 @@
 import type { Context } from "hono";
-import { HTTP_STATUS, MESSAGES } from "../configs/constants.ts";
+import { HTTP_STATUS, MESSAGES } from "../../configs/constants.ts";
 import type {
   CreateExampleInput,
   ListExamplesQuery,
   UpdateExampleInput,
-} from "../schemas/example.schema.ts";
+} from "../../schemas/example/crudWithJob.schema.ts";
 import {
   deleteExampleById,
   getExampleDetail,
   listExamples,
   parseExampleId,
   queueCreateExample,
-  updateExampleById,
-} from "../services/sqlite/example.service.ts";
-import { successResponse } from "../utils/response.util.ts";
+  queueUpdateExample,
+} from "../../services/sqlite/example/crudWithJob.service.ts";
+import { successResponse } from "../../utils/response.util.ts";
 
 export const createExample = async (
   c: Context,
@@ -45,8 +45,14 @@ export const updateExample = async (
   payload: UpdateExampleInput,
 ) => {
   const id = parseExampleId(c.req.param("id"));
-  const example = await updateExampleById(id, payload);
-  return successResponse(c, MESSAGES.EXAMPLE_UPDATED, example);
+  const queuedJob = await queueUpdateExample(id, payload);
+
+  return successResponse(
+    c,
+    "Example update queued",
+    queuedJob,
+    HTTP_STATUS.ACCEPTED,
+  );
 };
 
 export const deleteExample = async (c: Context) => {

@@ -1,7 +1,7 @@
 import type { Job } from "bullmq";
-import { createQueue } from "../queues/base.queue.ts";
-import { createExampleFromJob } from "../services/sqlite/example.service.ts";
-import { logger } from "../utils/logger.util.ts";
+import { createQueue } from "../../queues/base.queue.ts";
+import { createExampleFromJob } from "../../services/sqlite/example/crudWithJob.service.ts";
+import { logger } from "../../utils/logger.util.ts";
 
 export interface CreateExampleJobPayload {
   full_name: string;

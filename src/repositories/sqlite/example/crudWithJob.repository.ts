@@ -1,4 +1,4 @@
-import { getSqliteDb } from "../../database/sqlite.connection.ts";
+import { getSqliteDb } from "../../../database/sqlite.connection.ts";
 
 export interface ExampleRecord {
   id: number;

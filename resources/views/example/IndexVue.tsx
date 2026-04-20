@@ -1,23 +1,23 @@
 /** @jsxImportSource hono/jsx */
-import { configApp } from "../../src/configs/app.config.ts";
-import { getAsset, getStyle } from "../../src/utils/vite.util.ts";
+import type { Context } from "hono";
+import { configApp } from "../../../src/configs/app.config.ts";
+import { getAsset, getStyle } from "../../../src/utils/vite.util.ts";
 
-interface LayoutProps {
+interface IndexVueProps {
   title?: string;
-  children: any;
-  withVue?: boolean;
+  initialState?: any;
 }
 
 /**
- * Main Layout (Base Template)
- * Supports both Pure SSR and Hybrid Vue SPA modes
+ * IndexVue Component (The Bridge - Template-less)
+ * Serves as the "Shell" for the Vue SPA application without using Layout component
  */
-export const Layout = async ({ title = "Hono Skeleton", children, withVue = false }: LayoutProps) => {
+export const IndexVue = async ({ title = "Dashboard | Vue SPA", initialState = {} }: IndexVueProps) => {
   const isDev = configApp.isDevelopment;
 
   // Resolve Tailwind CSS and Vue assets
   const tailwindCss = isDev ? null : await getStyle("js/app.ts");
-  const vueScript = withVue ? await getAsset("js/app.ts") : null;
+  const vueScript = await getAsset("js/app.ts");
 
   return (
     <html lang="en">
@@ -35,16 +35,23 @@ export const Layout = async ({ title = "Hono Skeleton", children, withVue = fals
             }} />
           </>
         )}
-        
+
         {/* Tailwind CSS (Production mode only) */}
         {!isDev && tailwindCss && <link rel="stylesheet" href={tailwindCss} />}
 
-        {/* Vue Bridge Script (Only if withVue={true}) */}
-        {withVue && vueScript && <script type="module" src={vueScript}></script>}
+        {/* Vue Bridge Script */}
+        {vueScript && <script type="module" src={vueScript}></script>}
       </head>
       <body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-100 selection:text-indigo-700">
-        {children}
+        {/* Hydration: Passing server-side data to the client-side window object */}
+        <script dangerouslySetInnerHTML={{
+          __html: `window.__INITIAL_STATE__ = ${JSON.stringify(initialState)};`
+        }} />
+
+        {/* Vue.js mounting point */}
+        <div id="app"></div>
       </body>
     </html>
   );
 };
+

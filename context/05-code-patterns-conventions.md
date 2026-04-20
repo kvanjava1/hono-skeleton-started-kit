@@ -13,15 +13,23 @@ Prinsipnya sehat dan perlu dipertahankan saat modul domain pertama dibuat.
 Berdasarkan dokumentasi:
 
 - routes: `camelCase.routes.ts`
-- controllers: `camelCase.controller.ts` atau `snake_case.controller.ts`
-- services: `camelCase.service.ts` atau `snake_case.service.ts`
+- controllers: `camelCase.controller.ts` (Strictly camelCase for new modules)
+- services: `camelCase.service.ts` (Strictly camelCase for new modules)
 - repositories: `camelCase.repository.ts`
-- schemas: `camelCase.schema.ts` atau `snake_case.schema.ts`
+- schemas: `camelCase.schema.ts`
 - middlewares: `camelCase.middleware.ts` atau `snake_case.ts`
-  - Simpan di folder yang sesuai: `api/` (khusus API), `web/` (khusus Web), atau `common/` (Global).
+  - Simpan di folder yang sesuai: `api/`, `web/`, atau `common/`.
 - utils: `snake_case.util.ts`
-- jobs: `PascalCase.job.ts`
+- jobs: `camelCase.job.ts` (Transitioned from PascalCase to maintain uniformity with controllers/services)
 - database connection: `snake_case.connection.ts`
+
+### Modular Folder Pattern
+Untuk setiap modul domain baru (misal: `example`), buatlah sub-folder di setiap layer:
+- `src/controllers/example/`
+- `src/services/sqlite/example/`
+- `src/routes/api/example/`
+- `resources/views/example/`
+- dst.
 
 ## Import Conventions
 
