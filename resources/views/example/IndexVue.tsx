@@ -1,23 +1,28 @@
 /** @jsxImportSource hono/jsx */
-import type { Context } from "hono";
 import { configApp } from "../../../src/configs/app.config.ts";
 import { getAsset, getStyle } from "../../../src/utils/vite.util.ts";
 
 interface IndexVueProps {
   title?: string;
   initialState?: any;
+  entryPoint?: string; // Add entryPoint prop
 }
 
 /**
  * IndexVue Component (The Bridge - Template-less)
- * Serves as the "Shell" for the Vue SPA application without using Layout component
+ * Serves as the "Shell" for any Vue SPA application.
  */
-export const IndexVue = async ({ title = "Dashboard | Vue SPA", initialState = {} }: IndexVueProps) => {
+export const IndexVue = async ({ 
+  title = "Dashboard | Vue SPA", 
+  initialState = {}, 
+  entryPoint = "js/app.ts" // Default to main app
+}: IndexVueProps) => {
   const isDev = configApp.isDevelopment;
 
-  // Resolve Tailwind CSS and Vue assets
+  // Resolve Tailwind CSS and the specific Vue app asset
+  // We use the same CSS for all apps, but different JS entry points
   const tailwindCss = isDev ? null : await getStyle("js/app.ts");
-  const vueScript = await getAsset("js/app.ts");
+  const vueScript = await getAsset(entryPoint);
 
   return (
     <html lang="en">
@@ -39,7 +44,7 @@ export const IndexVue = async ({ title = "Dashboard | Vue SPA", initialState = {
         {/* Tailwind CSS (Production mode only) */}
         {!isDev && tailwindCss && <link rel="stylesheet" href={tailwindCss} />}
 
-        {/* Vue Bridge Script */}
+        {/* Vue Bridge Script for the specific SPA */}
         {vueScript && <script type="module" src={vueScript}></script>}
       </head>
       <body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-100 selection:text-indigo-700">
@@ -54,4 +59,3 @@ export const IndexVue = async ({ title = "Dashboard | Vue SPA", initialState = {
     </html>
   );
 };
-

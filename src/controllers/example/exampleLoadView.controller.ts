@@ -24,25 +24,33 @@ export const renderLandingPage = async (c: Context) => {
 };
 
 /**
- * Renders the Vue SPA Hybrid Bridge Shell
+ * Renders the Example1 Vue SPA
  */
-export const renderDashboard = async (c: Context) => {
-  // Simulate fetching data from a service or DB
-  const serverData = {
-    user: {
-      name: "Melode",
-      role: "Admin",
-      lastLogin: new Date().toLocaleDateString()
-    },
-    system: {
-      version: "1.0.0-modular",
-      node: process.version
-    },
-    timestamp: new Date().toISOString()
+export const renderExample1 = async (c: Context) => {
+  const data = {
+    module: "Example 1",
+    stats: { users: 100, status: "Active" }
   };
 
   return c.html(await IndexVue({
-    title: "Project Dashboard (Modular View Controller)",
-    initialState: serverData
+    title: "Example 1 Console",
+    initialState: data,
+    entryPoint: "js/apps/example1/main.ts"
+  }));
+};
+
+/**
+ * Renders the Example2 Vue SPA
+ */
+export const renderExample2 = async (c: Context) => {
+  const data = {
+    module: "Example 2",
+    config: { mode: "standalone" }
+  };
+
+  return c.html(await IndexVue({
+    title: "Example 2 Console",
+    initialState: data,
+    entryPoint: "js/apps/example2/main.ts"
   }));
 };

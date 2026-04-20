@@ -7,11 +7,13 @@ export const ROUTES = {
     ROOT: "/",
     EXAMPLE: {
       LANDING: "/example",
-      DASHBOARD: "/example/dashboard",
-      DASHBOARD_WILD: "/example/dashboard/*",
+      EXAMPLE1: "/example/example1",
+      EXAMPLE2: "/example/example2",
     }
   },
   API: {
+    ROOT: "/",
+    BASE_PATH: "/api",
     HEALTH: "/api/health",
     EXAMPLE: {
       BASE: "/api/examples",

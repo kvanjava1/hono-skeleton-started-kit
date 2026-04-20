@@ -65,8 +65,8 @@ export const IndexPage = async ({
             </p>
 
             <div class="flex flex-wrap items-center justify-center gap-4">
-              <a href={ROUTES.WEB.EXAMPLE.DASHBOARD} class="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200">
-                Go to Vue Dashboard
+              <a href={ROUTES.WEB.EXAMPLE.EXAMPLE1} class="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200">
+                Go to Vue Example 1
               </a>
               <a href="/about" class="px-8 py-4 bg-white text-slate-900 font-bold border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all">
                 Learn More

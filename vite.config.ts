@@ -13,13 +13,17 @@ export default defineConfig({
     tailwindcss(),
   ],
   root: 'resources',
+  publicDir: path.resolve(__dirname, 'public'),
   build: {
     outDir: '../dist',
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {
-      // Kita gunakan app.ts sebagai satu-satunya entry point
-      input: path.resolve(__dirname, 'resources/js/app.ts'),
+      // Multiple Entry Points for different SPAs
+      input: {
+        example1: path.resolve(__dirname, 'resources/js/apps/example1/main.ts'),
+        example2: path.resolve(__dirname, 'resources/js/apps/example2/main.ts'),
+      },
     }
   }
 })

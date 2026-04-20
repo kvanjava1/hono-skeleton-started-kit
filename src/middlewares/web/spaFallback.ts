@@ -11,6 +11,11 @@ export const setupSpaFallback = (app: Hono) => {
   if (configApp.isProduction) {
     app.use("/*", serveStatic({ root: "./dist" }));
   }
+
+  // In development, serve static assets from the root public folder
+  if (configApp.isDevelopment) {
+    app.use("/*", serveStatic({ root: "./public" }));
+  }
   
   // Note: Catch-all logic for /dashboard/* has been moved to src/routes/web/index.ts
 };
