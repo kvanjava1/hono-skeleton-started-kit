@@ -1,6 +1,6 @@
 import { createApp, h } from 'vue'
 import { createRouter, createWebHistory, RouterView } from 'vue-router'
-import '../../../css/app.css'
+// import '../../../css/app.css'
 
 // Import local encapsulated pages
 import Example2Home from './pages/Example2Home.vue'
@@ -22,7 +22,7 @@ const routes = [
 
 const router = createRouter({
   // IMPORTANT: The base path must match the Hono mount point
-  history: createWebHistory('/example/example2'),
+  history: createWebHistory('/example/vuejs/app/example2'),
   routes
 })
 

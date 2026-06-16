@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { exampleWebRoutes } from "./example/loadView.router.ts";
-import { renderLandingPage } from "../../controllers/example/loadView.controller.ts";
+import { exampleWebRoutes } from "./example/view.router.ts";
+import { renderLandingPage } from "../../controllers/example/view.controller.ts";
 import { ROUTES } from "../../configs/routes.config.ts";
 
 export const webRoutes = new Hono();
