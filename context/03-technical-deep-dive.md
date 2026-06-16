@@ -184,8 +184,7 @@ Yang tersedia:
 - logging event `completed` dan `failed`
 - default queue Redis connection `redis1`
 - opsi explicit Redis connection name di factory queue/worker
-- worker registration nyata untuk modul referensi `example`
-- job processor nyata `create-example`
+- worker factory siap digunakan
 
 ## State Management
 

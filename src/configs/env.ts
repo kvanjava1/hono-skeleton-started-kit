@@ -1,3 +1,33 @@
+export const getStringValue = (
+  env: Record<string, string | undefined>,
+  envKey: string,
+  defaultValue: string,
+  fallbackEnvKey?: string,
+): string => {
+  return env[envKey] ?? (fallbackEnvKey ? env[fallbackEnvKey] : undefined) ?? defaultValue;
+};
+
+export const getNumberValue = (
+  env: Record<string, string | undefined>,
+  envKey: string,
+  defaultValue: number,
+  fallbackEnvKey?: string,
+): number => {
+  const rawValue =
+    env[envKey] ?? (fallbackEnvKey ? env[fallbackEnvKey] : undefined);
+
+  if (rawValue === undefined) {
+    return defaultValue;
+  }
+
+  const parsedValue = Number.parseInt(rawValue.trim(), 10);
+  if (Number.isNaN(parsedValue)) {
+    throw new Error(`Environment variable ${envKey} must be a number`);
+  }
+
+  return parsedValue;
+};
+
 export const getEnv = (key: string, defaultValue?: string): string => {
   const value = process.env[key] ?? defaultValue;
   if (value === undefined) {

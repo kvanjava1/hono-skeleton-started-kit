@@ -31,4 +31,4 @@ Repo ini adalah skeleton hybrid fullstack `Bun + Hono + Vue` dengan dukungan mul
 - Redis: `redis1`, `redis2`
 - PostgreSQL: `pg1`, `pg2`
 
-Arsitektur domain sudah diarahkan. Repo ini tidak membawa domain bisnis nyata sebagai bawaan, tetapi saat ini menyertakan modul referensi netral `example` sebagai executable reference untuk pola CRUD, queue, cache, migration, dan testing.
+Arsitektur domain sudah diarahkan. Repo ini tidak membawa domain bisnis nyata sebagai bawaan, tetapi saat ini menyertakan halaman web referensi (`Index.tsx`, `IndexVue.tsx`) sebagai contoh implementasi SSR dan Vue SPA Bridge.

@@ -15,25 +15,18 @@ export const HTTP_STATUS = {
 export const MESSAGES = {
   HELLO_WORLD: "Hello World",
   HEALTH_OK: "OK",
-  USER_CREATED: "User created successfully",
-  USER_UPDATED: "User updated successfully",
-  USER_DELETED: "User deleted successfully",
-  USER_NOT_FOUND: "User not found",
-  USERS_FETCHED: "Users fetched successfully",
-  USER_FETCHED: "User fetched successfully",
-  EXAMPLE_CREATED: "Example created successfully",
-  EXAMPLE_UPDATED: "Example updated successfully",
-  EXAMPLE_DELETED: "Example deleted successfully",
-  EXAMPLE_NOT_FOUND: "Example not found",
-  EXAMPLES_FETCHED: "Examples fetched successfully",
-  EXAMPLE_FETCHED: "Example fetched successfully",
+  NOT_FOUND: "Resource not found",
+  CRUD_CREATED: "Crud created successfully",
+  CRUD_UPDATED: "Crud updated successfully",
+  CRUD_DELETED: "Crud deleted successfully",
+  CRUD_NOT_FOUND: "Crud not found",
+  CRUDS_FETCHED: "Cruds fetched successfully",
+  CRUD_FETCHED: "Crud fetched successfully",
   RATE_LIMIT_EXCEEDED: "Too many requests, please try again later",
   INTERNAL_ERROR: "Internal server error",
   VALIDATION_ERROR: "Validation error",
   DATABASE_ERROR: "Database error",
 } as const;
-
-export const BCRYPT_SALT_ROUNDS = 10;
 
 export const LOG_LEVELS = {
   DEBUG: "debug",

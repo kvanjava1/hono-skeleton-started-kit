@@ -7,7 +7,7 @@ Dokumentasi ini menjelaskan arsitektur Hybrid Fullstack yang menggabungkan **Hon
 Kita menggunakan pola jembatan di mana Hono bertanggung jawab atas navigasi awal dan SEO, sementara Vue bertanggung jawab atas interaksi kompleks.
 
 ### Alur Kerja:
-1. Browser meminta halaman (misal: `/welcome`).
+1. Browser meminta halaman (misal: `/` atau `/example`).
 2. Hono (Server) merender komponen JSX di `src/views/Welcome.tsx`.
 3. Hono menyuntikkan data awal ke dalam `window.__INITIAL_STATE__`.
 4. Browser memuat script Vue (`resources/js/app.ts`) yang disediakan oleh Vite.

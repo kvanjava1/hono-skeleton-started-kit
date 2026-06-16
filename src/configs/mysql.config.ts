@@ -44,35 +44,7 @@ const MYSQL_CONNECTION_DEFAULTS = {
 type MysqlConnectionDefinition =
   (typeof MYSQL_CONNECTION_DEFAULTS)[keyof typeof MYSQL_CONNECTION_DEFAULTS];
 
-const getStringValue = (
-  env: Record<string, string | undefined>,
-  envKey: string,
-  defaultValue: string,
-  fallbackEnvKey?: string,
-): string => {
-  return env[envKey] ?? (fallbackEnvKey ? env[fallbackEnvKey] : undefined) ?? defaultValue;
-};
-
-const getNumberValue = (
-  env: Record<string, string | undefined>,
-  envKey: string,
-  defaultValue: number,
-  fallbackEnvKey?: string,
-): number => {
-  const rawValue =
-    env[envKey] ?? (fallbackEnvKey ? env[fallbackEnvKey] : undefined);
-
-  if (rawValue === undefined) {
-    return defaultValue;
-  }
-
-  const parsedValue = Number.parseInt(rawValue.trim(), 10);
-  if (Number.isNaN(parsedValue)) {
-    throw new Error(`Environment variable ${envKey} must be a number`);
-  }
-
-  return parsedValue;
-};
+import { getStringValue, getNumberValue } from "./env.ts";
 
 const buildConnectionConfig = (
   definition: MysqlConnectionDefinition,
@@ -115,27 +87,48 @@ const buildConnectionConfig = (
   };
 };
 
+export interface MysqlConnectionConfig {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+  connectionLimit: number;
+  waitForConnections: boolean;
+  queueLimit: number;
+}
+
+export interface MysqlConfig {
+  mysql1: MysqlConnectionConfig;
+  mysql2: MysqlConnectionConfig;
+}
+
 export const buildMysqlConfig = (
   env: Record<string, string | undefined> = process.env,
-) => {
+): MysqlConfig => {
   return Object.fromEntries(
     Object.entries(MYSQL_CONNECTION_DEFAULTS).map(([name, definition]) => [
       name,
       buildConnectionConfig(definition, env),
     ]),
-  ) as {
-    [K in keyof typeof MYSQL_CONNECTION_DEFAULTS]: ReturnType<
-      typeof buildConnectionConfig
-    >;
-  };
+  ) as unknown as MysqlConfig;
 };
 
-export const configMysql = () => {
-  return buildMysqlConfig(process.env);
+let cachedMysqlConfig: MysqlConfig | null = null;
+
+export const configMysql = (): MysqlConfig => {
+  if (!cachedMysqlConfig) {
+    cachedMysqlConfig = buildMysqlConfig(process.env);
+  }
+  return cachedMysqlConfig;
 };
 
-export type ConfigMysql = ReturnType<typeof configMysql>;
-export type MysqlConnectionName = keyof ConfigMysql;
+export type ConfigMysql = MysqlConfig;
+export type MysqlConnectionName = keyof MysqlConfig;
+
+export const resetConfigMysql = (): void => {
+  cachedMysqlConfig = null;
+};
 
 export const getMysqlConnectionNames = (): MysqlConnectionName[] => {
   return Object.keys(configMysql()) as MysqlConnectionName[];

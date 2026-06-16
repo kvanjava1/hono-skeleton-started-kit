@@ -16,33 +16,33 @@ export interface SqliteMigration {
   down: (db: ReturnType<typeof getSqliteDb>) => Promise<void>;
 }
 
-export const createMigrationsTable = (connectionName: SqliteConnectionName): void => {
-  const db = getSqliteDb(connectionName);
+export const createMigrationsTable = async (connectionName: SqliteConnectionName): Promise<void> => {
+  const db = await getSqliteDb(connectionName);
   db.run(CREATE_MIGRATIONS_TABLE);
 };
 
-export const getExecutedMigrations = (
+export const getExecutedMigrations = async (
   connectionName: SqliteConnectionName,
-): string[] => {
-  const db = getSqliteDb(connectionName);
+): Promise<string[]> => {
+  const db = await getSqliteDb(connectionName);
   const rows = db
     .query<{ name: string }, []>("SELECT name FROM migrations ORDER BY id")
     .all();
   return rows.map((row) => row.name);
 };
 
-export const markMigrationAsExecuted = (
+export const markMigrationAsExecuted = async (
   connectionName: SqliteConnectionName,
   name: string,
-): void => {
-  const db = getSqliteDb(connectionName);
+): Promise<void> => {
+  const db = await getSqliteDb(connectionName);
   db.run("INSERT INTO migrations (name) VALUES (?)", [name]);
 };
 
-export const unmarkMigrationAsExecuted = (
+export const unmarkMigrationAsExecuted = async (
   connectionName: SqliteConnectionName,
   name: string,
-): void => {
-  const db = getSqliteDb(connectionName);
+): Promise<void> => {
+  const db = await getSqliteDb(connectionName);
   db.run("DELETE FROM migrations WHERE name = ?", [name]);
 };

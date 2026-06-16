@@ -35,46 +35,38 @@ import {
   rollbackSqliteMigrations,
 } from "./sqlite/index.ts";
 import { runPgMigrations, rollbackPgMigrations } from "./pg/index.ts";
-import { closeAllMysqlPools } from "../../src/database/mysql.connection.ts";
-import { disconnectAllMongoConnections } from "../../src/database/mongo.connection.ts";
-import { closeAllSqliteConnections } from "../../src/database/sqlite.connection.ts";
-import { closeAllPgConnections } from "../../src/database/pg.connection.ts";
+
+interface RunOptions {
+  label: string;
+  run: () => Promise<void>;
+}
+
+const tryRun = async (options: RunOptions): Promise<boolean> => {
+  try {
+    await options.run();
+    console.log("");
+    return true;
+  } catch (error) {
+    console.error(`${options.label} failed:`, error);
+    return false;
+  }
+};
 
 export const runAllMigrations = async (): Promise<void> => {
   console.log("Running all migrations...\n");
 
-  try {
-    await runMysqlMigrations();
-    console.log("");
-  } catch (error) {
-    console.error("MySQL migrations failed:", error);
-  }
+  const results = await Promise.all([
+    tryRun({ label: "MySQL migrations", run: runMysqlMigrations }),
+    tryRun({ label: "MongoDB migrations", run: runMongoMigrations }),
+    tryRun({ label: "PostgreSQL migrations", run: runPgMigrations }),
+    tryRun({ label: "SQLite migrations", run: runSqliteMigrations }),
+  ]);
 
-  try {
-    await runMongoMigrations();
-    console.log("");
-  } catch (error) {
-    console.error("MongoDB migrations failed:", error);
+  const hasFailures = results.some((ok) => !ok);
+  if (hasFailures) {
+    console.error("Some migrations failed. Check the logs above.");
+    process.exit(1);
   }
-
-  try {
-    await runPgMigrations();
-    console.log("");
-  } catch (error) {
-    console.error("PostgreSQL migrations failed:", error);
-  }
-
-  try {
-    await runSqliteMigrations();
-    console.log("");
-  } catch (error) {
-    console.error("SQLite migrations failed:", error);
-  }
-
-  await closeAllMysqlPools();
-  await disconnectAllMongoConnections();
-  await closeAllPgConnections();
-  closeAllSqliteConnections();
 
   console.log("All migrations complete!");
 };
@@ -84,32 +76,29 @@ export const rollbackAllMigrations = async (
 ): Promise<void> => {
   console.log(`Rolling back ${steps} migration(s) for all databases...\n`);
 
-  try {
-    await rollbackMysqlMigrations(steps);
-    console.log("");
-  } catch (error) {
-    console.error("MySQL rollback failed:", error);
-  }
+  const results = await Promise.all([
+    tryRun({
+      label: "MySQL rollback",
+      run: () => rollbackMysqlMigrations(steps),
+    }),
+    tryRun({
+      label: "MongoDB rollback",
+      run: () => rollbackMongoMigrations(steps),
+    }),
+    tryRun({
+      label: "PostgreSQL rollback",
+      run: () => rollbackPgMigrations(steps),
+    }),
+    tryRun({
+      label: "SQLite rollback",
+      run: () => rollbackSqliteMigrations(steps),
+    }),
+  ]);
 
-  try {
-    await rollbackMongoMigrations(steps);
-    console.log("");
-  } catch (error) {
-    console.error("MongoDB rollback failed:", error);
-  }
-
-  try {
-    await rollbackPgMigrations(steps);
-    console.log("");
-  } catch (error) {
-    console.error("PostgreSQL rollback failed:", error);
-  }
-
-  try {
-    await rollbackSqliteMigrations(steps);
-    console.log("");
-  } catch (error) {
-    console.error("SQLite rollback failed:", error);
+  const hasFailures = results.some((ok) => !ok);
+  if (hasFailures) {
+    console.error("Some rollbacks failed. Check the logs above.");
+    process.exit(1);
   }
 
   console.log("All rollbacks complete!");

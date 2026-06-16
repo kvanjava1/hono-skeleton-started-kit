@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { exampleLoadViewRoutes } from "./example/exampleLoadView.router.ts";
-import { renderLandingPage } from "../../controllers/example/exampleLoadView.controller.ts";
+import { exampleLoadViewRoutes } from "./example/loadView.router.ts";
+import { renderLandingPage } from "../../controllers/example/loadView.controller.ts";
 import { ROUTES } from "../../configs/routes.config.ts";
 
 export const webRoutes = new Hono();
@@ -11,5 +11,5 @@ export const webRoutes = new Hono();
  */
 
 // Mount Example View Routes
-webRoutes.get(ROUTES.WEB.ROOT, renderLandingPage);
+webRoutes.get("/", renderLandingPage);
 webRoutes.route(ROUTES.WEB.EXAMPLE.LANDING, exampleLoadViewRoutes);

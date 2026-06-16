@@ -20,7 +20,7 @@ export const IndexPage = async ({
   title = "Welcome | Pure SSR Mode",
   serverData = { appName: "Hono Skeleton", runtime: "Bun", features: [] }
 }: IndexPageProps) => {
-  const isDev = configApp.isDevelopment;
+  const isDev = configApp.isDevelopment();
 
   // Resolve Tailwind CSS for production
   const tailwindCss = isDev ? null : await getStyle("js/app.ts");

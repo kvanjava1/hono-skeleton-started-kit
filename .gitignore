@@ -44,3 +44,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # local storages (SQLite, etc)
 storages/
 .agent
+.playwright-mcp/

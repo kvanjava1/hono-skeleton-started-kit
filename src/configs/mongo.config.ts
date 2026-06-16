@@ -34,39 +34,7 @@ const MONGO_CONNECTION_DEFAULTS = {
 type MongoConnectionDefinition =
   (typeof MONGO_CONNECTION_DEFAULTS)[keyof typeof MONGO_CONNECTION_DEFAULTS];
 
-const getStringValue = (
-  env: Record<string, string | undefined>,
-  envKey: string,
-  defaultValue: string,
-  fallbackEnvKey?: string,
-): string => {
-  return (
-    env[envKey] ??
-    (fallbackEnvKey ? env[fallbackEnvKey] : undefined) ??
-    defaultValue
-  );
-};
-
-const getNumberValue = (
-  env: Record<string, string | undefined>,
-  envKey: string,
-  defaultValue: number,
-  fallbackEnvKey?: string,
-): number => {
-  const rawValue =
-    env[envKey] ?? (fallbackEnvKey ? env[fallbackEnvKey] : undefined);
-
-  if (rawValue === undefined) {
-    return defaultValue;
-  }
-
-  const parsedValue = Number.parseInt(rawValue.trim(), 10);
-  if (Number.isNaN(parsedValue)) {
-    throw new Error(`Environment variable ${envKey} must be a number`);
-  }
-
-  return parsedValue;
-};
+import { getStringValue, getNumberValue } from "./env.ts";
 
 const buildConnectionConfig = (
   definition: MongoConnectionDefinition,
@@ -101,27 +69,44 @@ const buildConnectionConfig = (
   };
 };
 
+export interface MongoConnectionConfig {
+  host: string;
+  port: number;
+  dbName: string;
+  getUri(): string;
+}
+
+export interface MongoConfig {
+  mongo1: MongoConnectionConfig;
+  mongo2: MongoConnectionConfig;
+}
+
 export const buildMongoConfig = (
   env: Record<string, string | undefined> = process.env,
-) => {
+): MongoConfig => {
   return Object.fromEntries(
     Object.entries(MONGO_CONNECTION_DEFAULTS).map(([name, definition]) => [
       name,
       buildConnectionConfig(definition, env),
     ]),
-  ) as {
-    [K in keyof typeof MONGO_CONNECTION_DEFAULTS]: ReturnType<
-      typeof buildConnectionConfig
-    >;
-  };
+  ) as unknown as MongoConfig;
 };
 
-export const configMongo = () => {
-  return buildMongoConfig(process.env);
+let cachedMongoConfig: MongoConfig | null = null;
+
+export const configMongo = (): MongoConfig => {
+  if (!cachedMongoConfig) {
+    cachedMongoConfig = buildMongoConfig(process.env);
+  }
+  return cachedMongoConfig;
 };
 
-export type ConfigMongo = ReturnType<typeof configMongo>;
-export type MongoConnectionName = keyof ConfigMongo;
+export type ConfigMongo = MongoConfig;
+export type MongoConnectionName = keyof MongoConfig;
+
+export const resetConfigMongo = (): void => {
+  cachedMongoConfig = null;
+};
 
 export const getMongoConnectionNames = (): MongoConnectionName[] => {
   return Object.keys(configMongo()) as MongoConnectionName[];

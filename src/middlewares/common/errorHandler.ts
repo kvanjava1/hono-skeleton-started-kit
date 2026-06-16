@@ -101,7 +101,7 @@ export const errorHandler = async (
   const logContext = getRequestLogContext(c);
 
   // 2. Differentiate logging based on isOperational flag
-  const isOperational = (error as any).isOperational ?? false;
+  const isOperational = error instanceof AppError ? error.isOperational : false;
   const logMessage = `[${c.req.method}] ${c.req.path} - ${error.message}`;
 
   if (isOperational) {
@@ -130,7 +130,7 @@ export const errorHandler = async (
   }
 
   // 4. Handle System/Unknown Errors (The Mask)
-  const isProduction = configApp.isProduction;
+  const isProduction = configApp.isProduction();
   const message = isProduction ? MESSAGES.INTERNAL_ERROR : error.message;
   const data = isProduction ? null : { stack: error.stack };
 

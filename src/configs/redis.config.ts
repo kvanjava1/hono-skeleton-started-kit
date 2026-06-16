@@ -31,39 +31,7 @@ const REDIS_CONNECTION_DEFAULTS = {
 type RedisConnectionDefinition =
   (typeof REDIS_CONNECTION_DEFAULTS)[keyof typeof REDIS_CONNECTION_DEFAULTS];
 
-const getStringValue = (
-  env: Record<string, string | undefined>,
-  envKey: string,
-  defaultValue: string,
-  fallbackEnvKey?: string,
-): string => {
-  return (
-    env[envKey] ??
-    (fallbackEnvKey ? env[fallbackEnvKey] : undefined) ??
-    defaultValue
-  );
-};
-
-const getNumberValue = (
-  env: Record<string, string | undefined>,
-  envKey: string,
-  defaultValue: number,
-  fallbackEnvKey?: string,
-): number => {
-  const rawValue =
-    env[envKey] ?? (fallbackEnvKey ? env[fallbackEnvKey] : undefined);
-
-  if (rawValue === undefined) {
-    return defaultValue;
-  }
-
-  const parsedValue = Number.parseInt(rawValue.trim(), 10);
-  if (Number.isNaN(parsedValue)) {
-    throw new Error(`Environment variable ${envKey} must be a number`);
-  }
-
-  return parsedValue;
-};
+import { getStringValue, getNumberValue } from "./env.ts";
 
 const buildConnectionConfig = (
   definition: RedisConnectionDefinition,
@@ -85,27 +53,42 @@ const buildConnectionConfig = (
   };
 };
 
+export interface RedisConnectionConfig {
+  host: string;
+  port: number;
+}
+
+export interface RedisConfig {
+  redis1: RedisConnectionConfig;
+  redis2: RedisConnectionConfig;
+}
+
 export const buildRedisConfig = (
   env: Record<string, string | undefined> = process.env,
-) => {
+): RedisConfig => {
   return Object.fromEntries(
     Object.entries(REDIS_CONNECTION_DEFAULTS).map(([name, definition]) => [
       name,
       buildConnectionConfig(definition, env),
     ]),
-  ) as {
-    [K in keyof typeof REDIS_CONNECTION_DEFAULTS]: ReturnType<
-      typeof buildConnectionConfig
-    >;
-  };
+  ) as unknown as RedisConfig;
 };
 
-export const configRedis = () => {
-  return buildRedisConfig(process.env);
+let cachedRedisConfig: RedisConfig | null = null;
+
+export const configRedis = (): RedisConfig => {
+  if (!cachedRedisConfig) {
+    cachedRedisConfig = buildRedisConfig(process.env);
+  }
+  return cachedRedisConfig;
 };
 
-export type ConfigRedis = ReturnType<typeof configRedis>;
-export type RedisConnectionName = keyof ConfigRedis;
+export type ConfigRedis = RedisConfig;
+export type RedisConnectionName = keyof RedisConfig;
+
+export const resetConfigRedis = (): void => {
+  cachedRedisConfig = null;
+};
 
 export const getRedisConnectionNames = (): RedisConnectionName[] => {
   return Object.keys(configRedis()) as RedisConnectionName[];

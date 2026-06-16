@@ -3,7 +3,7 @@ import {
   renderLandingPage, 
   renderExample1, 
   renderExample2 
-} from "../../../controllers/example/exampleLoadView.controller.ts";
+} from "../../../controllers/example/loadView.controller";
 
 export const exampleLoadViewRoutes = new Hono();
 

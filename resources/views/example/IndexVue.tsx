@@ -17,7 +17,7 @@ export const IndexVue = async ({
   initialState = {}, 
   entryPoint = "js/app.ts" // Default to main app
 }: IndexVueProps) => {
-  const isDev = configApp.isDevelopment;
+  const isDev = configApp.isDevelopment();
 
   // Resolve Tailwind CSS and the specific Vue app asset
   // We use the same CSS for all apps, but different JS entry points

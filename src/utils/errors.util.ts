@@ -1,3 +1,4 @@
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { HTTPException } from 'hono/http-exception';
 import { HTTP_STATUS, MESSAGES } from '../configs/constants.ts';
 
@@ -7,12 +8,11 @@ import { HTTP_STATUS, MESSAGES } from '../configs/constants.ts';
 export class AppError extends HTTPException {
     constructor(
         message: string,
-        public statusCode: number = HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        public statusCode: ContentfulStatusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR,
         public isOperational: boolean = true,
-        public data: any = null
+        public data: unknown = null
     ) {
-        // HTTPException status is a StatusCode (number)
-        super(statusCode as any, { message });
+        super(statusCode, { message });
         this.name = this.constructor.name;
     }
 }
@@ -24,7 +24,7 @@ export class ValidationError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-    constructor(message: string = MESSAGES.USER_NOT_FOUND) {
+    constructor(message: string = MESSAGES.NOT_FOUND) {
         super(message, HTTP_STATUS.NOT_FOUND);
     }
 }

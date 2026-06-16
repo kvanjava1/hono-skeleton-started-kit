@@ -23,23 +23,10 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": ".",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@configs/*": ["src/configs/*"],
-      "@database/*": ["src/database/*"],
-      "@models/*": ["src/models/*"],
-      "@repositories/*": ["src/repositories/*"],
-      "@services/*": ["src/services/*"],
-      "@controllers/*": ["src/controllers/*"],
-      "@routes/*": ["src/routes/*"],
-      "@middlewares/*": ["src/middlewares/*"],
-      "@utils/*": ["src/utils/*"]
-    },
     "types": ["bun-types"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
-  "include": ["src/**/*", "resources/views/**/*", "seed.ts", "seeders/**/*"],
+  "include": ["src/**/*", "scripts/**/*", "tests/**/*", "resources/views/**/*"],
   "exclude": ["node_modules", "dist"]
 }

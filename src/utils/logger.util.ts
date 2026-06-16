@@ -85,20 +85,19 @@ const formatError = (data: unknown): string => {
 };
 
 const writeToFile = (level: LogLevel, message: string, data?: unknown): void => {
-  try {
-    const now = new Date();
-    const dateStr = formatDate(now);
-    const timestamp = formatTimestamp(now);
+  const now = new Date();
+  const dateStr = formatDate(now);
+  const timestamp = formatTimestamp(now);
 
+  try {
     const logDir = ensureLogDirectory(dateStr);
     const fileName = getLogFileName(level);
     const filePath = path.join(logDir, fileName);
 
     const context = getContext();
     const reqIdPart = context ? ` [ID: ${context.requestId}]` : '';
-    const clientIdPart = context?.clientId ? ` [Client: ${context.clientId}]` : '';
 
-    let logEntry = `[${timestamp}] [${level.toUpperCase()}]${reqIdPart}${clientIdPart} ${message}`;
+    let logEntry = `[${timestamp}] [${level.toUpperCase()}]${reqIdPart} ${message}`;
 
     if (data !== undefined) {
       logEntry += formatError(data);
@@ -109,7 +108,7 @@ const writeToFile = (level: LogLevel, message: string, data?: unknown): void => 
     fs.appendFileSync(filePath, logEntry, 'utf8');
   } catch (error) {
     // Logging failures must never break request handling paths.
-    console.error('[LoggerWrite] Failed to write log file:', error);
+    console.error(`[LoggerWrite] Failed to write to storages/logs:`, error);
   }
 };
 
@@ -128,12 +127,11 @@ const logToConsole = (level: LogLevel, message: string, data?: unknown): void =>
 
   const context = getContext();
   const reqIdPart = context ? ` [ID: ${context.requestId}]` : '';
-  const clientIdPart = context?.clientId ? ` [Client: ${context.clientId}]` : '';
 
   if (data !== undefined) {
-    consoleMethod(`[${timestamp}] [${levelUpper}]${reqIdPart}${clientIdPart} ${message}`, data);
+    consoleMethod(`[${timestamp}] [${levelUpper}]${reqIdPart} ${message}`, data);
   } else {
-    consoleMethod(`[${timestamp}] [${levelUpper}]${reqIdPart}${clientIdPart} ${message}`);
+    consoleMethod(`[${timestamp}] [${levelUpper}]${reqIdPart} ${message}`);
   }
 };
 

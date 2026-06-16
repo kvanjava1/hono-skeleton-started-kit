@@ -140,7 +140,7 @@ bun run prod
 
 ## Default Health Checks
 - API Health: `GET /api/health`
-- Web SSR Bridge: `GET /welcome`
+- Web SSR Landing: `GET /`
 
 ## Run Migrations
 

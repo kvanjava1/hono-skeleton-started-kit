@@ -45,6 +45,7 @@ bun run dev:all
 | `bun run dev:client` | Start Vite frontend server only |
 | `bun run build:client` | Build Vue assets for production |
 | `bun run typecheck` | Run TypeScript type checking |
+| `bun test` | Run all tests |
 | `bun run prod` | Start production server |
 | `bun run worker:dev` | Start development worker process |
 | `bun run worker:prod` | Start production worker process |
@@ -85,7 +86,7 @@ Recommended reading order:
 
 ## Notes
 
-- Proyek ini dirancang sebagai fondasi. Namun, saat ini menyertakan referensi modul `example` (CRUD, Job) dan rute UI (`Index.tsx`, `IndexVue.tsx`) sebagai contoh implementasi.
-- Worker skeleton tersedia, dan job `create-example` diregistrasikan sebagai acuan.
+- Proyek ini dirancang sebagai fondasi. Saat ini menyertakan rute UI (`Index.tsx`, `IndexVue.tsx`) sebagai contoh implementasi web.
 - Dukungan database, Redis, cache, queue, migrasi, dan seeding sepenuhnya modular.
-- Arsitektur routing secara jelas memisahkan Pure SSR (`/`) dan Vue SPA Bridge (`/dashboard/*`).
+- Arsitektur routing secara jelas memisahkan Pure SSR (`/`) dan Vue SPA Bridge (`/example/*`).
+- Worker skeleton tersedia dan siap diisi dengan job domain.

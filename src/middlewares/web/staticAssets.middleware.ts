@@ -11,8 +11,8 @@ export const setupStaticAssets = (app: Hono) => {
   // Always serve static assets from the root public folder
   app.use("/*", serveStatic({ root: "./public" }));
 
-  // Additionally serve from dist folder in production mode
-  if (configApp.isProduction) {
-    app.use("/*", serveStatic({ root: "./dist" }));
+  // Vite-built assets (production only) — under /assets/ by convention
+  if (configApp.isProduction()) {
+    app.use("/assets/*", serveStatic({ root: "./dist" }));
   }
 };

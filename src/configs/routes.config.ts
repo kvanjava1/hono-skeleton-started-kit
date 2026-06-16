@@ -12,14 +12,12 @@ export const ROUTES = {
     }
   },
   API: {
-    ROOT: "/",
     BASE_PATH: "/api",
     HEALTH: "/api/health",
     EXAMPLE: {
-      BASE: "/api/examples",
-      DETAIL: (id: string | number) => `/api/examples/${id}`,
-    }
+      CRUDS: "/api/example/cruds",
+      CRUD_BY_ID: "/api/example/cruds/{id}",
+    },
   }
 } as const;
 
-export type AppRoutes = typeof ROUTES;

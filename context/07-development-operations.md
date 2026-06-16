@@ -68,13 +68,13 @@ Ini penting karena modul baru idealnya mengikuti stub repo, bukan ditulis dengan
 
 Sekarang sudah ada dua kelompok test yang nyata:
 
-- test fondasi multi-connection dan target migration pada beberapa engine
-- test runnable CRUD reference untuk modul `example`
+- unit test untuk env parser, error classes, dan response helpers
+- integration test untuk health endpoint, 404 handler, web landing, dan rate limiter (memory mode)
 
 Artinya kondisi saat ini adalah:
 
-- sudah ada regression safety net terbatas untuk config parsing, validasi target migration, dan alur CRUD reference
-- belum ada integration test end-to-end untuk seluruh engine dan seluruh dependency nyata
+- sudah ada regression safety net untuk config parsing, error handling, dan response contract
+- belum ada integration test untuk database-dependent endpoint
 - manual verification masih penting
 - refactor fondasi tetap butuh kehati-hatian lebih
 
@@ -117,5 +117,5 @@ Yang belum ada:
 
 - logger menulis ke filesystem, jadi environment read-only bisa membatasi file logging
 - rate limiter in-memory tidak cocok untuk multi-instance production
-- worker sekarang sudah punya job referensi `create-example`, tetapi project turunan tetap perlu mengganti atau menghapusnya sesuai domain nyata
+- worker skeleton sudah tersedia, siap diisi job domain
 - type checking kini dapat dieksekusi as-is menggunakan `bun run typecheck` (menjalankan `tsc --noEmit`) yang memastikan strict type safety tanpa intervensi build murni node.

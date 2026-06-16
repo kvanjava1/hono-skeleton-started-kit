@@ -6,29 +6,26 @@ import {
   type SqliteConnectionName,
 } from "../configs/index.ts";
 import { logger } from "../utils/logger.util.ts";
-import * as fs from "fs";
+import { mkdir } from "fs/promises";
 import * as path from "path";
 
 const sqliteConnections = new Map<SqliteConnectionName, Database>();
 
 const isSqliteEnabled = (): boolean => {
-  const value = process.env.DB_SQLITE_ENABLED?.trim().toLowerCase();
-  if (value === undefined) {
-    return configApp.db.sqlite;
+  const envValue = process.env.DB_SQLITE_ENABLED?.trim().toLowerCase();
+  if (envValue !== undefined) {
+    return envValue === "true" || envValue === "1" || envValue === "yes";
   }
-
-  return value === "true" || value === "1" || value === "yes";
+  return configApp.db.sqlite;
 };
 
-const ensureDirectoryExists = (filePath: string): void => {
+const ensureDirectoryExists = async (filePath: string): Promise<void> => {
   if (filePath === ":memory:") {
     return;
   }
 
   const dir = path.dirname(filePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+  await mkdir(dir, { recursive: true });
 };
 
 const getSqliteConfig = (name: SqliteConnectionName) => {
@@ -36,13 +33,12 @@ const getSqliteConfig = (name: SqliteConnectionName) => {
 };
 
 const getSqliteDbPath = (name: SqliteConnectionName): string => {
-  const sqliteConfig = getSqliteConfig(name);
-  return process.env[sqliteConfig.envKey] ?? sqliteConfig.dbPath;
+  return getSqliteConfig(name).dbPath;
 };
 
-export const createSqliteConnection = (
+export const createSqliteConnection = async (
   name: SqliteConnectionName,
-): Database => {
+): Promise<Database> => {
   if (!isSqliteEnabled()) {
     throw new Error(
       "SQLite is disabled in configuration. Enable DB_SQLITE_ENABLED=true in your .env file.",
@@ -55,7 +51,7 @@ export const createSqliteConnection = (
   }
 
   const dbPath = getSqliteDbPath(name);
-  ensureDirectoryExists(dbPath);
+  await ensureDirectoryExists(dbPath);
 
   const db = new Database(dbPath);
   db.run("PRAGMA journal_mode = WAL");
@@ -67,18 +63,19 @@ export const createSqliteConnection = (
   return db;
 };
 
-export const createAllSqliteConnections = (): Record<
+export const createAllSqliteConnections = async (): Promise<Record<
   SqliteConnectionName,
   Database
-> => {
+>> => {
   const connectionNames = getSqliteConnectionNames();
+  const entries = await Promise.all(
+    connectionNames.map(async (name) => [name, await createSqliteConnection(name)] as const),
+  );
 
-  return Object.fromEntries(
-    connectionNames.map((name) => [name, createSqliteConnection(name)]),
-  ) as Record<SqliteConnectionName, Database>;
+  return Object.fromEntries(entries) as Record<SqliteConnectionName, Database>;
 };
 
-export const getSqliteDb = (name: SqliteConnectionName): Database => {
+export const getSqliteDb = async (name: SqliteConnectionName): Promise<Database> => {
   const existingConnection = sqliteConnections.get(name);
   if (!existingConnection) {
     return createSqliteConnection(name);
@@ -96,15 +93,15 @@ export const closeSqliteConnection = (name: SqliteConnectionName): void => {
   }
 };
 
-export const closeAllSqliteConnections = (): void => {
+export const closeAllSqliteConnections = async (): Promise<void> => {
   for (const name of getSqliteConnectionNames()) {
     closeSqliteConnection(name);
   }
 };
 
-export const testSqliteConnection = (name: SqliteConnectionName): boolean => {
+export const testSqliteConnection = async (name: SqliteConnectionName): Promise<boolean> => {
   try {
-    const database = getSqliteDb(name);
+    const database = await getSqliteDb(name);
     database.query("SELECT 1").get();
     logger.info(`SQLite connection "${name}" test successful`);
     return true;
@@ -114,6 +111,10 @@ export const testSqliteConnection = (name: SqliteConnectionName): boolean => {
   }
 };
 
-export const testAllSqliteConnections = (): boolean => {
-  return getSqliteConnectionNames().every((name) => testSqliteConnection(name));
+export const testAllSqliteConnections = async (): Promise<boolean> => {
+  for (const name of getSqliteConnectionNames()) {
+    const isOk = await testSqliteConnection(name);
+    if (!isOk) return false;
+  }
+  return true;
 };

@@ -1,24 +1,22 @@
 import type { SqliteMigration } from "../runner.ts";
 import type { Database } from "bun:sqlite";
 
-export const name = "20260410080127_create_examples";
+export const name = "20260616_create_cruds";
 export const target: SqliteMigration["target"] = "sqlite1";
 
 export const up = async (db: Database): Promise<void> => {
   db.run(`
-    CREATE TABLE IF NOT EXISTS examples (
+    CREATE TABLE IF NOT EXISTS cruds (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      full_name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL,
+      title TEXT NOT NULL,
+      content TEXT DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      deleted_at TEXT DEFAULT NULL
     );
   `);
 };
 
 export const down = async (db: Database): Promise<void> => {
-  db.run(`
-    DROP TABLE IF EXISTS examples;
-  `);
+  db.run(`DROP TABLE IF EXISTS cruds;`);
 };

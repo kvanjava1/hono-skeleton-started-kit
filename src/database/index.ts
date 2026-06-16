@@ -98,8 +98,8 @@ export const connectAllDatabases = async (): Promise<void> => {
   }
 
   if (configApp.db.sqlite) {
-    createAllSqliteConnections();
-    const isOk = testAllSqliteConnections();
+    await createAllSqliteConnections();
+    const isOk = await testAllSqliteConnections();
     if (!isOk) throw new Error("SQLite connections failed during startup");
   }
 };
@@ -116,5 +116,5 @@ export const disconnectAllDatabases = async (): Promise<void> => {
   if (configApp.db.mongo) await disconnectAllMongoConnections();
   if (configApp.db.pg) await closeAllPgConnections();
   if (configApp.db.redis) await closeAllRedisConnections();
-  if (configApp.db.sqlite) closeAllSqliteConnections();
+  if (configApp.db.sqlite) await closeAllSqliteConnections();
 };

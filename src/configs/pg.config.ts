@@ -44,39 +44,7 @@ const PG_CONNECTION_DEFAULTS = {
 type PgConnectionDefinition =
   (typeof PG_CONNECTION_DEFAULTS)[keyof typeof PG_CONNECTION_DEFAULTS];
 
-const getStringValue = (
-  env: Record<string, string | undefined>,
-  envKey: string,
-  defaultValue: string,
-  fallbackEnvKey?: string,
-): string => {
-  return (
-    env[envKey] ??
-    (fallbackEnvKey ? env[fallbackEnvKey] : undefined) ??
-    defaultValue
-  );
-};
-
-const getNumberValue = (
-  env: Record<string, string | undefined>,
-  envKey: string,
-  defaultValue: number,
-  fallbackEnvKey?: string,
-): number => {
-  const rawValue =
-    env[envKey] ?? (fallbackEnvKey ? env[fallbackEnvKey] : undefined);
-
-  if (rawValue === undefined) {
-    return defaultValue;
-  }
-
-  const parsedValue = Number.parseInt(rawValue.trim(), 10);
-  if (Number.isNaN(parsedValue)) {
-    throw new Error(`Environment variable ${envKey} must be a number`);
-  }
-
-  return parsedValue;
-};
+import { getStringValue, getNumberValue } from "./env.ts";
 
 const buildConnectionConfig = (
   definition: PgConnectionDefinition,
@@ -116,27 +84,45 @@ const buildConnectionConfig = (
   };
 };
 
+export interface PgConnectionConfig {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+}
+
+export interface PgConfig {
+  pg1: PgConnectionConfig;
+  pg2: PgConnectionConfig;
+}
+
 export const buildPgConfig = (
   env: Record<string, string | undefined> = process.env,
-) => {
+): PgConfig => {
   return Object.fromEntries(
     Object.entries(PG_CONNECTION_DEFAULTS).map(([name, definition]) => [
       name,
       buildConnectionConfig(definition, env),
     ]),
-  ) as {
-    [K in keyof typeof PG_CONNECTION_DEFAULTS]: ReturnType<
-      typeof buildConnectionConfig
-    >;
-  };
+  ) as unknown as PgConfig;
 };
 
-export const configPg = () => {
-  return buildPgConfig(process.env);
+let cachedPgConfig: PgConfig | null = null;
+
+export const configPg = (): PgConfig => {
+  if (!cachedPgConfig) {
+    cachedPgConfig = buildPgConfig(process.env);
+  }
+  return cachedPgConfig;
 };
 
-export type ConfigPg = ReturnType<typeof configPg>;
-export type PgConnectionName = keyof ConfigPg;
+export type ConfigPg = PgConfig;
+export type PgConnectionName = keyof PgConfig;
+
+export const resetConfigPg = (): void => {
+  cachedPgConfig = null;
+};
 
 export const getPgConnectionNames = (): PgConnectionName[] => {
   return Object.keys(configPg()) as PgConnectionName[];

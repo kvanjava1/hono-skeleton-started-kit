@@ -65,7 +65,7 @@ Proyek ini menggunakan pola **"The Bridge"**:
 ### Docs
 
 - `docs/getting-started`: setup dan deployment
-- `docs/guides`: guide operasional seperti migration, seeder, queue, logging, make CLI, dan example CRUD
+- `docs/guides`: guide operasional seperti migration, seeder, queue, logging, dan make CLI
 - `docs/standards`: aturan arsitektur, conventions, error handling, dan API patterns
 - `docs/reference`: penjelasan teknis yang lebih stabil seperti architecture overview dan connection model
 

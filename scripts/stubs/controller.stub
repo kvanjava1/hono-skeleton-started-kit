@@ -1,10 +1,9 @@
 import type { Context } from 'hono';
-import { successResponse } from '../utils/response.ts';
-import { MESSAGES } from '../configs/constants.ts';
+import { successResponse } from '../utils/response.util.ts';
 
 /**
  * {{NAME}} Controller
  */
 export const get{{NAME}}s = async (c: Context) => {
-  return successResponse(c, MESSAGES.USERS_FETCHED);
+  return successResponse(c, '{{NAME}}s fetched');
 };
