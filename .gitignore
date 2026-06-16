@@ -41,6 +41,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Finder (MacOS) folder config
 .DS_Store
 
+# drizzle-kit generated migrations
+drizzle/
+
 # local storages (SQLite, etc)
 storages/
 .agent

@@ -1,5 +1,4 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { apiReference } from "@scalar/hono-api-reference";
 import { ROUTES } from "../../../configs/routes.config.ts";
 import {
   getAll,
@@ -13,7 +12,7 @@ import {
   IdParam,
   CreateBody,
   UpdateBody,
-} from "../../../schemas/example/crud.schema.ts";
+} from "../../../validations/example/crud.ts";
 
 export const crudRoutes = new OpenAPIHono();
 
@@ -104,9 +103,4 @@ crudRoutes.openapi(
   remove,
 );
 
-crudRoutes.doc("/api/example/spec", {
-  openapi: "3.0.0",
-  info: { title: "CRUD Example API", version: "1.0.0" },
-});
 
-crudRoutes.get("/api/example/docs", apiReference({ spec: { url: "/api/example/spec" } }));

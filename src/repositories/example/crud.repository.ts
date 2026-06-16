@@ -1,61 +1,58 @@
-import type { Database } from "bun:sqlite";
-import { getSqliteDb } from "../../database/sqlite.connection.ts";
+import { eq, and, isNull, desc, sql } from "drizzle-orm";
+import { getDrizzleDb } from "../../database/drizzle.ts";
+import { cruds, type Crud, type CreateCrudInput, type UpdateCrudInput } from "../../database/schema/example/crud.ts";
 
-export interface Crud {
-  id: number;
-  title: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-}
-
-export type CreateCrudInput = Pick<Crud, "title" | "content">;
-export type UpdateCrudInput = Partial<CreateCrudInput>;
-
-const getDb = async (): Promise<Database> => getSqliteDb("sqlite1");
+export type { Crud, CreateCrudInput, UpdateCrudInput };
 
 export const getAllCruds = async (): Promise<Crud[]> => {
-  const db = await getDb();
-  return db.query("SELECT * FROM cruds WHERE deleted_at IS NULL ORDER BY id DESC").all() as Crud[];
+  const db = await getDrizzleDb();
+  return db
+    .select()
+    .from(cruds)
+    .where(isNull(cruds.deletedAt))
+    .orderBy(desc(cruds.id));
 };
 
 export const getCrudById = async (id: number): Promise<Crud | null> => {
-  const db = await getDb();
-  return db.query("SELECT * FROM cruds WHERE id = ? AND deleted_at IS NULL").get(id) as Crud | null;
+  const db = await getDrizzleDb();
+  const rows = await db
+    .select()
+    .from(cruds)
+    .where(and(eq(cruds.id, id), isNull(cruds.deletedAt)))
+    .limit(1);
+
+  return rows[0] ?? null;
 };
 
 export const createCrud = async (input: CreateCrudInput): Promise<Crud> => {
-  const db = await getDb();
-  const info = db
-    .prepare("INSERT INTO cruds (title, content) VALUES (?, ?)")
-    .run(input.title, input.content);
-
-  return (await getCrudById(Number(info.lastInsertRowid)))!;
+  const db = await getDrizzleDb();
+  const rows = await db.insert(cruds).values(input).returning();
+  return rows[0]!;
 };
 
 export const updateCrud = async (id: number, input: UpdateCrudInput): Promise<Crud | null> => {
-  const db = await getDb();
-  const sets: string[] = [];
-  const values: (string | number)[] = [];
+  const db = await getDrizzleDb();
 
-  if (input.title !== undefined) { sets.push("title = ?"); values.push(input.title); }
-  if (input.content !== undefined) { sets.push("content = ?"); values.push(input.content); }
+  if (Object.keys(input).length === 0) {
+    return getCrudById(id);
+  }
 
-  if (sets.length === 0) return getCrudById(id);
+  const rows = await db
+    .update(cruds)
+    .set({ ...input, updatedAt: sql`datetime('now')` })
+    .where(and(eq(cruds.id, id), isNull(cruds.deletedAt)))
+    .returning();
 
-  sets.push("updated_at = datetime('now')");
-  values.push(id);
-
-  db.prepare(`UPDATE cruds SET ${sets.join(", ")} WHERE id = ? AND deleted_at IS NULL`).run(...values);
-
-  return getCrudById(id);
+  return rows[0] ?? null;
 };
 
 export const deleteCrud = async (id: number): Promise<boolean> => {
-  const db = await getDb();
-  const info = db
-    .prepare("UPDATE cruds SET deleted_at = datetime('now') WHERE id = ? AND deleted_at IS NULL")
-    .run(id);
-  return Number(info.changes) > 0;
+  const db = await getDrizzleDb();
+  const rows = await db
+    .update(cruds)
+    .set({ deletedAt: sql`datetime('now')` })
+    .where(and(eq(cruds.id, id), isNull(cruds.deletedAt)))
+    .returning();
+
+  return rows.length > 0;
 };

@@ -119,20 +119,20 @@ describe("CRUD Example API", () => {
   });
 
   describe("OpenAPI docs", () => {
-    test("GET /api/example/spec returns OpenAPI spec", async () => {
-      const res = await app.fetch(new Request(`${base}/api/example/spec`));
+    test("GET /api/spec returns OpenAPI spec", async () => {
+      const res = await app.fetch(new Request(`${base}/api/spec`));
       expect(res.status).toBe(200);
 
       const body = await res.json();
       expect(body.openapi).toBe("3.0.0");
-      expect(body.info.title).toBe("CRUD Example API");
+      expect(body.info.title).toBe("Hono Multi-DB API");
       expect(body.paths).toBeDefined();
       expect(body.paths["/api/example/cruds"]).toBeDefined();
       expect(body.paths["/api/example/cruds/{id}"]).toBeDefined();
     });
 
-    test("GET /api/example/docs returns Scalar API reference HTML", async () => {
-      const res = await app.fetch(new Request(`${base}/api/example/docs`));
+    test("GET /api/docs returns Scalar API reference HTML", async () => {
+      const res = await app.fetch(new Request(`${base}/api/docs`));
       expect(res.status).toBe(200);
 
       const text = await res.text();

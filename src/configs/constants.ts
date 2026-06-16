@@ -8,6 +8,7 @@ export const HTTP_STATUS = {
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
   NOT_FOUND: 404,
+  UNSUPPORTED_MEDIA_TYPE: 415,
   INTERNAL_SERVER_ERROR: 500,
   TOO_MANY_REQUESTS: 429,
 } as const;
@@ -27,6 +28,7 @@ export const MESSAGES = {
   INTERNAL_ERROR: "Internal server error",
   VALIDATION_ERROR: "Validation error",
   DATABASE_ERROR: "Database error",
+  JSON_ONLY: "Only application/json Content-Type is accepted",
 } as const;
 
 export const LOG_LEVELS = {
