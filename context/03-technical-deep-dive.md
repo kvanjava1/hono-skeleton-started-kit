@@ -21,9 +21,9 @@ Endpoint aktif:
 - `GET /api/health`
 - `POST /api/examples`
 - `GET /api/examples`
-- `GET /api/examples/:id`
-- `PUT /api/examples/:id`
-- `DELETE /api/examples/:id`
+- `GET /api/examples/{id}`
+- `PUT /api/examples/{id}`
+- `DELETE /api/examples/{id}`
 
 Response:
 

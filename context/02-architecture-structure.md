@@ -40,7 +40,7 @@ Proyek ini menggunakan pola **"The Bridge"**:
     - `src/routes/index.ts`: Aggregator utama rute (termasuk Global 404).
 - `src/controllers`, `src/services`, `src/repositories`, `src/schemas`, `src/jobs`: 
     - Menggunakan struktur folder modular berbasis domain (misal: `src/controllers/example/`).
-    - File dalam folder domain menggunakan penamaan **camelCase** (misal: `crudWithJob.controller.ts`).
+    - File dalam folder domain menggunakan penamaan **camelCase** (misal: `crud.controller.ts`).
 - `src/middlewares`: Modular middlewares terbagi menjadi `common/`, `api/`, dan `web/` dengan dispatching berbasis path.
 - `src/database`, `src/configs`, `src/queues`, `src/utils`.
 

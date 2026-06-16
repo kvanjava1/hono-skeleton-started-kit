@@ -5,19 +5,19 @@ import {
   renderExample2 
 } from "../../../controllers/example/loadView.controller";
 
-export const exampleLoadViewRoutes = new Hono();
+export const exampleWebRoutes = new Hono();
 
 /**
  * Web Routing Configuration for Multi-SPA Example
  */
 
 // 1. Pure SSR Landing Page
-exampleLoadViewRoutes.get("/", renderLandingPage);
+exampleWebRoutes.get("/", renderLandingPage);
 
 // 2. Example 1 App
-exampleLoadViewRoutes.get("/example1", renderExample1);
-exampleLoadViewRoutes.get("/example1/*", renderExample1);
+exampleWebRoutes.get("/example1", renderExample1);
+exampleWebRoutes.get("/example1/*", renderExample1);
 
 // 3. Example 2 App
-exampleLoadViewRoutes.get("/example2", renderExample2);
-exampleLoadViewRoutes.get("/example2/*", renderExample2);
+exampleWebRoutes.get("/example2", renderExample2);
+exampleWebRoutes.get("/example2/*", renderExample2);
