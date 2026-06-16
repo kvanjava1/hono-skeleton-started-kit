@@ -17,6 +17,7 @@ export const ROUTES = {
     EXAMPLE: {
       CRUDS: "/api/example/cruds",
       CRUD_BY_ID: "/api/example/cruds/{id}",
+      CRUD_CREATE_JOB: "/api/example/cruds/job",
     },
   }
 } as const;

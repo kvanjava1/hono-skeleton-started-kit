@@ -17,6 +17,7 @@ export const MESSAGES = {
   HEALTH_OK: "OK",
   NOT_FOUND: "Resource not found",
   CRUD_CREATED: "Crud created successfully",
+  CRUD_QUEUED: "Crud creation queued successfully",
   CRUD_UPDATED: "Crud updated successfully",
   CRUD_DELETED: "Crud deleted successfully",
   CRUD_NOT_FOUND: "Crud not found",

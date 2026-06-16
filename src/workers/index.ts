@@ -1,11 +1,14 @@
 import { createWorker } from "../queues/base.queue.ts";
+import { processCrudCreate, CRUD_CREATE_QUEUE } from "../jobs/example/crudCreate.job.ts";
 import { logger } from "../utils/logger.util.ts";
 
-/**
- * Initialize all Workers
- */
 const startWorkers = () => {
-  logger.info("Background Workers starting...");};
+  logger.info("Background Workers starting...");
+
+  createWorker(CRUD_CREATE_QUEUE, async (job) => {
+    await processCrudCreate(job);
+  });
+};
 
 const shutdown = async () => {
   logger.info("Shutting down workers...");
@@ -15,8 +18,6 @@ const shutdown = async () => {
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
 
-// "import.meta.main" is true ONLY when this file is run directly (bun run src/workers/index.ts)
-// It is false when this file is imported by src/index.ts
 if (import.meta.main) {
   startWorkers();
 }

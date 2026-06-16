@@ -7,6 +7,7 @@ import {
   create,
   update,
   remove,
+  createViaJob,
 } from "../../../controllers/example/crud.controller.ts";
 import {
   IdParam,
@@ -72,6 +73,22 @@ crudRoutes.openapi(
     },
   }),
   update,
+);
+
+crudRoutes.openapi(
+  createRoute({
+    method: "post",
+    path: ROUTES.API.EXAMPLE.CRUD_CREATE_JOB,
+    request: {
+      body: {
+        content: { "application/json": { schema: CreateBody } },
+      },
+    },
+    responses: {
+      202: { description: "Crud creation queued" },
+    },
+  }),
+  createViaJob,
 );
 
 crudRoutes.openapi(

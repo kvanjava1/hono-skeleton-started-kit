@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { MESSAGES } from "../../configs/constants.ts";
+import { MESSAGES, HTTP_STATUS } from "../../configs/constants.ts";
 import { successResponse } from "../../utils/response.util.ts";
 import {
   listCruds,
@@ -8,6 +8,7 @@ import {
   editCrud,
   removeCrud,
 } from "../../services/example/crud.service.ts";
+import { enqueueCrudCreate } from "../../jobs/example/crudCreate.job.ts";
 
 export const getAll = async (c: Context) => {
   const data = await listCruds();
@@ -31,6 +32,12 @@ export const update = async (c: Context) => {
   const body = await c.req.json<{ title?: string; content?: string }>();
   const data = await editCrud(Number(id), body);
   return successResponse(c, MESSAGES.CRUD_UPDATED, data);
+};
+
+export const createViaJob = async (c: Context) => {
+  const { title, content } = await c.req.json<{ title: string; content?: string }>();
+  const jobId = await enqueueCrudCreate({ title, content: content ?? "" });
+  return successResponse(c, MESSAGES.CRUD_QUEUED, { jobId }, HTTP_STATUS.ACCEPTED);
 };
 
 export const remove = async (c: Context) => {
