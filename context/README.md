@@ -26,9 +26,9 @@ Dokumen konteks proyek dipecah per kategori agar lebih mudah dipakai saat discov
 Repo ini adalah skeleton hybrid fullstack `Bun + Hono + Vue` dengan dukungan multi-database, queue worker, logging, migration, seeder, dan generator file. Saat ini repo sudah mendukung **named multi-connections** untuk seluruh engine utama:
 
 - SQLite: `sqlite1`
-- MySQL: `mysql1`, `mysql2`
-- MongoDB: `mongo1`, `mongo2`
-- Redis: `redis1`, `redis2`
-- PostgreSQL: `pg1`, `pg2`
+- MySQL: `mysql1`
+- MongoDB: `mongo1`
+- Redis: `redis1`
+- PostgreSQL: `pg1`
 
 Arsitektur domain sudah diarahkan. Repo ini tidak membawa domain bisnis nyata sebagai bawaan, tetapi saat ini menyertakan halaman web referensi (`Index.tsx`, `IndexVue.tsx`) sebagai contoh implementasi SSR dan Vue SPA Bridge.

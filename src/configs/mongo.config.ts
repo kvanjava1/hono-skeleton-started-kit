@@ -16,19 +16,6 @@ const MONGO_CONNECTION_DEFAULTS = {
       dbName: "myapp",
     },
   },
-  mongo2: {
-    envKeys: {
-      host: "MONGO_HOST_2",
-      port: "MONGO_PORT_2",
-      dbName: "MONGO_DB_NAME_2",
-    },
-    legacyEnvKeys: undefined,
-    defaults: {
-      host: "localhost",
-      port: 27017,
-      dbName: "myapp",
-    },
-  },
 } as const;
 
 type MongoConnectionDefinition =
@@ -78,7 +65,6 @@ export interface MongoConnectionConfig {
 
 export interface MongoConfig {
   mongo1: MongoConnectionConfig;
-  mongo2: MongoConnectionConfig;
 }
 
 export const buildMongoConfig = (

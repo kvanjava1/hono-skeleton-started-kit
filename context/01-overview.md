@@ -43,10 +43,10 @@ Repo ini menyediakan baseline teknis untuk:
 Model yang sekarang tersedia di codebase:
 
 - SQLite: `sqlite1`
-- MySQL: `mysql1`, `mysql2`
-- MongoDB: `mongo1`, `mongo2`
-- Redis: `redis1`, `redis2`
-- PostgreSQL: `pg1`, `pg2`
+- MySQL: `mysql1`
+- MongoDB: `mongo1`
+- Redis: `redis1`
+- PostgreSQL: `pg1`
 
 Ini berarti repo tidak lagi hanya “mendukung banyak engine database”, tetapi juga mendukung **beberapa koneksi bernama di dalam engine yang sama**.
 
@@ -79,7 +79,9 @@ Entity teknis yang sudah jelas:
 Permukaan aplikasi yang aktif saat ini terdiri dari:
 
 - `GET /api/health`
-- modul referensi `example` di `/api/examples`
+- `GET /api/spec` — OpenAPI 3.0 JSON spec
+- `GET /api/docs` — Scalar API Reference (interaktif)
+- Modul referensi `example` di `/api/example/cruds`
 
 `/api/health` berfungsi sebagai smoke check aplikasi. Modul `example` berfungsi sebagai contoh runnable untuk pola implementasi, bukan sebagai fitur bisnis utama skeleton.
 

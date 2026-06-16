@@ -22,23 +22,6 @@ const MYSQL_CONNECTION_DEFAULTS = {
       database: "myapp",
     },
   },
-  mysql2: {
-    envKeys: {
-      host: "MYSQL_HOST_2",
-      port: "MYSQL_PORT_2",
-      user: "MYSQL_USER_2",
-      password: "MYSQL_PASSWORD_2",
-      database: "MYSQL_DATABASE_2",
-    },
-    legacyEnvKeys: undefined,
-    defaults: {
-      host: "localhost",
-      port: 3306,
-      user: "root",
-      password: "",
-      database: "myapp",
-    },
-  },
 } as const;
 
 type MysqlConnectionDefinition =
@@ -100,7 +83,6 @@ export interface MysqlConnectionConfig {
 
 export interface MysqlConfig {
   mysql1: MysqlConnectionConfig;
-  mysql2: MysqlConnectionConfig;
 }
 
 export const buildMysqlConfig = (

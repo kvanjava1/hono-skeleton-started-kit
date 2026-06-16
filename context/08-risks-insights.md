@@ -58,10 +58,10 @@ Banyak perilaku runtime tersembunyi di env toggle. Ini membuat codebase fleksibe
 Setelah seluruh engine utama mendukung named connections, ada coupling baru yang sehat tetapi penting:
 
 - `sqlite1`
-- `mysql1/mysql2`
-- `mongo1/mongo2`
-- `redis1/redis2`
-- `pg1/pg2`
+- `mysql1`
+- `mongo1`
+- `redis1`
+- `pg1`
 
 Ini membuat explicit targeting lebih aman, tetapi juga menaikkan kebutuhan konsistensi docs, stub, dan migration runner.
 

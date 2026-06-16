@@ -15,17 +15,6 @@ const REDIS_CONNECTION_DEFAULTS = {
       port: 6379,
     },
   },
-  redis2: {
-    envKeys: {
-      host: "REDIS_HOST_2",
-      port: "REDIS_PORT_2",
-    },
-    legacyEnvKeys: undefined,
-    defaults: {
-      host: "localhost",
-      port: 6379,
-    },
-  },
 } as const;
 
 type RedisConnectionDefinition =
@@ -60,7 +49,6 @@ export interface RedisConnectionConfig {
 
 export interface RedisConfig {
   redis1: RedisConnectionConfig;
-  redis2: RedisConnectionConfig;
 }
 
 export const buildRedisConfig = (

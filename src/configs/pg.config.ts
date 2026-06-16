@@ -22,23 +22,6 @@ const PG_CONNECTION_DEFAULTS = {
       database: "myapp",
     },
   },
-  pg2: {
-    envKeys: {
-      host: "PG_HOST_2",
-      port: "PG_PORT_2",
-      user: "PG_USER_2",
-      password: "PG_PASSWORD_2",
-      database: "PG_DATABASE_2",
-    },
-    legacyEnvKeys: undefined,
-    defaults: {
-      host: "localhost",
-      port: 5432,
-      user: "postgres",
-      password: "",
-      database: "myapp",
-    },
-  },
 } as const;
 
 type PgConnectionDefinition =
@@ -94,7 +77,6 @@ export interface PgConnectionConfig {
 
 export interface PgConfig {
   pg1: PgConnectionConfig;
-  pg2: PgConnectionConfig;
 }
 
 export const buildPgConfig = (

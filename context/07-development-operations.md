@@ -13,6 +13,14 @@ Aplikasi menjalankan dua server di mode pengembangan:
 - `bun run build:client`: Membangun aset Vue ke dalam folder `dist/` dan membuat `manifest.json`.
 - `bun run typecheck`: Melakukan pengecekan tipe TypeScript di seluruh proyek.
 - `bun run prod`: Menjalankan aplikasi di mode produksi.
+- `bun run worker:dev`: Menjalankan worker process untuk BullMQ job processing (proses terpisah).
+
+### Migration Scripts
+- `bun run migrate:dev`: Run all migrations (`.env.dev`)
+- `bun run migrate:fresh:dev <target>`: Drop + re-run migrations — target: `sqlite`, `mysql`, `pg`, `mongo`
+- `bun run migrate:fresh:prod <target>`: Same untuk production environment
+
+> Fresh migration **wajib** memilih satu target. `all` akan menghasilkan error untuk mencegah accidental drop semua database.
 
 ### Build and Deployment Shape
 Build backend dilakukan dengan:
@@ -46,9 +54,9 @@ Seeder tooling juga tersedia.
 Catatan penting:
 
 - SQLite memakai satu folder migration, tetapi setiap file wajib deklarasi target `sqlite1`
-- MySQL migration sekarang juga target-aware: `mysql1` atau `mysql2`
-- MongoDB migration sekarang juga target-aware: `mongo1` atau `mongo2`
-- PostgreSQL migration sekarang juga target-aware: `pg1` atau `pg2`
+- MySQL migration sekarang juga target-aware: `mysql1`
+- MongoDB migration sekarang juga target-aware: `mongo1`
+- PostgreSQL migration sekarang juga target-aware: `pg1`
 
 ## Generator Workflow
 
@@ -66,15 +74,22 @@ Ini penting karena modul baru idealnya mengikuti stub repo, bukan ditulis dengan
 
 ## Testing Status
 
-Sekarang sudah ada dua kelompok test yang nyata:
+Sekarang ada **6 test files, 49 tests, 77 expect calls** (`bun test`):
 
-- unit test untuk env parser, error classes, dan response helpers
-- integration test untuk health endpoint, 404 handler, web landing, dan rate limiter (memory mode)
+| File | Type | Tests |
+|------|------|-------|
+| `tests/unit/env.test.ts` | Unit — env parser | 13 |
+| `tests/unit/errors.test.ts` | Unit — error classes (AppError, NotFoundError, dll) | 14 |
+| `tests/unit/response.test.ts` | Unit — response helpers (successResponse, errorResponse) | 4 |
+| `tests/health.test.ts` | Integration — health endpoint + 404 | 3 |
+| `tests/integration/web.test.ts` | Integration — landing page, security headers, rate limit headers | 3 |
+| `tests/integration/rateLimiter.test.ts` | Integration — rate limit threshold, block, IP isolation | 3 |
+| `tests/integration/crud.test.ts` | Integration — CRUD endpoints + OpenAPI spec + Scalar docs | 9 |
 
 Artinya kondisi saat ini adalah:
 
 - sudah ada regression safety net untuk config parsing, error handling, dan response contract
-- belum ada integration test untuk database-dependent endpoint
+- sudah ada integration test untuk database-dependent endpoint (CRUD SQLite + OpenAPI spec)
 - manual verification masih penting
 - refactor fondasi tetap butuh kehati-hatian lebih
 
@@ -101,8 +116,8 @@ Yang sudah ada:
 
 - secure headers
 - CORS
-- JSON-only middleware
-- rate limiting
+- JSON-only middleware (mengembalikan HTTP 415 untuk non-JSON POST/PUT/PATCH)
+- rate limiting (Redis-based, fallback memory)
 - production error masking
 
 Yang belum ada:
@@ -116,6 +131,7 @@ Yang belum ada:
 ## Operational Caveats
 
 - logger menulis ke filesystem, jadi environment read-only bisa membatasi file logging
-- rate limiter in-memory tidak cocok untuk multi-instance production
-- worker skeleton sudah tersedia, siap diisi job domain
+- rate limiter memakai Redis (fallback memory jika Redis tidak aktif)
+- worker skeleton sudah tersedia, siap diisi job domain. Worker adalah proses terpisah (`bun run worker:dev`).
 - type checking kini dapat dieksekusi as-is menggunakan `bun run typecheck` (menjalankan `tsc --noEmit`) yang memastikan strict type safety tanpa intervensi build murni node.
+- OpenAPI spec tersedia di `GET /api/spec`, Scalar UI di `GET /api/docs`.

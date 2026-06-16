@@ -38,8 +38,10 @@ Proyek ini menggunakan pola **"The Bridge"**:
     - `src/routes/api/`: Semua endpoint REST API (prefix `/api`).
     - `src/routes/web/`: Semua rute SSR/Hybrid (Hono JSX).
     - `src/routes/index.ts`: Aggregator utama rute (termasuk Global 404).
-- `src/controllers`, `src/services`, `src/repositories`, `src/schemas`, `src/jobs`: 
+- `src/controllers`, `src/services`, `src/repositories`, `src/validations`, `src/database/schema`, `src/jobs`: 
     - Menggunakan struktur folder modular berbasis domain (misal: `src/controllers/example/`).
+    - `src/validations/` untuk Zod request/response schemas.
+    - `src/database/schema/` untuk Drizzle table definitions.
     - File dalam folder domain menggunakan penamaan **camelCase** (misal: `crud.controller.ts`).
 - `src/middlewares`: Modular middlewares terbagi menjadi `common/`, `api/`, dan `web/` dengan dispatching berbasis path.
 - `src/database`, `src/configs`, `src/queues`, `src/utils`.
@@ -95,6 +97,8 @@ Pola yang benar-benar terlihat di codebase:
 - layered architecture
 - centralized error handling
 - factory/registry pattern untuk connection dan queue
+- Drizzle ORM sebagai query builder untuk SQL databases (SQLite/MySQL/PG)
+- Proxy/function `createLazyConfig()` untuk lazy initialization + `reset*Config()` untuk testability
 - request context propagation via `AsyncLocalStorage`
 - environment-driven feature toggles
 - named connection targeting per database engine

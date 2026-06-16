@@ -29,10 +29,12 @@ src/
 ├── controllers/
 ├── services/
 ├── repositories/
-├── schemas/
+├── validations/        # Zod request/response schemas
+├── database/
+│   ├── drizzle.ts      # Drizzle client wrapper
+│   └── schema/         # Drizzle table definitions
 ├── middlewares/
 ├── utils/
-├── database/
 ├── queues/
 ├── jobs/
 └── workers/
@@ -40,9 +42,26 @@ src/
 
 ## Current Default App Surface
 
+### REST API
 - `GET /api/health`
+- `GET /api/spec` — OpenAPI 3.0 JSON spec
+- `GET /api/docs` — Scalar API Reference (interactive UI)
 
-No domain-specific route or worker is registered by default.
+### CRUD Example (SQLite)
+- `POST /api/example/cruds`
+- `GET /api/example/cruds`
+- `GET /api/example/cruds/{id}`
+- `PUT /api/example/cruds/{id}`
+- `DELETE /api/example/cruds/{id}`
+- `POST /api/example/cruds/job` — async via BullMQ queue
+
+### Worker
+- `src/workers/index.ts` registers `crud-create` worker for async CRUD processing
+
+### Drizzle ORM
+SQL repositories use Drizzle ORM as query builder. MongoDB uses native driver.
+- Table definitions: `src/database/schema/`
+- Drizzle client: `src/database/drizzle.ts` — `getDrizzleDb(connectionName)`
 
 ## Database Controls
 

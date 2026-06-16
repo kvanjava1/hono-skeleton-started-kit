@@ -43,10 +43,10 @@ Rules:
 The skeleton supports explicit named connections across all primary engines:
 
 - SQLite: `sqlite1`
-- MySQL: `mysql1`, `mysql2`
-- MongoDB: `mongo1`, `mongo2`
-- Redis: `redis1`, `redis2`
-- PostgreSQL: `pg1`, `pg2`
+- MySQL: `mysql1`
+- MongoDB: `mongo1`
+- Redis: `redis1`
+- PostgreSQL: `pg1`
 
 Repositories, migrations, seeders, queue wiring, and cache usage should choose the connection consciously when the target matters.
 

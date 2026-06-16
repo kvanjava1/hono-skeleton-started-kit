@@ -89,7 +89,6 @@ export const down = async (pool: Pool): Promise<void> => {
 Valid targets:
 
 - `mysql1`
-- `mysql2`
 
 ### MongoDB
 
@@ -112,7 +111,6 @@ export const down = async (db: Db): Promise<void> => {
 Valid targets:
 
 - `mongo1`
-- `mongo2`
 
 ### PostgreSQL
 
@@ -140,7 +138,6 @@ export const down = async (sql: postgres.Sql): Promise<void> => {
 Valid targets:
 
 - `pg1`
-- `pg2`
 
 ### SQLite
 

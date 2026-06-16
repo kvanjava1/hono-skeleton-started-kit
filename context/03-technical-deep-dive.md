@@ -19,11 +19,14 @@ Routing saat ini hanya ada di [src/routes/index.ts](/home/melodelavic/Documents/
 Endpoint aktif:
 
 - `GET /api/health`
-- `POST /api/examples`
-- `GET /api/examples`
-- `GET /api/examples/{id}`
-- `PUT /api/examples/{id}`
-- `DELETE /api/examples/{id}`
+- `GET /api/spec` — OpenAPI 3.0 JSON spec
+- `GET /api/docs` — Scalar API Reference (interaktif)
+- `POST /api/example/cruds`
+- `GET /api/example/cruds`
+- `GET /api/example/cruds/{id}`
+- `PUT /api/example/cruds/{id}`
+- `DELETE /api/example/cruds/{id}`
+- `POST /api/example/cruds/job` — enqueue async CRUD creation
 
 Response:
 
@@ -48,7 +51,8 @@ Dispatcher utama ada di `src/middlewares/index.ts` yang mengarahkan middleware k
 
 - request id dibuat sebelum context dijalankan
 - logger bisa mengambil context request dari `AsyncLocalStorage`
-- rate limiter masih berbasis memory `Map`, belum distributed
+- rate limiter menggunakan Redis (`DB_REDIS_ENABLED=true`) dengan fallback ke memory `Map` jika Redis tidak aktif
+- `jsonOnlyMiddleware` mengembalikan HTTP 415 untuk POST/PUT/PATCH tanpa header `Content-Type: application/json`
 
 ## Error Handling
 
@@ -91,6 +95,15 @@ Contract response:
 
 Ini menjadi response contract informal untuk semua endpoint baru.
 
+## Drizzle ORM
+
+Proyek menggunakan **Drizzle ORM** sebagai query builder untuk SQL databases.
+
+- **Table definitions**: `src/database/schema/example/crud.ts` menggunakan `sqliteTable`, `text`, `integer`
+- **Client wrapper**: `src/database/drizzle.ts` — `getDrizzleDb(connectionName)` dengan cache per connection
+- **Repository**: `src/repositories/example/crud.repository.ts` menggunakan Drizzle query builder (`db.select().from(cruds).where(...)`)
+- **Not used for MongoDB**: MongoDB tetap menggunakan native driver (`mongodb`) karena Drizzle tidak mendukung relational query untuk MongoDB
+
 ## Database Layer
 
 ### SQLite
@@ -115,7 +128,7 @@ File: [src/database/mysql.connection.ts](/home/melodelavic/Documents/bun/hono-sk
 Karakteristik:
 
 - pool registry berbasis `mysql2/promise`
-- named connections: `mysql1`, `mysql2`
+- named connections: `mysql1`
 - compatibility default ke `mysql1`
 - startup test connection via `ping()`
 - migration MySQL sudah target-aware per connection
@@ -127,7 +140,7 @@ File: [src/database/pg.connection.ts](/home/melodelavic/Documents/bun/hono-skele
 Karakteristik:
 
 - connection registry via `postgres`
-- named connections: `pg1`, `pg2`
+- named connections: `pg1`
 - compatibility default ke `pg1`
 - startup test via `SELECT 1`
 - migration PostgreSQL sudah target-aware per connection
@@ -139,7 +152,7 @@ File: [src/database/mongo.connection.ts](/home/melodelavic/Documents/bun/hono-sk
 Karakteristik:
 
 - client + db registry per target
-- named connections: `mongo1`, `mongo2`
+- named connections: `mongo1`
 - compatibility default ke `mongo1`
 - pool size dikonfigurasi langsung di connection setup
 - startup test via `ping`
@@ -152,7 +165,7 @@ File: [src/database/redis.connection.ts](/home/melodelavic/Documents/bun/hono-sk
 Karakteristik:
 
 - client registry per target
-- named connections: `redis1`, `redis2`
+- named connections: `redis1`
 - compatibility default ke `redis1`
 - retry strategy terbatas
 - startup test via `PING`
@@ -161,11 +174,16 @@ Karakteristik:
 
 ## Schema and Data Model Status
 
-Sekarang ada schema referensi netral untuk tabel `examples` di SQLite `sqlite1`.
+Sekarang ada modul referensi `cruds` dengan:
+
+- **Drizzle table definition** di `src/database/schema/example/crud.ts`
+- **Migration** `20260616_create_cruds.ts` untuk SQLite `sqlite1`
+- **Zod validation schemas** di `src/validations/example/crud.ts` (terpisah dari table definition)
+- **Soft delete** pattern via `deleted_at TEXT DEFAULT NULL` — `DELETE` endpoint melakukan `UPDATE SET deleted_at = datetime('now')`, repository filter `WHERE deleted_at IS NULL`
 
 Konsekuensinya:
 
-- repo sudah punya contoh entity end-to-end yang runnable
+- repo sudah punya contoh entity end-to-end yang runnable dengan Drizzle ORM
 - tetapi entity itu tidak boleh dibaca sebagai domain bisnis utama
 - relationship bisnis antar entity nyata tetap belum ada
 - repo masih netral terhadap domain, dengan satu reference module sebagai acuan implementasi
@@ -175,6 +193,7 @@ Konsekuensinya:
 Komponen:
 
 - [src/queues/base.queue.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/queues/base.queue.ts)
+- [src/jobs/example/crudCreate.job.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/jobs/example/crudCreate.job.ts) — job example
 - [src/workers/index.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/workers/index.ts)
 
 Yang tersedia:
@@ -184,6 +203,8 @@ Yang tersedia:
 - logging event `completed` dan `failed`
 - default queue Redis connection `redis1`
 - opsi explicit Redis connection name di factory queue/worker
+- contoh job domain: `crud-create` (enqueue + process via worker)
+- queue name **tidak boleh mengandung `:`** — gunakan `-` separator
 - worker factory siap digunakan
 
 ## State Management
@@ -191,8 +212,9 @@ Yang tersedia:
 State backend yang terlihat:
 
 - request-scoped context via `AsyncLocalStorage`
-- in-memory rate-limit store
+- rate-limit store via Redis (fallback memory jika Redis tidak aktif)
 - cache optional via Redis `redis1` secara default
+- semua config menggunakan Proxy/function `createLazyConfig()` dengan `reset*Config()` untuk testability
 
 State frontend (Vue):
 

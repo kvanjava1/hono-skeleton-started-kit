@@ -55,7 +55,7 @@ MYSQL_DATABASE_2=myapp_2
 Compatibility note:
 
 - legacy `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE` fall back to `mysql1`
-- new code should use explicit named connections such as `mysql1` and `mysql2`
+- new code should use explicit named connections such as `mysql1`
 
 ### MongoDB
 
@@ -63,25 +63,18 @@ Compatibility note:
 MONGO_HOST_1=127.0.0.1
 MONGO_PORT_1=27017
 MONGO_DB_NAME_1=myapp
-
-MONGO_HOST_2=127.0.0.1
-MONGO_PORT_2=27017
-MONGO_DB_NAME_2=myapp_2
 ```
 
 Compatibility note:
 
 - legacy `MONGO_HOST`, `MONGO_PORT`, `MONGO_DB_NAME` fall back to `mongo1`
-- new code should use explicit named connections such as `mongo1` and `mongo2`
+- new code should use explicit named connections such as `mongo1`
 
 ### Redis
 
 ```env
 REDIS_HOST_1=127.0.0.1
 REDIS_PORT_1=6379
-
-REDIS_HOST_2=127.0.0.1
-REDIS_PORT_2=6380
 ```
 
 Compatibility note:
@@ -98,18 +91,12 @@ PG_PORT_1=5432
 PG_USER_1=postgres
 PG_PASSWORD_1=
 PG_DATABASE_1=myapp
-
-PG_HOST_2=127.0.0.1
-PG_PORT_2=5432
-PG_USER_2=postgres
-PG_PASSWORD_2=
-PG_DATABASE_2=myapp_2
 ```
 
 Compatibility note:
 
 - legacy `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE` fall back to `pg1`
-- new code should use explicit named connections such as `pg1` and `pg2`
+- new code should use explicit named connections such as `pg1`
 
 ## Running the App
 

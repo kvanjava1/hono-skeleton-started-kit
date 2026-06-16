@@ -16,7 +16,8 @@ Berdasarkan dokumentasi:
 - controllers: `camelCase.controller.ts` (Strictly camelCase for new modules)
 - services: `camelCase.service.ts` (Strictly camelCase for new modules)
 - repositories: `camelCase.repository.ts`
-- schemas: `camelCase.schema.ts`
+- validations (Zod): `camelCase.schema.ts` in `src/validations/`
+- database tables (Drizzle): `camelCase.schema.ts` in `src/database/schema/`
 - middlewares: `camelCase.middleware.ts` atau `snake_case.ts`
   - Simpan di folder yang sesuai: `api/`, `web/`, atau `common/`.
 - utils: `snake_case.util.ts`
@@ -26,7 +27,10 @@ Berdasarkan dokumentasi:
 ### Modular Folder Pattern
 Untuk setiap modul domain atau aplikasi SPA baru:
 - `src/controllers/example/`
-- `src/services/sqlite/example/`
+- `src/services/example/`
+- `src/repositories/example/`
+- `src/validations/example/`
+- `src/database/schema/example/`
 - `src/routes/api/example/`
 - `resources/js/apps/example1/pages/` (Halaman khusus aplikasi)
 - `resources/views/example/`
@@ -49,17 +53,17 @@ Setelah refactor fondasi database, aturan yang paling penting sekarang adalah:
 Named connections yang sekarang tersedia:
 
 - SQLite: `sqlite1`
-- MySQL: `mysql1`, `mysql2`
-- MongoDB: `mongo1`, `mongo2`
-- Redis: `redis1`, `redis2`
-- PostgreSQL: `pg1`, `pg2`
+- MySQL: `mysql1`
+- MongoDB: `mongo1`
+- Redis: `redis1`
+- PostgreSQL: `pg1`
 
 Praktik yang disarankan:
 
-- repository SQLite: `getSqliteDb('sqlite1')`
-- repository MySQL: `getMysqlPool('mysql1')`
-- repository MongoDB: `getMongoDb('mongo1')`
-- repository PostgreSQL: `getPgSql('pg1')`
+- repository SQLite (Drizzle): `getDrizzleDb('sqlite1')`
+- repository MySQL (Drizzle): `getDrizzleDb('mysql1')`
+- repository PostgreSQL (Drizzle): `getDrizzleDb('pg1')`
+- repository MongoDB (native): `getMongoDb('mongo1')`
 - queue/cache Redis: pilih `redis1` atau target lain secara sadar
 
 ## Response Conventions
@@ -111,19 +115,14 @@ Ada beberapa gap antara docs, generator, dan implementasi nyata:
 
 ### Service and repository placement
 
-Docs API pattern memberi contoh file flat seperti:
+Struktur saat ini menggunakan folder domain-based (bukan per-engine):
 
-- `src/services/payment.service.ts`
-- `src/repositories/payment.repository.ts`
+- `src/services/example/`
+- `src/repositories/example/`
+- `src/validations/example/`
+- `src/database/schema/example/`
 
-Tetapi generator `scripts/make.ts` membuat struktur:
-
-- `src/services/sqlite/*.ts`
-- `src/services/mysql/*.ts`
-- `src/repositories/sqlite/*.ts`
-- `src/repositories/mysql/*.ts`
-
-Artinya standard final belum benar-benar fixed.
+Service bersifat DB-agnostic — tidak perlu tahu engine database mana yang dipakai. Koneksi ditangani sepenuhnya di repository layer.
 
 ### Connection defaults vs explicit targeting
 
@@ -136,9 +135,23 @@ Codebase sekarang masih menyediakan compatibility default untuk:
 
 Namun untuk kode baru, explicit targeting tetap lebih aman.
 
+### Cache integration
+
+Cache adalah tanggung jawab **service layer**, bukan controller. Service memanggil `cacheGet`/`cacheSet`/`cacheDelete` dari `src/utils/cache.util.ts`.
+
+- `cacheGet`: return `null` jika Redis tidak aktif
+- `cacheSet`/`cacheDelete`: silent skip jika Redis tidak aktif
+- Cache di-invalidate pada operasi mutasi (create, update, delete)
+
+### OpenAPI + Scalar
+
+Semua route API menggunakan `@hono/zod-openapi` (`OpenAPIHono`, `createRoute`). Path parameter menggunakan `{id}` (OpenAPI 3.0 standard) — Hono mengonversi internal ke `:id`.
+
+Spec JSON tersedia di `GET /api/spec`, Scalar UI di `GET /api/docs`.
+
 ### Routes
 
-Docs menyarankan file route modular, dan implementasi saat ini sudah mulai bergerak ke arah itu lewat `src/routes/example.routes.ts` yang kemudian diregistrasikan dari `src/routes/index.ts`.
+Docs menyarankan file route modular, dan implementasi saat ini sudah mulai bergerak ke arah itu lewat `src/routes/api/example/` yang kemudian diregistrasikan dari `src/routes/api/index.ts`.
 
 ### Code style
 
