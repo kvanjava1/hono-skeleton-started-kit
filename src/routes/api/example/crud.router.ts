@@ -7,7 +7,7 @@ import {
   update,
   remove,
   createViaJob,
-} from "../../../controllers/example/crud.controller.ts";
+} from "../../../controllers/example/api/crud.controller.ts";
 import {
   IdParam,
   CreateBody,

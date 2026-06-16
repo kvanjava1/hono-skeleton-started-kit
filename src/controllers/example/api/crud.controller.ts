@@ -1,14 +1,14 @@
 import type { Context } from "hono";
-import { MESSAGES, HTTP_STATUS } from "../../configs/constants.ts";
-import { successResponse } from "../../utils/response.util.ts";
+import { MESSAGES, HTTP_STATUS } from "../../../configs/constants.ts";
+import { successResponse } from "../../../utils/response.util.ts";
 import {
   listCruds,
   findCrud,
   addCrud,
   editCrud,
   removeCrud,
-} from "../../services/example/crud.service.ts";
-import { enqueueCrudCreate } from "../../jobs/example/crudCreate.job.ts";
+} from "../../../services/example/crud.service.ts";
+import { enqueueCrudCreate } from "../../../jobs/example/crudCreate.job.ts";
 
 export const getAll = async (c: Context) => {
   const data = await listCruds();

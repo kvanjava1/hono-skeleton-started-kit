@@ -1,6 +1,6 @@
 import type { Context } from "hono";
-import { IndexPage } from "../../../resources/views/example/Index.tsx";
-import { IndexVue } from "../../../resources/views/example/Vue.tsx";
+import { IndexPage } from "../../../../resources/views/example/Index.tsx";
+import { IndexVue } from "../../../../resources/views/example/Vue.tsx";
 
 /**
  * Controller responsible for loading and rendering web views

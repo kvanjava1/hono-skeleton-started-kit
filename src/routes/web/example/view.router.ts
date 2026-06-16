@@ -3,7 +3,7 @@ import {
   renderLandingPage, 
   renderExample1, 
   renderExample2 
-} from "../../../controllers/example/view.controller";
+} from "../../../controllers/example/web/view.controller";
 
 export const exampleWebRoutes = new Hono();
 
@@ -12,7 +12,7 @@ export const exampleWebRoutes = new Hono();
  */
 
 // 1. Pure SSR Landing Page
-exampleWebRoutes.get("/example/jsx", renderLandingPage);
+exampleWebRoutes.get("/jsx", renderLandingPage);
 
 // 2. Example 1 App
 exampleWebRoutes.get("/vuejs/app/example1", renderExample1);
