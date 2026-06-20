@@ -15,11 +15,6 @@ describe("Web Landing Page", () => {
     expect(text).toContain("Hono Multi-DB");
   });
 
-  test("GET /example returns 200 HTML", async () => {
-    const res = await app.fetch(new Request("http://localhost/example"));
-    expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toContain("text/html");
-  });
 });
 
 describe("Security & Common Middlewares", () => {

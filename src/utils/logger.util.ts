@@ -7,17 +7,17 @@ import { getContext } from './context.util.ts';
 const LOGS_BASE_PATH = './storages/logs';
 const SERVICE_NAME = process.env.SERVICE_NAME || 'app';
 
-const ensureLogDirectory = (date: string): string => {
-  const serviceDir = path.join(LOGS_BASE_PATH, SERVICE_NAME);
-  const dateDir = path.join(serviceDir, date);
+const logStreams = new Map<string, fs.WriteStream>();
+let currentLogDate = '';
 
-  if (!fs.existsSync(dateDir)) {
-    fs.mkdirSync(dateDir, { recursive: true });
-    cleanupOldLogs(serviceDir);
+const closeAllStreams = (): void => {
+  for (const stream of logStreams.values()) {
+    stream.end();
   }
-
-  return dateDir;
+  logStreams.clear();
 };
+
+process.on('exit', closeAllStreams);
 
 const cleanupOldLogs = (serviceDir: string): void => {
   try {
@@ -32,14 +32,24 @@ const cleanupOldLogs = (serviceDir: string): void => {
     if (directories.length > retentionDays) {
       const toDelete = directories.slice(retentionDays);
       for (const dir of toDelete) {
-        const fullPath = path.join(serviceDir, dir);
-        fs.rmSync(fullPath, { recursive: true, force: true });
+        fs.rmSync(path.join(serviceDir, dir), { recursive: true, force: true });
       }
     }
   } catch (error) {
-    // Fail silently in logger to avoid crashing the app
     console.error('[LoggerCleanup] Failed to cleanup old logs:', error);
   }
+};
+
+const ensureLogDirectory = (date: string): string => {
+  const serviceDir = path.join(LOGS_BASE_PATH, SERVICE_NAME);
+  const dateDir = path.join(serviceDir, date);
+
+  if (!fs.existsSync(dateDir)) {
+    fs.mkdirSync(dateDir, { recursive: true });
+    cleanupOldLogs(serviceDir);
+  }
+
+  return dateDir;
 };
 
 const getLogFileName = (level: LogLevel): string => {
@@ -84,31 +94,52 @@ const formatError = (data: unknown): string => {
   return `\n  ${String(data)}`;
 };
 
+const getOrCreateStream = (dateStr: string, level: LogLevel): fs.WriteStream | null => {
+  try {
+    const key = `${dateStr}:${level}`;
+
+    if (dateStr !== currentLogDate) {
+      closeAllStreams();
+      currentLogDate = dateStr;
+    }
+
+    let stream = logStreams.get(key);
+    if (!stream) {
+      const logDir = ensureLogDirectory(dateStr);
+      const filePath = path.join(logDir, getLogFileName(level));
+      stream = fs.createWriteStream(filePath, { flags: 'a' });
+      stream.on('error', (err) => {
+        console.error(`[LoggerStream] Write error [${filePath}]:`, err);
+      });
+      logStreams.set(key, stream);
+    }
+
+    return stream;
+  } catch (error) {
+    console.error('[LoggerStream] Failed to get/create stream:', error);
+    return null;
+  }
+};
+
 const writeToFile = (level: LogLevel, message: string, data?: unknown): void => {
   const now = new Date();
   const dateStr = formatDate(now);
   const timestamp = formatTimestamp(now);
 
-  try {
-    const logDir = ensureLogDirectory(dateStr);
-    const fileName = getLogFileName(level);
-    const filePath = path.join(logDir, fileName);
+  const context = getContext();
+  const reqIdPart = context ? ` [ID: ${context.requestId}]` : '';
 
-    const context = getContext();
-    const reqIdPart = context ? ` [ID: ${context.requestId}]` : '';
+  let logEntry = `[${timestamp}] [${level.toUpperCase()}]${reqIdPart} ${message}`;
 
-    let logEntry = `[${timestamp}] [${level.toUpperCase()}]${reqIdPart} ${message}`;
+  if (data !== undefined) {
+    logEntry += formatError(data);
+  }
 
-    if (data !== undefined) {
-      logEntry += formatError(data);
-    }
+  logEntry += '\n';
 
-    logEntry += '\n';
-
-    fs.appendFileSync(filePath, logEntry, 'utf8');
-  } catch (error) {
-    // Logging failures must never break request handling paths.
-    console.error(`[LoggerWrite] Failed to write to storages/logs:`, error);
+  const stream = getOrCreateStream(dateStr, level);
+  if (stream) {
+    stream.write(logEntry);
   }
 };
 
