@@ -54,10 +54,10 @@ const ensureLogDirectory = (date: string): string => {
 
 const getLogFileName = (level: LogLevel): string => {
   const fileNames: Record<LogLevel, string> = {
-    [LOG_LEVELS.DEBUG]: 'debug.txt',
-    [LOG_LEVELS.INFO]: 'info.txt',
-    [LOG_LEVELS.WARN]: 'warning.txt',
-    [LOG_LEVELS.ERROR]: 'errors.txt',
+    [LOG_LEVELS.DEBUG]: 'debug.jsonl',
+    [LOG_LEVELS.INFO]: 'info.jsonl',
+    [LOG_LEVELS.WARN]: 'warning.jsonl',
+    [LOG_LEVELS.ERROR]: 'errors.jsonl',
   };
   return fileNames[level];
 };
@@ -68,30 +68,6 @@ const formatDate = (date: Date): string => {
 
 const formatTimestamp = (date: Date): string => {
   return date.toISOString().replace('T', ' ').substring(0, 19);
-};
-
-const formatError = (data: unknown): string => {
-  if (data === undefined || data === null) {
-    return '';
-  }
-
-  if (data instanceof Error) {
-    let errorStr = `\n  Error: ${data.message}`;
-    if (data.stack) {
-      errorStr += `\n  Stack: ${data.stack}`;
-    }
-    return errorStr;
-  }
-
-  if (typeof data === 'object') {
-    try {
-      return `\n  Data: ${JSON.stringify(data, null, 2)}`;
-    } catch {
-      return `\n  Data: [Unable to stringify]`;
-    }
-  }
-
-  return `\n  ${String(data)}`;
 };
 
 const getOrCreateStream = (dateStr: string, level: LogLevel): fs.WriteStream | null => {
@@ -121,25 +97,56 @@ const getOrCreateStream = (dateStr: string, level: LogLevel): fs.WriteStream | n
   }
 };
 
+const extractModule = (message: string): { module: string | null; msg: string } => {
+  const match = message.match(/^\[([^\]]+)\]\s*(.*)/);
+  if (match) return { module: match[1]!, msg: match[2] || match[1]! };
+  return { module: null, msg: message };
+};
+
+const formatDataForJson = (data: unknown): Record<string, unknown> | string | null => {
+  if (data === undefined || data === null) return null;
+
+  if (data instanceof Error) {
+    const obj: Record<string, unknown> = { message: data.message, name: data.name };
+    if (data.stack) obj.stack = data.stack;
+    return obj;
+  }
+
+  if (typeof data === 'object') {
+    try {
+      return JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
+    } catch {
+      return String(data);
+    }
+  }
+
+  return String(data);
+};
+
 const writeToFile = (level: LogLevel, message: string, data?: unknown): void => {
   const now = new Date();
   const dateStr = formatDate(now);
-  const timestamp = formatTimestamp(now);
 
   const context = getContext();
-  const reqIdPart = context ? ` [ID: ${context.requestId}]` : '';
+  const { module, msg } = extractModule(message);
+  const formattedData = formatDataForJson(data);
 
-  let logEntry = `[${timestamp}] [${level.toUpperCase()}]${reqIdPart} ${message}`;
+  const entry: Record<string, unknown> = {
+    time: now.toISOString(),
+    level: level.toUpperCase(),
+    service: SERVICE_NAME,
+  };
 
-  if (data !== undefined) {
-    logEntry += formatError(data);
-  }
+  if (context?.requestId) entry.reqId = context.requestId;
+  if (module) entry.module = module;
+  entry.msg = msg;
+  if (formattedData) entry.data = formattedData;
 
-  logEntry += '\n';
+  const line = JSON.stringify(entry) + '\n';
 
   const stream = getOrCreateStream(dateStr, level);
   if (stream) {
-    stream.write(logEntry);
+    stream.write(line);
   }
 };
 
