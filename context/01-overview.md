@@ -2,7 +2,7 @@
 
 ## Project Identity
 
-- Project name: `hono-multi-db-fullstack`
+- Project name: `hono-multi-db-api`
 - Type: Hybrid Fullstack Boilerplate (SSR + SPA)
 - Runtime: Bun
 - Framework: Hono (Backend/SSR) & Vue.js (Frontend SPA)

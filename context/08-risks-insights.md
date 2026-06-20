@@ -32,12 +32,13 @@ Ini bukan kerusakan, tetapi akan menjadi sumber inkonsistensi jika tidak segera 
 
 Ini aman untuk strict startup validation, tetapi mengurangi fleksibilitas partial mode.
 
-### In-memory rate limiter
+### Rate limiter Redis dependency
 
-Rate limiter saat ini hanya valid per process. Risiko:
+Rate limiter mengandalkan Redis per-request untuk akurasi global. Risiko:
 
-- tidak konsisten pada multi-instance deployment
-- reset state saat process restart
+- Redis failure → fallback ke in-memory (tidak konsisten antar instance)
+- Redis latency ~3ms per request — acceptable di 1000 req/s, bisa jadi bottleneck di 10k+ req/s
+- tanpa Redis, rate limiter hanya valid per process (memory Map)
 
 ### Logger filesystem dependency
 

@@ -75,7 +75,7 @@ Ini artinya fitur async baru sebaiknya mengikuti jalur yang sudah disiapkan, buk
 
 ## Cache Integration Model
 
-Ada helper cache di [src/utils/cache.util.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/utils/cache.util.ts).
+Ada helper cache di [src/utils/cache.util.ts](src/utils/cache.util.ts).
 
 Kemampuan yang sudah ada:
 

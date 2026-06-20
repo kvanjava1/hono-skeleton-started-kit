@@ -2,7 +2,7 @@
 
 ## Runtime and Boot Process
 
-Startup utama ada di [src/index.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/index.ts).
+Startup utama ada di [src/index.ts](src/index.ts).
 
 Perilaku startup:
 
@@ -14,7 +14,7 @@ Perilaku startup:
 
 ## API Endpoints and Routing
 
-Routing saat ini hanya ada di [src/routes/index.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/routes/index.ts).
+Routing saat ini hanya ada di [src/routes/index.ts](src/routes/index.ts).
 
 Endpoint aktif:
 
@@ -58,8 +58,8 @@ Dispatcher utama ada di `src/middlewares/index.ts` yang mengarahkan middleware k
 
 Komponen utama:
 
-- [src/utils/errors.util.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/utils/errors.util.ts)
-- [src/middlewares/errorHandler.middleware.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/middlewares/errorHandler.middleware.ts)
+- [src/utils/errors.util.ts](src/utils/errors.util.ts)
+- [src/middlewares/common/errorHandler.ts](src/middlewares/common/errorHandler.ts)
 
 Hierarchy yang terlihat:
 
@@ -85,7 +85,7 @@ Global handler melakukan:
 
 ## Response Layer
 
-Response util ada di [src/utils/response.util.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/utils/response.util.ts).
+Response util ada di [src/utils/response.util.ts](src/utils/response.util.ts).
 
 Contract response:
 
@@ -108,7 +108,7 @@ Proyek menggunakan **Drizzle ORM** sebagai query builder untuk SQL databases.
 
 ### SQLite
 
-File: [src/database/sqlite.connection.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/database/sqlite.connection.ts)
+File: [src/database/sqlite.connection.ts](src/database/sqlite.connection.ts)
 
 Karakteristik:
 
@@ -123,7 +123,7 @@ Ini adalah database path default yang paling konkret di repo saat ini.
 
 ### MySQL
 
-File: [src/database/mysql.connection.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/database/mysql.connection.ts)
+File: [src/database/mysql.connection.ts](src/database/mysql.connection.ts)
 
 Karakteristik:
 
@@ -135,7 +135,7 @@ Karakteristik:
 
 ### PostgreSQL
 
-File: [src/database/pg.connection.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/database/pg.connection.ts)
+File: [src/database/pg.connection.ts](src/database/pg.connection.ts)
 
 Karakteristik:
 
@@ -147,7 +147,7 @@ Karakteristik:
 
 ### MongoDB
 
-File: [src/database/mongo.connection.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/database/mongo.connection.ts)
+File: [src/database/mongo.connection.ts](src/database/mongo.connection.ts)
 
 Karakteristik:
 
@@ -160,7 +160,7 @@ Karakteristik:
 
 ### Redis
 
-File: [src/database/redis.connection.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/database/redis.connection.ts)
+File: [src/database/redis.connection.ts](src/database/redis.connection.ts)
 
 Karakteristik:
 
@@ -192,9 +192,9 @@ Konsekuensinya:
 
 Komponen:
 
-- [src/queues/base.queue.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/queues/base.queue.ts)
-- [src/jobs/example/crudCreate.job.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/jobs/example/crudCreate.job.ts) — job example
-- [src/workers/index.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/workers/index.ts)
+- [src/queues/base.queue.ts](src/queues/base.queue.ts)
+- [src/jobs/example/crudCreate.job.ts](src/jobs/example/crudCreate.job.ts) — job example
+- [src/workers/index.ts](src/workers/index.ts)
 
 Yang tersedia:
 

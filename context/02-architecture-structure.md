@@ -24,9 +24,10 @@ Proyek ini menggunakan pola **"The Bridge"**:
 ### App Composition & SSR
 - [src/app.ts](src/app.ts): Bootstrap middleware and route aggregator.
 - [resources/views/example/Index.tsx](resources/views/example/Index.tsx): Pure SSR landing page entry point (Modular).
-- [resources/views/example/IndexVue.tsx](resources/views/example/IndexVue.tsx): Generic SPA Shell yang memuat berbagai aplikasi Vue.
+- [resources/views/example/Vue.tsx](resources/views/example/Vue.tsx): Generic SPA Shell yang memuat berbagai aplikasi Vue.
 ### Frontend Entry (Client)
-- [resources/js/app.ts](resources/js/app.ts): Entry point utama Vue yang melakukan mounting ke `#app`.
+- [resources/js/apps/example1/main.ts](resources/js/apps/example1/main.ts): Entry point Vue untuk aplikasi example1.
+- [resources/js/apps/example2/main.ts](resources/js/apps/example2/main.ts): Entry point Vue untuk aplikasi example2.
 
 ### Worker Entry
 - [src/workers/index.ts](src/workers/index.ts): Bootstrap untuk background processing.

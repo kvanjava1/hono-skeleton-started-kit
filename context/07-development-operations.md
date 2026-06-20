@@ -74,7 +74,7 @@ Ini penting karena modul baru idealnya mengikuti stub repo, bukan ditulis dengan
 
 ## Testing Status
 
-Sekarang ada **6 test files, 49 tests, 77 expect calls** (`bun test`):
+Sekarang ada **7 test files, 48 tests, 101 expect calls** (`bun test`):
 
 | File | Type | Tests |
 |------|------|-------|
@@ -82,9 +82,9 @@ Sekarang ada **6 test files, 49 tests, 77 expect calls** (`bun test`):
 | `tests/unit/errors.test.ts` | Unit — error classes (AppError, NotFoundError, dll) | 14 |
 | `tests/unit/response.test.ts` | Unit — response helpers (successResponse, errorResponse) | 4 |
 | `tests/health.test.ts` | Integration — health endpoint + 404 | 3 |
-| `tests/integration/web.test.ts` | Integration — landing page, security headers, rate limit headers | 3 |
+| `tests/integration/web.test.ts` | Integration — landing page, security headers, rate limit headers | 2 |
 | `tests/integration/rateLimiter.test.ts` | Integration — rate limit threshold, block, IP isolation | 3 |
-| `tests/integration/crud.test.ts` | Integration — CRUD endpoints + OpenAPI spec + Scalar docs | 9 |
+| `tests/integration/crud.test.ts` | Integration — CRUD endpoints + OpenAPI spec + Scalar docs | 8 |
 
 Artinya kondisi saat ini adalah:
 
@@ -99,9 +99,10 @@ Yang terlihat:
 
 - response compression aktif
 - SQLite memakai `WAL`
-- Redis dipakai untuk cache dan queue
+- Redis dipakai untuk cache, queue, dan rate limiter
 - queue dan cache default ke `redis1`
-- rate limiter memakai memory map sederhana
+- rate limiter memakai Redis per-request (sliding window via `INCR`), fallback memory
+- logger kini memakai WriteStream (buffered) — tidak blocking event loop
 
 Yang belum terlihat:
 
@@ -130,8 +131,8 @@ Yang belum ada:
 
 ## Operational Caveats
 
-- logger menulis ke filesystem, jadi environment read-only bisa membatasi file logging
-- rate limiter memakai Redis (fallback memory jika Redis tidak aktif)
+- logger menulis ke filesystem via WriteStream (buffered), bukan `appendFileSync`. Namun environment read-only tetap bisa membatasi file logging.
+- rate limiter memakai Redis per-request (`INCR` + `PEXPIREAT`), fallback ke in-memory Map jika Redis tidak aktif — akurat antar instance saat Redis aktif.
 - worker skeleton sudah tersedia, siap diisi job domain. Worker adalah proses terpisah (`bun run worker:dev`).
 - type checking kini dapat dieksekusi as-is menggunakan `bun run typecheck` (menjalankan `tsc --noEmit`) yang memastikan strict type safety tanpa intervensi build murni node.
 - OpenAPI spec tersedia di `GET /api/spec`, Scalar UI di `GET /api/docs`.

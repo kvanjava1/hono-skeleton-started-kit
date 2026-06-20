@@ -101,11 +101,11 @@ Jadi, untuk kode baru lebih baik konsisten memakai prefix modul.
 
 Utility yang sudah ada dan perlu dicek sebelum membuat helper baru:
 
-- [src/utils/response.util.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/utils/response.util.ts)
-- [src/utils/errors.util.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/utils/errors.util.ts)
-- [src/utils/logger.util.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/utils/logger.util.ts)
-- [src/utils/cache.util.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/utils/cache.util.ts)
-- [src/utils/context.util.ts](/home/melodelavic/Documents/bun/hono-skeleton/src/utils/context.util.ts)
+- [src/utils/response.util.ts](src/utils/response.util.ts)
+- [src/utils/errors.util.ts](src/utils/errors.util.ts)
+- [src/utils/logger.util.ts](src/utils/logger.util.ts)
+- [src/utils/cache.util.ts](src/utils/cache.util.ts)
+- [src/utils/context.util.ts](src/utils/context.util.ts)
 
 Sebelum menambah helper baru, area ini wajib dicek dulu.
 
