@@ -19,33 +19,35 @@ scripts/migrations/
 
 ## Commands
 
+Configuration comes from the single `.env` file of the machine (see
+[Installation](../getting-started/installation.md)).
+
 Run all enabled migrations:
 
 ```bash
-bun run migrate:dev
-bun run migrate:prod
+bun run migrate
 ```
 
 Run a specific target:
 
 ```bash
-bun run migrate:dev mysql
-bun run migrate:dev mongo
-bun run migrate:dev pg
-bun run migrate:dev sqlite
+bun run migrate mysql
+bun run migrate mongo
+bun run migrate pg
+bun run migrate sqlite
 ```
 
 Run a specific file:
 
 ```bash
-bun run migrate:dev sqlite 20260410080127_create_users
+bun run migrate sqlite 20260410080127_create_users
 ```
 
 Rollback:
 
 ```bash
-bun run --env-file=.env.dev scripts/migrate.ts rollback
-bun run --env-file=.env.dev scripts/migrate.ts rollback sqlite
+SERVICE_NAME=cli bun run scripts/migrate.ts rollback
+SERVICE_NAME=cli bun run scripts/migrate.ts rollback sqlite
 ```
 
 Create a migration file:

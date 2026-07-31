@@ -13,12 +13,11 @@ Aplikasi menjalankan dua server di mode pengembangan:
 - `bun run build:client`: Membangun aset Vue ke dalam folder `dist/` dan membuat `manifest.json`.
 - `bun run typecheck`: Melakukan pengecekan tipe TypeScript di seluruh proyek.
 - `bun run prod`: Menjalankan aplikasi di mode produksi.
-- `bun run worker:dev`: Menjalankan worker process untuk BullMQ job processing (proses terpisah).
+- `bun run worker`: Menjalankan worker process untuk BullMQ job processing (proses terpisah).
 
 ### Migration Scripts
-- `bun run migrate:dev`: Run all migrations (`.env.dev`)
-- `bun run migrate:fresh:dev <target>`: Drop + re-run migrations — target: `sqlite`, `mysql`, `pg`, `mongo`
-- `bun run migrate:fresh:prod <target>`: Same untuk production environment
+- `bun run migrate`: Run all migrations (menggunakan `.env`)
+- `bun run migrate:fresh <target>`: Drop + re-run migrations — target: `sqlite`, `mysql`, `pg`, `mongo`
 
 > Fresh migration **wajib** memilih satu target. `all` akan menghasilkan error untuk mencegah accidental drop semua database.
 
@@ -30,13 +29,16 @@ Deployment Fullstack memerlukan folder `dist/` (hasil build frontend) agar Hono 
 
 ## Environment Separation
 
-Environment dipisah lewat:
+Project memakai **satu file `.env` per mesin** (konvensi ala Laravel):
 
-- `.env.dev`
-- `.env.prod`
-- `.env.example`
+- Laptop/development: `.env` berisi nilai development (template: `.env.example`)
+- Server produksi: `.env` sendiri dengan nilai produksi (`NODE_ENV=production`, host, password, path DB)
 
-Pemisahan ini dipakai langsung di script `bun run --env-file=...`.
+`.env` gitignored dan tidak dibagikan antar mesin. Bun memuat `.env` secara
+otomatis (native) untuk aplikasi, script CLI (`migrate`, `seed`, `worker`),
+`bun test`, dan binary hasil compile — tanpa `--env-file`, tanpa wrapper.
+`NODE_ENV` di dalam `.env` dipakai aplikasi untuk logika runtime (misal error
+masking di production).
 
 
 
@@ -133,6 +135,6 @@ Yang belum ada:
 
 - logger menulis ke filesystem via WriteStream (buffered), bukan `appendFileSync`. Namun environment read-only tetap bisa membatasi file logging.
 - rate limiter memakai Redis per-request (`INCR` + `PEXPIREAT`), fallback ke in-memory Map jika Redis tidak aktif — akurat antar instance saat Redis aktif.
-- worker skeleton sudah tersedia, siap diisi job domain. Worker adalah proses terpisah (`bun run worker:dev`).
+- worker skeleton sudah tersedia, siap diisi job domain. Worker adalah proses terpisah (`bun run worker`).
 - type checking kini dapat dieksekusi as-is menggunakan `bun run typecheck` (menjalankan `tsc --noEmit`) yang memastikan strict type safety tanpa intervensi build murni node.
 - OpenAPI spec tersedia di `GET /api/spec`, Scalar UI di `GET /api/docs`.

@@ -12,6 +12,10 @@ This creates a `server` binary in the project root.
 
 ## Run
 
+The binary auto-loads the `.env` file from its working directory — create a
+`.env` with production values on the server (like Laravel: one `.env` per
+machine).
+
 API server:
 
 ```bash
@@ -24,25 +28,17 @@ Worker mode:
 ./server --worker
 ```
 
-With explicit production env loaded from `.env.prod`:
-
-```bash
-env $(cat .env.prod | grep -v '^#' | xargs) ./server
-env $(cat .env.prod | grep -v '^#' | xargs) ./server --worker
-```
-
 Or use the available scripts in `package.json`:
 
 ```bash
-bun run server:bin:prod
-bun run worker:bin:prod
+bun run server:bin
+bun run worker:bin
 ```
 
 ## Important Notes
 
-- the binary reads configuration from environment variables in the process
-- there is no internal `.env` loader when the binary runs
-- `.env.prod` must be loaded into the environment before starting the binary
+- the binary reads configuration from the `.env` file in its working directory (and from environment variables in the process)
+- `NODE_ENV=production` must be present inside the server's `.env` (error messages are masked in production)
 - keep `storages/` available for logs and SQLite files
 - if SQLite is enabled, the `sqlite1` path must exist or be creatable
 - if Redis is enabled, it must be reachable before the app starts
@@ -60,7 +56,7 @@ After=network.target
 Type=simple
 User=your-user
 WorkingDirectory=/path/to/app
-ExecStart=/bin/bash -lc 'env $(cat .env.prod | grep -v "^#" | xargs) ./server'
+ExecStart=/path/to/app/server
 Restart=always
 
 [Install]
@@ -78,7 +74,7 @@ After=network.target
 Type=simple
 User=your-user
 WorkingDirectory=/path/to/app
-ExecStart=/bin/bash -lc 'env $(cat .env.prod | grep -v "^#" | xargs) ./server --worker'
+ExecStart=/path/to/app/server --worker
 Restart=always
 
 [Install]

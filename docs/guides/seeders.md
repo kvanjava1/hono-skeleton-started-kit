@@ -9,26 +9,28 @@ This project supports seeders for:
 
 ## Commands
 
+Configuration comes from the single `.env` file of the machine (see
+[Installation](../getting-started/installation.md)).
+
 Run all enabled seeders:
 
 ```bash
-bun run seed:dev
-bun run seed:prod
+bun run seed
 ```
 
 Run a specific target:
 
 ```bash
-bun run seed:dev mysql
-bun run seed:dev mongo
-bun run seed:dev pg
-bun run seed:dev sqlite
+bun run seed mysql
+bun run seed mongo
+bun run seed pg
+bun run seed sqlite
 ```
 
 Run a specific seeder file:
 
 ```bash
-bun run seed:dev mysql ProductSeeder
+bun run seed mysql ProductSeeder
 ```
 
 Create a seeder:

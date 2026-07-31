@@ -15,12 +15,22 @@ This project is a Bun + Hono skeleton with:
 
 ```bash
 bun install
-cp .env.example .env.dev
+cp .env.example .env
 ```
+
+This project uses a **single `.env` file per machine** (Laravel-style
+convention):
+
+- local/development: `.env` with development values (see `.env.example`)
+- production server: its own `.env` with production values (`NODE_ENV=production`, hosts, passwords, DB paths)
+
+`.env` is gitignored and never shared between machines. Bun loads it
+automatically for the app, CLI scripts (`migrate`, `seed`, `worker`),
+`bun test`, and compiled binaries — no flags or helper scripts needed.
 
 ## Configure Databases
 
-Example `.env.dev`:
+Example `.env`:
 
 ```env
 DB_SQLITE_ENABLED=true
@@ -132,17 +142,17 @@ bun run prod
 ## Run Migrations
 
 ```bash
-bun run migrate:dev
-bun run migrate:dev sqlite
-bun run migrate:dev mysql
+bun run migrate
+bun run migrate sqlite
+bun run migrate mysql
 ```
 
 ## Run Seeders
 
 ```bash
-bun run seed:dev
-bun run seed:dev sqlite
-bun run seed:dev pg
+bun run seed
+bun run seed sqlite
+bun run seed pg
 ```
 
 ## Generate Files

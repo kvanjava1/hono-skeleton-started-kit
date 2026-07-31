@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { setupTestEnvironment } from "../helpers/setup.ts";
+import { configRateLimiter } from "../../src/configs/index.ts";
 
 setupTestEnvironment();
 
@@ -26,7 +27,7 @@ describe("Security & Common Middlewares", () => {
 
   test("response includes rate limit headers", async () => {
     const res = await app.fetch(new Request("http://localhost/api/health"));
-    expect(res.headers.get("x-ratelimit-limit")).toBe("100");
+    expect(res.headers.get("x-ratelimit-limit")).toBe(String(configRateLimiter.max));
     expect(res.headers.get("x-ratelimit-remaining")).toBeDefined();
   });
 });

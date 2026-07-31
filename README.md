@@ -38,30 +38,40 @@ Compatibility defaults still exist for some helpers, but new code should prefer 
 
 ```bash
 bun install
-cp .env.example .env.dev
+cp .env.example .env
 bun run dev:all
 ```
+
+## Environment Configuration
+
+Project ini memakai **satu file `.env` per mesin** (konvensi ala Laravel):
+
+- Laptop/development: `.env` berisi nilai development (contoh di `.env.example`)
+- Server produksi: buat `.env` sendiri dengan nilai produksi (`NODE_ENV=production`, host, password, path DB)
+
+`.env` tidak dibagikan antar mesin (gitignored). Bun otomatis memuat `.env`
+saat menjalankan aplikasi, script CLI (`migrate`, `seed`, `worker`), `bun test`,
+dan binary hasil compile — tanpa flag atau script tambahan.
 
 ## Available Scripts
 
 | Script | Description |
 |--------|-------------|
 | `bun run dev:all` | Start both Hono (backend) and Vite (frontend) servers |
-| `bun run dev` | Start Hono backend server only |
+| `bun run dev` | Start Hono backend server only (watch mode) |
 | `bun run dev:client` | Start Vite frontend server only |
 | `bun run build:client` | Build Vue assets for production |
 | `bun run typecheck` | Run TypeScript type checking |
-| `bun test` | Run all tests (currently **49 tests, 77 expects, 0 fail**) |
-| `bun run prod` | Start production server |
-| `bun run worker:dev` | Start development worker process |
-| `bun run worker:prod` | Start production worker process |
-| `bun run migrate:dev` | Run all migrations using `.env.dev` |
-| `bun run migrate:prod` | Run all migrations using `.env.prod` |
-| `bun run migrate:fresh:dev <target>` | Drop + re-run migrations for `<target>` (sqlite, mysql, pg, mongo) |
-| `bun run migrate:fresh:prod <target>` | Drop + re-run migrations for `<target>` (sqlite, mysql, pg, mongo) |
-| `bun run seed:dev` | Run all seeders using `.env.dev` |
-| `bun run seed:prod` | Run all seeders using `.env.prod` |
+| `bun test` | Run all tests (currently **48 tests, 101 expects, 0 fail**) |
+| `bun run prod` | Start server without watch mode (uses the machine's `.env`) |
+| `bun run worker` | Start worker process (separate process) |
+| `bun run migrate` | Run all migrations using `.env` |
+| `bun run migrate:fresh <target>` | Drop + re-run migrations for `<target>` (sqlite, mysql, pg, mongo) |
+| `bun run seed` | Run all seeders using the active environment |
 | `bun run make` | Generate files from local stubs |
+| `bun run build` | Compile backend into the `server` binary |
+| `bun run server:bin` | Run compiled `server` binary (API) — auto-loads `.env` |
+| `bun run worker:bin` | Run compiled `server` binary (worker) — auto-loads `.env` |
 
 ## Default API
 

@@ -105,16 +105,11 @@ createWorker('send-email', sendEmailProcessor, 'redis1');
 
 ## Run the Worker
 
-Development:
+Configuration comes from the single `.env` file of the machine (see
+[Installation](../getting-started/installation.md)).
 
 ```bash
-bun run worker:dev
-```
-
-Production:
-
-```bash
-bun run worker:prod
+bun run worker
 ```
 
 ## Job Rules
