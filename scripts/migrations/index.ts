@@ -35,6 +35,7 @@ import {
   rollbackSqliteMigrations,
 } from "./sqlite/index.ts";
 import { runPgMigrations, rollbackPgMigrations } from "./pg/index.ts";
+import { configApp } from "../../src/configs/index.ts";
 
 interface RunOptions {
   label: string;
@@ -52,15 +53,62 @@ const tryRun = async (options: RunOptions): Promise<boolean> => {
   }
 };
 
+const getEnabledMigrations = (): RunOptions[] => {
+  const jobs: RunOptions[] = [];
+  if (configApp.db.mysql) {
+    jobs.push({ label: "MySQL migrations", run: runMysqlMigrations });
+  }
+  if (configApp.db.mongo) {
+    jobs.push({ label: "MongoDB migrations", run: runMongoMigrations });
+  }
+  if (configApp.db.pg) {
+    jobs.push({ label: "PostgreSQL migrations", run: runPgMigrations });
+  }
+  if (configApp.db.sqlite) {
+    jobs.push({ label: "SQLite migrations", run: runSqliteMigrations });
+  }
+  return jobs;
+};
+
+const getEnabledRollbacks = (steps: number): RunOptions[] => {
+  const jobs: RunOptions[] = [];
+  if (configApp.db.mysql) {
+    jobs.push({
+      label: "MySQL rollback",
+      run: () => rollbackMysqlMigrations(steps),
+    });
+  }
+  if (configApp.db.mongo) {
+    jobs.push({
+      label: "MongoDB rollback",
+      run: () => rollbackMongoMigrations(steps),
+    });
+  }
+  if (configApp.db.pg) {
+    jobs.push({
+      label: "PostgreSQL rollback",
+      run: () => rollbackPgMigrations(steps),
+    });
+  }
+  if (configApp.db.sqlite) {
+    jobs.push({
+      label: "SQLite rollback",
+      run: () => rollbackSqliteMigrations(steps),
+    });
+  }
+  return jobs;
+};
+
 export const runAllMigrations = async (): Promise<void> => {
   console.log("Running all migrations...\n");
 
-  const results = await Promise.all([
-    tryRun({ label: "MySQL migrations", run: runMysqlMigrations }),
-    tryRun({ label: "MongoDB migrations", run: runMongoMigrations }),
-    tryRun({ label: "PostgreSQL migrations", run: runPgMigrations }),
-    tryRun({ label: "SQLite migrations", run: runSqliteMigrations }),
-  ]);
+  const jobs = getEnabledMigrations();
+  if (jobs.length === 0) {
+    console.log("No databases are enabled. Nothing to migrate.");
+    return;
+  }
+
+  const results = await Promise.all(jobs.map((job) => tryRun(job)));
 
   const hasFailures = results.some((ok) => !ok);
   if (hasFailures) {
@@ -76,24 +124,13 @@ export const rollbackAllMigrations = async (
 ): Promise<void> => {
   console.log(`Rolling back ${steps} migration(s) for all databases...\n`);
 
-  const results = await Promise.all([
-    tryRun({
-      label: "MySQL rollback",
-      run: () => rollbackMysqlMigrations(steps),
-    }),
-    tryRun({
-      label: "MongoDB rollback",
-      run: () => rollbackMongoMigrations(steps),
-    }),
-    tryRun({
-      label: "PostgreSQL rollback",
-      run: () => rollbackPgMigrations(steps),
-    }),
-    tryRun({
-      label: "SQLite rollback",
-      run: () => rollbackSqliteMigrations(steps),
-    }),
-  ]);
+  const jobs = getEnabledRollbacks(steps);
+  if (jobs.length === 0) {
+    console.log("No databases are enabled. Nothing to roll back.");
+    return;
+  }
+
+  const results = await Promise.all(jobs.map((job) => tryRun(job)));
 
   const hasFailures = results.some((ok) => !ok);
   if (hasFailures) {
