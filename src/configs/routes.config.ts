@@ -14,6 +14,8 @@ export const ROUTES = {
   API: {
     BASE_PATH: "/api",
     HEALTH: "/api/health",
+    HEALTH_READY: "/api/health/ready",
+    METRICS: "/metrics",
     EXAMPLE: {
       CRUDS: "/api/example/cruds",
       CRUD_BY_ID: "/api/example/cruds/{id}",

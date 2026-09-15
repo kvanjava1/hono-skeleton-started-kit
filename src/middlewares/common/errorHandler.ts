@@ -70,7 +70,7 @@ const getRequestLogContext = (c: Context) => {
 /**
  * Transforms external/driver errors into Unified AppErrors
  */
-const transformError = (err: any): Error => {
+export const transformError = (err: any): Error => {
   // 1. Duplicate entry / unique constraint violations
   if (
     isMySqlDuplicateError(err) ||

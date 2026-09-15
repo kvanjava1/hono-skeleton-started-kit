@@ -1,10 +1,15 @@
 import { Queue, Worker, type Job, type Processor } from "bullmq";
 import {
+  configApp,
   configQueue,
   configRedis,
   type RedisConnectionName,
 } from "../configs/index.ts";
 import { logger } from "../utils/logger.util.ts";
+import {
+  queueJobDurationMs,
+  queueJobsTotal,
+} from "../utils/metrics.util.ts";
 
 const getQueueConnectionOptions = (
   connectionName: RedisConnectionName = "redis1",
@@ -52,11 +57,30 @@ export const createWorker = (
   });
 
   worker.on("completed", (job: Job) => {
-    logger.info(`Job ${job.id} [${name}] has completed!`);
+    logger.info("[Queue] Job completed", { queue: name, jobId: job.id });
+
+    if (configApp.metricsEnabled) {
+      queueJobsTotal.inc({ queue: name, status: "completed" });
+
+      if (job.processedOn !== undefined && job.finishedOn !== undefined) {
+        queueJobDurationMs.observe(
+          { queue: name },
+          job.finishedOn - job.processedOn,
+        );
+      }
+    }
   });
 
   worker.on("failed", (job: Job | undefined, err: Error) => {
-    logger.error(`Job ${job?.id} [${name}] has failed with ${err.message}`);
+    logger.error("[Queue] Job failed", {
+      queue: name,
+      jobId: job?.id,
+      error: err.message,
+    });
+
+    if (configApp.metricsEnabled) {
+      queueJobsTotal.inc({ queue: name, status: "failed" });
+    }
   });
 
   return worker;

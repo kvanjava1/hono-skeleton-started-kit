@@ -1,4 +1,5 @@
 import { getEnv, getEnvBool, getEnvNumber } from "./env.ts";
+import { LOG_LEVELS, type LogLevel } from "./constants.ts";
 
 export interface ConfigDatabaseToggles {
   mongo: boolean;
@@ -15,7 +16,18 @@ export interface ConfigApp {
   isProduction(): boolean;
   db: ConfigDatabaseToggles;
   logRetentionDays: number;
+  logLevel: LogLevel;
+  metricsEnabled: boolean;
+  metricsToken: string;
 }
+
+const parseLogLevel = (value: string): LogLevel => {
+  const normalized = value.trim().toLowerCase();
+  const validLevels = Object.values(LOG_LEVELS) as string[];
+  return validLevels.includes(normalized)
+    ? (normalized as LogLevel)
+    : LOG_LEVELS.INFO;
+};
 
 const buildConfigApp = (): ConfigApp => ({
   port: getEnvNumber("PORT", 8080),
@@ -30,6 +42,9 @@ const buildConfigApp = (): ConfigApp => ({
     redis: getEnvBool("DB_REDIS_ENABLED", false),
   },
   logRetentionDays: getEnvNumber("LOG_RETENTION_DAYS", 3),
+  logLevel: parseLogLevel(getEnv("LOG_LEVEL", LOG_LEVELS.INFO)),
+  metricsEnabled: getEnvBool("METRICS_ENABLED", false),
+  metricsToken: getEnv("METRICS_TOKEN", ""),
 });
 
 let _cachedConfigApp: ConfigApp | null = null;

@@ -1,12 +1,23 @@
 import { createWorker } from "../queues/base.queue.ts";
-import { processCrudCreate, CRUD_CREATE_QUEUE } from "../jobs/example/crudCreate.job.ts";
+import {
+  processCrudCreate,
+  CRUD_CREATE_QUEUE,
+  type CrudCreateJobData,
+} from "../jobs/example/crudCreate.job.ts";
 import { logger } from "../utils/logger.util.ts";
+import { requestContext } from "../utils/context.util.ts";
 
 const startWorkers = () => {
   logger.info("Background Workers starting...");
 
   createWorker(CRUD_CREATE_QUEUE, async (job) => {
-    await processCrudCreate(job);
+    const data = job.data as CrudCreateJobData;
+    await requestContext.run(
+      { requestId: data.requestId ?? "unknown" },
+      async () => {
+        await processCrudCreate(job);
+      },
+    );
   });
 };
 

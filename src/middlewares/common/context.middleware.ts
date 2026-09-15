@@ -4,7 +4,10 @@ import { requestContext } from "../../utils/context.util.ts";
 export const contextMiddleware = async (c: Context, next: Next) => {
   const requestId = c.get("requestId") || "unknown";
 
-  await requestContext.run({ requestId }, async () => {
-    await next();
-  });
+  await requestContext.run(
+    { requestId, requestStartedAt: Date.now() },
+    async () => {
+      await next();
+    },
+  );
 };

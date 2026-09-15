@@ -1,28 +1,19 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { apiReference } from "@scalar/hono-api-reference";
-import { MESSAGES } from "../../configs/constants.ts";
-import { successResponse } from "../../utils/response.util.ts";
-import { ROUTES } from "../../configs/routes.config.ts";
+import { healthRoutes } from "./health/health.router.ts";
+import { metricsRoutes } from "./metrics/metrics.router.ts";
+import { registerDocsRoutes } from "./docs/docs.router.ts";
 import { exampleApiRoutes } from "./example/index.ts";
 
 export const apiRoutes = new OpenAPIHono();
 
-// Health check endpoint
-apiRoutes.get(ROUTES.API.HEALTH, (c) => {
-  return successResponse(c, MESSAGES.HEALTH_OK, {
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-  });
-});
+// Health routes (liveness + readiness)
+apiRoutes.route("/", healthRoutes);
 
-// OpenAPI spec (JSON)
-apiRoutes.doc("/api/spec", {
-  openapi: "3.0.0",
-  info: { title: "Hono Multi-DB API", version: "1.0.0" },
-});
-
-// Scalar API docs (UI)
-apiRoutes.get("/api/docs", apiReference({ spec: { url: "/api/spec" } }));
+// Prometheus metrics (infra, excluded from rate limit and request logging)
+apiRoutes.route("/", metricsRoutes);
 
 // Example CRUD routes
 apiRoutes.route("/", exampleApiRoutes);
+
+// OpenAPI spec + Scalar UI
+registerDocsRoutes(apiRoutes);

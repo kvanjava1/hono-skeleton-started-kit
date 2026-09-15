@@ -1,6 +1,7 @@
 import { NotFoundError } from "../../utils/errors.util.ts";
 import { MESSAGES } from "../../configs/constants.ts";
 import { cacheGet, cacheSet, cacheDelete } from "../../utils/cache.util.ts";
+import { logger } from "../../utils/logger.util.ts";
 import {
   getAllCruds,
   getCrudById,
@@ -19,40 +20,62 @@ const byIdKey = (id: number) => `cruds:${id}`;
 
 export const listCruds = async (): Promise<Crud[]> => {
   const cached = await cacheGet<Crud[]>(listKey);
-  if (cached) return cached;
+  if (cached) {
+    logger.debug("[CrudService] Crud list served from cache");
+    return cached;
+  }
 
   const data = await getAllCruds();
   await cacheSet(listKey, data, CACHE_TTL);
+  logger.debug("[CrudService] Crud list loaded from database", {
+    count: data.length,
+  });
   return data;
 };
 
 export const findCrud = async (id: number): Promise<Crud> => {
   const cached = await cacheGet<Crud>(byIdKey(id));
-  if (cached) return cached;
+  if (cached) {
+    logger.debug("[CrudService] Crud served from cache", { id });
+    return cached;
+  }
 
   const crud = await getCrudById(id);
-  if (!crud) throw new NotFoundError(MESSAGES.CRUD_NOT_FOUND);
+  if (!crud) {
+    logger.warn("[CrudService] Crud not found", { id });
+    throw new NotFoundError(MESSAGES.CRUD_NOT_FOUND);
+  }
 
   await cacheSet(byIdKey(id), crud, CACHE_TTL);
+  logger.debug("[CrudService] Crud loaded from database", { id });
   return crud;
 };
 
 export const addCrud = async (input: CreateCrudInput): Promise<Crud> => {
   const [data] = await Promise.all([createCrud(input), cacheDelete(listKey)]);
+  logger.info("[CrudService] Crud created", { id: data.id, title: data.title });
   return data;
 };
 
 export const editCrud = async (id: number, input: UpdateCrudInput): Promise<Crud> => {
   const updated = await updateCrud(id, input);
-  if (!updated) throw new NotFoundError(MESSAGES.CRUD_NOT_FOUND);
+  if (!updated) {
+    logger.warn("[CrudService] Crud not found", { id });
+    throw new NotFoundError(MESSAGES.CRUD_NOT_FOUND);
+  }
 
   await Promise.all([cacheDelete(listKey), cacheDelete(byIdKey(id))]);
+  logger.info("[CrudService] Crud updated", { id });
   return updated;
 };
 
 export const removeCrud = async (id: number): Promise<void> => {
   const deleted = await deleteCrud(id);
-  if (!deleted) throw new NotFoundError(MESSAGES.CRUD_NOT_FOUND);
+  if (!deleted) {
+    logger.warn("[CrudService] Crud not found", { id });
+    throw new NotFoundError(MESSAGES.CRUD_NOT_FOUND);
+  }
 
   await Promise.all([cacheDelete(listKey), cacheDelete(byIdKey(id))]);
+  logger.info("[CrudService] Crud deleted", { id });
 };

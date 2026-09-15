@@ -10,12 +10,16 @@ export const HTTP_STATUS = {
   NOT_FOUND: 404,
   UNSUPPORTED_MEDIA_TYPE: 415,
   INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503,
   TOO_MANY_REQUESTS: 429,
 } as const;
 
 export const MESSAGES = {
   HELLO_WORLD: "Hello World",
   HEALTH_OK: "OK",
+  HEALTH_READY: "Ready",
+  HEALTH_NOT_READY: "Not ready",
+  METRICS_UNAUTHORIZED: "Invalid metrics token",
   NOT_FOUND: "Resource not found",
   CRUD_CREATED: "Crud created successfully",
   CRUD_QUEUED: "Crud creation queued successfully",

@@ -4,6 +4,50 @@ import { LOG_LEVELS, type LogLevel } from '../configs/constants.ts';
 import { configApp } from '../configs/index.ts';
 import { getContext } from './context.util.ts';
 
+const LEVEL_PRIORITY: Record<LogLevel, number> = {
+  [LOG_LEVELS.DEBUG]: 0,
+  [LOG_LEVELS.INFO]: 1,
+  [LOG_LEVELS.WARN]: 2,
+  [LOG_LEVELS.ERROR]: 3,
+};
+
+export const isLevelEnabled = (level: LogLevel): boolean => {
+  const configured = configApp.logLevel as LogLevel;
+  const threshold =
+    LEVEL_PRIORITY[configured] ?? LEVEL_PRIORITY[LOG_LEVELS.INFO];
+  return LEVEL_PRIORITY[level] >= threshold;
+};
+
+const REDACTED = '[REDACTED]';
+const SENSITIVE_KEYS = new Set([
+  'password',
+  'passwd',
+  'token',
+  'authorization',
+  'secret',
+  'cookie',
+  'apikey',
+  'creditcard',
+]);
+
+export const redactSensitive = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map(redactSensitive);
+  }
+
+  if (value !== null && typeof value === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value)) {
+      result[key] = SENSITIVE_KEYS.has(key.toLowerCase())
+        ? REDACTED
+        : redactSensitive(val);
+    }
+    return result;
+  }
+
+  return value;
+};
+
 const LOGS_BASE_PATH = './storages/logs';
 const SERVICE_NAME = process.env.SERVICE_NAME || 'app';
 
@@ -114,7 +158,8 @@ const formatDataForJson = (data: unknown): Record<string, unknown> | string | nu
 
   if (typeof data === 'object') {
     try {
-      return JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
+      const cloned = JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
+      return redactSensitive(cloned) as Record<string, unknown>;
     } catch {
       return String(data);
     }
@@ -175,21 +220,25 @@ const logToConsole = (level: LogLevel, message: string, data?: unknown): void =>
 
 export const logger = {
   debug(message: string, data?: unknown): void {
+    if (!isLevelEnabled(LOG_LEVELS.DEBUG)) return;
     writeToFile(LOG_LEVELS.DEBUG, message, data);
     logToConsole(LOG_LEVELS.DEBUG, message, data);
   },
 
   info(message: string, data?: unknown): void {
+    if (!isLevelEnabled(LOG_LEVELS.INFO)) return;
     writeToFile(LOG_LEVELS.INFO, message, data);
     logToConsole(LOG_LEVELS.INFO, message, data);
   },
 
   warn(message: string, data?: unknown): void {
+    if (!isLevelEnabled(LOG_LEVELS.WARN)) return;
     writeToFile(LOG_LEVELS.WARN, message, data);
     logToConsole(LOG_LEVELS.WARN, message, data);
   },
 
   error(message: string, data?: unknown): void {
+    if (!isLevelEnabled(LOG_LEVELS.ERROR)) return;
     writeToFile(LOG_LEVELS.ERROR, message, data);
     logToConsole(LOG_LEVELS.ERROR, message, data);
   },

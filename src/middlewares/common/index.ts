@@ -4,6 +4,7 @@ import { compress } from "hono/compress";
 import { secureHeaders } from "hono/secure-headers";
 import { contextMiddleware } from "./context.middleware.ts";
 import { requestLoggerMiddleware } from "./logger.middleware.ts";
+import { metricsMiddleware } from "./metrics.middleware.ts";
 import { rateLimiterMiddleware } from "./rateLimiter.middleware.ts";
 
 /**
@@ -14,6 +15,7 @@ export const setupCommonMiddlewares = (app: Hono) => {
   app.use("*", contextMiddleware);
   app.use("*", compress());
   app.use("*", secureHeaders());
+  app.use("*", metricsMiddleware);
   app.use("*", rateLimiterMiddleware);
   app.use("*", requestLoggerMiddleware);
 };
@@ -21,5 +23,6 @@ export const setupCommonMiddlewares = (app: Hono) => {
 // Re-export common middlewares
 export * from "./context.middleware.ts";
 export * from "./logger.middleware.ts";
+export * from "./metrics.middleware.ts";
 export * from "./rateLimiter.middleware.ts";
 export * from "./errorHandler.ts";

@@ -1,6 +1,7 @@
 import type { Context, Next } from "hono";
 import { configApp, configRateLimiter } from "../../configs/index.ts";
 import { HTTP_STATUS, MESSAGES } from "../../configs/constants.ts";
+import { ROUTES } from "../../configs/routes.config.ts";
 import { getRedis } from "../../database/redis.connection.ts";
 import { errorResponse } from "../../utils/response.util.ts";
 import { logger } from "../../utils/logger.util.ts";
@@ -88,6 +89,10 @@ export const rateLimiterMiddleware = async (
   c: Context,
   next: Next,
 ): Promise<void | Response> => {
+  if (c.req.path === ROUTES.API.METRICS) {
+    return next();
+  }
+
   const ip =
     c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
 
