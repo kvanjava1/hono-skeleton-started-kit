@@ -26,7 +26,9 @@ src/
 ├── app.ts
 ├── configs/
 ├── routes/
+│   └── api/            # health/, docs/, metrics/, example/
 ├── controllers/
+│   └── health/         # health.controller.ts
 ├── services/
 ├── repositories/
 ├── validations/        # Zod request/response schemas
@@ -34,7 +36,8 @@ src/
 │   ├── drizzle.ts      # Drizzle client wrapper
 │   └── schema/         # Drizzle table definitions
 ├── middlewares/
-├── utils/
+│   └── common/         # termasuk metrics.middleware.ts
+├── utils/              # logger, metrics, async, context, cache
 ├── queues/
 ├── jobs/
 └── workers/
@@ -43,7 +46,9 @@ src/
 ## Current Default App Surface
 
 ### REST API
-- `GET /api/health`
+- `GET /api/health` — liveness
+- `GET /api/health/ready` — readiness (checks enabled dependencies)
+- `GET /metrics` — Prometheus metrics (404 when `METRICS_ENABLED=false`)
 - `GET /api/spec` — OpenAPI 3.0 JSON spec
 - `GET /api/docs` — Scalar API Reference (interactive UI)
 
@@ -73,8 +78,18 @@ Environment toggles:
 - `DB_MONGO_ENABLED`
 - `DB_REDIS_ENABLED`
 
+## Observability Controls
+
+- `LOG_LEVEL` — minimum log level (`debug|info|warn|error`, default `info`)
+- `METRICS_ENABLED` — enable `GET /metrics` (default `false`)
+- `METRICS_TOKEN` — optional shared secret; requires `x-metrics-token` header
+
 ## Worker Model
 
-The worker entry point exists, but the default skeleton does not register any job. You add jobs in `src/jobs/` and register them in `src/workers/index.ts`.
+The worker entry point registers the `crud-create` job (async CRUD creation).
+Add new jobs in `src/jobs/` and register them in `src/workers/index.ts`.
+
+Note: queue metrics are recorded in the worker process, which does not expose an
+HTTP server, so they are not scrapeable from the API `/metrics` endpoint yet.
 
 [Back to Reference](./README.md)

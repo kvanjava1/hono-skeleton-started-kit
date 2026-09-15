@@ -76,23 +76,32 @@ Ini penting karena modul baru idealnya mengikuti stub repo, bukan ditulis dengan
 
 ## Testing Status
 
-Sekarang ada **7 test files, 48 tests, 101 expect calls** (`bun test`):
+Sekarang ada **13 test files, 80 tests, 168 expect calls** (`bun test`):
 
 | File | Type | Tests |
 |------|------|-------|
 | `tests/unit/env.test.ts` | Unit — env parser | 13 |
 | `tests/unit/errors.test.ts` | Unit — error classes (AppError, NotFoundError, dll) | 14 |
 | `tests/unit/response.test.ts` | Unit — response helpers (successResponse, errorResponse) | 4 |
-| `tests/health.test.ts` | Integration — health endpoint + 404 | 3 |
-| `tests/integration/web.test.ts` | Integration — landing page, security headers, rate limit headers | 2 |
+| `tests/unit/logger.test.ts` | Unit — redaksi data sensitif + filter `LOG_LEVEL` | 7 |
+| `tests/unit/async.test.ts` | Unit — `withTimeout` | 3 |
+| `tests/unit/metrics.test.ts` | Unit — normalisasi path, `kind`, registry metrik | 7 |
+| `tests/unit/queue.test.ts` | Unit — propagasi `reqId`, log job, metrik queue (mock bullmq) | 5 |
+| `tests/health.test.ts` | Integration — health, readiness, 404 | 5 |
+| `tests/integration/web.test.ts` | Integration — landing page, security headers, rate limit headers | 3 |
 | `tests/integration/rateLimiter.test.ts` | Integration — rate limit threshold, block, IP isolation | 3 |
 | `tests/integration/crud.test.ts` | Integration — CRUD endpoints + OpenAPI spec + Scalar docs | 8 |
+| `tests/integration/observability.test.ts` | Integration — format log request & `CrudService` (spy logger) | 2 |
+| `tests/integration/metrics.test.ts` | Integration — `/metrics`, token, label `kind`, cardinality | 6 |
 
 Artinya kondisi saat ini adalah:
 
-- sudah ada regression safety net untuk config parsing, error handling, dan response contract
-- sudah ada integration test untuk database-dependent endpoint (CRUD SQLite + OpenAPI spec)
-- manual verification masih penting
+- regression safety net mencakup config parsing, error handling, response
+  contract, logging, metrics, dan queue
+- integration test mencakup CRUD SQLite, OpenAPI spec, health/readiness, dan
+  `/metrics`
+- propagasi `reqId` ke worker diuji di level unit (mock bullmq)
+- verifikasi E2E lintas proses (worker + Redis) masih perlu manual
 - refactor fondasi tetap butuh kehati-hatian lebih
 
 ## Performance Considerations Visible in Code
@@ -104,14 +113,17 @@ Yang terlihat:
 - Redis dipakai untuk cache, queue, dan rate limiter
 - queue dan cache default ke `redis1`
 - rate limiter memakai Redis per-request (sliding window via `INCR`), fallback memory
-- logger kini memakai WriteStream (buffered) — tidak blocking event loop
+- logger memakai WriteStream (buffered) — tidak blocking event loop
+- metrics memakai registry in-memory (prom-client) — overhead kecil dan bisa
+  dimatikan lewat `METRICS_ENABLED=false`
+- log & metrics memakai `requestStartedAt` yang sama sehingga durasinya konsisten
 
 Yang belum terlihat:
 
 - query optimization layer domain
 - profiling
-- metrics
 - benchmark
+- metrik bisnis khusus domain (baru metrik HTTP + queue)
 
 ## Security Measures Visible in Code
 
@@ -122,6 +134,8 @@ Yang sudah ada:
 - JSON-only middleware (mengembalikan HTTP 415 untuk non-JSON POST/PUT/PATCH)
 - rate limiting (Redis-based, fallback memory)
 - production error masking
+- proteksi opsional `/metrics` via shared-secret `METRICS_TOKEN` (header
+  `x-metrics-token`)
 
 Yang belum ada:
 
@@ -138,3 +152,8 @@ Yang belum ada:
 - worker skeleton sudah tersedia, siap diisi job domain. Worker adalah proses terpisah (`bun run worker`).
 - type checking kini dapat dieksekusi as-is menggunakan `bun run typecheck` (menjalankan `tsc --noEmit`) yang memastikan strict type safety tanpa intervensi build murni node.
 - OpenAPI spec tersedia di `GET /api/spec`, Scalar UI di `GET /api/docs`.
+- readiness tersedia di `GET /api/health/ready` (timeout 2 detik per dependency).
+- metrics tersedia di `GET /metrics` (aktif via `METRICS_ENABLED`); endpoint ini
+  di-exclude dari rate limiter dan request logger.
+- **known issue**: metrik queue tercatat di proses worker yang tidak membuka
+  HTTP server, sehingga belum bisa di-scrape dari `/metrics` proses API.

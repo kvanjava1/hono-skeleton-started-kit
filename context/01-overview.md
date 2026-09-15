@@ -38,6 +38,10 @@ Repo ini menyediakan baseline teknis untuk:
 ### Background processing
 - BullMQ
 
+### Observability
+- `prom-client` (metrics, format Prometheus)
+- Logger JSONL internal (tanpa dependency tambahan)
+
 ## Named Connection Model
 
 Model yang sekarang tersedia di codebase:
@@ -78,12 +82,28 @@ Entity teknis yang sudah jelas:
 
 Permukaan aplikasi yang aktif saat ini terdiri dari:
 
-- `GET /api/health`
+- `GET /api/health` — liveness (uptime + timestamp)
+- `GET /api/health/ready` — readiness (cek dependency aktif, mis. `sqlite1`/`redis1`)
+- `GET /metrics` — metrik Prometheus (aktif bila `METRICS_ENABLED=true`)
 - `GET /api/spec` — OpenAPI 3.0 JSON spec
 - `GET /api/docs` — Scalar API Reference (interaktif)
 - Modul referensi `example` di `/api/example/cruds`
 
-`/api/health` berfungsi sebagai smoke check aplikasi. Modul `example` berfungsi sebagai contoh runnable untuk pola implementasi, bukan sebagai fitur bisnis utama skeleton.
+`/api/health` berfungsi sebagai smoke check aplikasi. `/api/health/ready` dipakai
+orchestrator untuk mengetahui apakah dependency siap menerima trafik. Modul
+`example` berfungsi sebagai contoh runnable untuk pola implementasi, bukan
+sebagai fitur bisnis utama skeleton.
+
+## Observability
+
+Status per pilar (detail di `plans/observability/`):
+
+- **Logs** — JSONL terstruktur, `reqId` via `AsyncLocalStorage`, filter
+  `LOG_LEVEL`, redaksi data sensitif, log job + propagasi `reqId` ke worker.
+- **Health & readiness** — `/api/health/ready` dengan timeout.
+- **Metrics** — `prom-client`, endpoint `/metrics` (HTTP RED + queue), label
+  `kind` (`api`/`web`), proteksi opsional `x-metrics-token`.
+- **Tracing** — ditunda (phase-4).
 
 ## Default Development Posture
 
@@ -99,3 +119,9 @@ Artinya jalur default skeleton kemungkinan besar adalah API Hono + SQLite + Redi
 
 - `sqlite1`
 - `redis1`
+
+Env observability yang relevan:
+
+- `LOG_LEVEL` — default `info`
+- `METRICS_ENABLED` — default `false`
+- `METRICS_TOKEN` — opsional (shared-secret untuk `/metrics`)

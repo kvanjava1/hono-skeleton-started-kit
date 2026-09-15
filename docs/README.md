@@ -16,6 +16,7 @@ Documentation in this repository is organized by purpose, not by historical topi
 - [Seeders](./guides/seeders.md)
 - [Queues](./guides/queues.md)
 - [Logging](./guides/logging.md)
+- [Metrics](./guides/metrics.md)
 - [Make CLI](./guides/make-cli.md)
 - [Frontend & Vue Integration](./guides/frontend-vue-integration.md)
 

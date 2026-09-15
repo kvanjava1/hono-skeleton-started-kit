@@ -8,21 +8,30 @@ Dokumentasi menjelaskan skeleton seolah semua layer domain sudah hadir, tetapi i
 
 ### Limited test baseline
 
-Repo sekarang sudah memiliki test dasar untuk config parsing dan validasi target migration, tetapi baseline test-nya masih terbatas. Dampaknya:
+Repo sekarang memiliki **13 test files / 80 tests** (`bun test`) yang mencakup:
 
-- integration bug lintas database masih bisa lolos
-- perubahan fondasi tetap bisa menimbulkan regresi diam-diam bila tidak diuji end-to-end
-- safety net belum cukup untuk refactor agresif
+- config parsing, error handling, response contract
+- logging (redaksi, `LOG_LEVEL`, format request/job)
+- metrics (normalisasi path, `kind`, `/metrics`, token)
+- health/readiness, CRUD SQLite, OpenAPI spec, rate limiter
+
+Yang masih terbatas:
+
+- E2E lintas proses (worker + Redis) belum otomatis — masih manual
+- integrasi MySQL/PostgreSQL/MongoDB tidak diuji otomatis
+- tracing belum ada (phase-4 ditunda)
+
+Dampaknya: refactor fondasi tetap butuh kehati-hatian, dan bug lintas
+database/worker masih bisa lolos.
 
 ### Convention ambiguity
 
-Ada ambiguity pada:
+Sebagian sudah diselesaikan:
 
-- struktur folder service/repository
-- gaya route modular
-- style formatting
-
-Ini bukan kerusakan, tetapi akan menjadi sumber inkonsistensi jika tidak segera distandardkan lewat modul nyata pertama.
+- naming route disepakati `.router.ts` (mengikuti pola aktual)
+- struktur folder modular konsisten (`src/routes/api/<fitur>/`,
+  `src/controllers/<fitur>/`)
+- style formatting masih campur single/double quote
 
 ## Fragile Areas
 
@@ -47,6 +56,19 @@ Logger menulis ke filesystem lokal. Ini baik untuk local/dev sederhana, tetapi b
 - immutable container
 - ephemeral filesystem
 - platform dengan volume write terbatas
+
+### Metrics queue tidak ter-expose
+
+Metrik queue (`queue_jobs_total`, `queue_job_duration_ms`) dicatat di proses
+worker yang tidak menjalankan HTTP server. Akibatnya `/metrics` di proses API
+selalu kosong untuk metrik queue. Perlu endpoint `/metrics` di worker (port
+terpisah) atau push gateway.
+
+### Rate limiter noise saat Redis down
+
+Jika `DB_REDIS_ENABLED=true` tapi Redis tidak reachable, rate limiter fail-open
+(request tetap jalan) tetapi mencatat `logger.error` pada setiap request — log
+bisa penuh saat outage. Perlu peringatan sekali saja atau circuit breaker.
 
 ## Hidden Coupling
 
@@ -95,6 +117,9 @@ Ini coupling sosial-teknis yang penting untuk disadari.
 - menganggap multi-database berarti satu feature harus mendukung semua database sekaligus
 - menganggap default connection compatibility path adalah pola terbaik untuk kode baru
 - menganggap worker system sudah lengkap hanya karena queue infra sudah ada
+- menganggap metrik queue sudah bisa di-scrape dari proses API (padahal worker
+  proses terpisah)
+- menganggap tracing wajib ada; untuk monolith, log + metrics biasanya cukup
 
 ## Migration and Refactor Hazards
 
@@ -119,3 +144,8 @@ Saat mengerjakan task berikutnya, guardrail yang paling masuk akal adalah:
 Repo ini punya fondasi teknis yang cukup baik, dan sekarang juga sudah punya contoh end-to-end netral lewat modul `example`. Karena itu, risiko terbesar bukan lagi “tidak ada contoh”, tetapi salah membaca reference module sebagai domain bisnis permanen atau menerapkan polanya secara inkonsisten.
 
 Sekarang repo juga sudah punya fondasi multi-connection yang cukup kuat untuk semua engine utama. Karena itu, risiko barunya bergeser dari “belum ada capability” menjadi “capability sudah ada, tetapi bisa dipakai secara inkonsisten bila tim tidak disiplin pada explicit targeting dan convention.”
+
+Observability phase-1–3 (logging, health/readiness, metrics) sudah selesai;
+tracing ditunda. Risiko berikutnya bukan lagi “tidak bisa dipantau”, melainkan
+memastikan metrik/label dipakai konsisten dan metrik queue benar-benar
+ter-expose saat dibutuhkan.

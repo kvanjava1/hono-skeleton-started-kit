@@ -4,7 +4,7 @@
 
 | Layer | Format | Example |
 |---|---|---|
-| Routes | `camelCase.routes.ts` | `product.routes.ts` |
+| Routes | `camelCase.router.ts` | `product.router.ts` |
 | Controllers | `camelCase.controller.ts` | `product.controller.ts` |
 | Services | `camelCase.service.ts` | `product.service.ts` |
 | Repositories | `camelCase.repository.ts` | `product.repository.ts` |
@@ -15,7 +15,8 @@
 | Database | `snake_case.connection.ts` | `sqlite.connection.ts` |
 
 > [!NOTE]
-> **Modular Structure**: New domain features should be placed in sub-folders (e.g., `src/controllers/product/`).
+> **Modular Structure**: New domain features should be placed in sub-folders (e.g., `src/controllers/product/`, `src/routes/api/product/`).
+> **Router Mounting**: `src/routes/api/index.ts` should only mount sub-routers; route definitions live in their feature folder.
 > **SPA Apps**: Different Vue applications should be isolated in `resources/js/apps/[app-name]/`.
 > **Static Assets**: Put static files in the root `/public/` directory.
 

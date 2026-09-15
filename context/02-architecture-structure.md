@@ -37,15 +37,21 @@ Proyek ini menggunakan pola **"The Bridge"**:
 ### Backend Logic (`src/`)
 - `src/routes`: Modular routing structure:
     - `src/routes/api/`: Semua endpoint REST API (prefix `/api`).
+      - `health/health.router.ts`, `docs/docs.router.ts`,
+        `metrics/metrics.router.ts`, `example/crud.router.ts`
+      - `src/routes/api/index.ts`: hanya mounting sub-router.
     - `src/routes/web/`: Semua rute SSR/Hybrid (Hono JSX).
     - `src/routes/index.ts`: Aggregator utama rute (termasuk Global 404).
 - `src/controllers`, `src/services`, `src/repositories`, `src/validations`, `src/database/schema`, `src/jobs`: 
-    - Menggunakan struktur folder modular berbasis domain (misal: `src/controllers/example/`).
+    - Menggunakan struktur folder modular berbasis domain (misal: `src/controllers/example/`, `src/controllers/health/`).
     - `src/validations/` untuk Zod request/response schemas.
     - `src/database/schema/` untuk Drizzle table definitions.
     - File dalam folder domain menggunakan penamaan **camelCase** (misal: `crud.controller.ts`).
 - `src/middlewares`: Modular middlewares terbagi menjadi `common/`, `api/`, dan `web/` dengan dispatching berbasis path.
+    - `common/` mencakup `metrics.middleware.ts` (pengukur request untuk `/metrics`).
 - `src/database`, `src/configs`, `src/queues`, `src/utils`.
+    - `src/utils` mencakup `logger.util.ts`, `metrics.util.ts`, `async.util.ts`,
+      `context.util.ts`, `cache.util.ts`.
 
 ### Frontend Assets & UI (`resources/`)
 - `resources/js/apps/`: Folder untuk masing-masing aplikasi SPA (misal: `example1`, `example2`).

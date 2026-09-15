@@ -45,12 +45,58 @@ One JSON object per line:
 [2026-06-20 09:44:21] [INFO] [ID: abc-123] Crud created
 ```
 
+## Request Logging
+
+Every HTTP request (API and web) produces one completion log line:
+
+```json
+{
+  "level": "INFO",
+  "service": "app",
+  "reqId": "9f8c1e2a-...",
+  "module": "Http",
+  "msg": "Request completed",
+  "data": {
+    "method": "GET",
+    "path": "/api/health",
+    "status": 200,
+    "durationMs": 12,
+    "ip": "10.0.0.1"
+  }
+}
+```
+
+- `durationMs` is measured from `requestStartedAt` in the request context, so it
+  matches the metrics histogram (`http_request_duration_ms_sum`).
+- Requests to `/metrics` are skipped to avoid log noise.
+
+Queue jobs are logged as `[Queue] Job completed` / `[Queue] Job failed` with
+`queue` and `jobId`. The worker keeps the original `reqId` (propagated through
+the job payload).
+
+Business logs use module prefixes, e.g. `[CrudService] Crud created`.
+
+## Redaction
+
+Sensitive keys are replaced with `[REDACTED]` before writing: `password`,
+`passwd`, `token`, `authorization`, `secret`, `cookie`, `apikey`, `creditcard`
+— including inside nested objects and arrays.
+
 ## Log Levels
 
 - `debug`
 - `info`
 - `warn`
 - `error`
+
+Minimum level is configured via:
+
+```env
+LOG_LEVEL=info
+```
+
+Only messages at or above this level are written. Invalid values fall back to
+`info`.
 
 ## Retention
 

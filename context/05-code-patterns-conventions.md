@@ -10,9 +10,10 @@ Prinsipnya sehat dan perlu dipertahankan saat modul domain pertama dibuat.
 
 ## File Naming Conventions
 
-Berdasarkan dokumentasi:
+Berdasarkan dokumentasi (dengan penyesuaian ke pola aktual):
 
-- routes: `camelCase.routes.ts`
+- routes: `camelCase.router.ts` — pola aktual yang dominan
+  (`crud.router.ts`, `health.router.ts`, `metrics.router.ts`)
 - controllers: `camelCase.controller.ts` (Strictly camelCase for new modules)
 - services: `camelCase.service.ts` (Strictly camelCase for new modules)
 - repositories: `camelCase.repository.ts`
@@ -34,6 +35,13 @@ Untuk setiap modul domain atau aplikasi SPA baru:
 - `src/routes/api/example/`
 - `resources/js/apps/example1/pages/` (Halaman khusus aplikasi)
 - `resources/views/example/`
+
+Modul infrastruktur mengikuti pola folder yang sama. Contoh aktual:
+
+- `src/controllers/health/health.controller.ts`
+- `src/routes/api/health/health.router.ts`
+- `src/routes/api/docs/docs.router.ts`
+- `src/routes/api/metrics/metrics.router.ts`
 
 ## Import Conventions
 
@@ -147,11 +155,35 @@ Cache adalah tanggung jawab **service layer**, bukan controller. Service memangg
 
 Semua route API menggunakan `@hono/zod-openapi` (`OpenAPIHono`, `createRoute`). Path parameter menggunakan `{id}` (OpenAPI 3.0 standard) — Hono mengonversi internal ke `:id`.
 
+Setiap route sebaiknya mengisi `tags`, `summary`, dan `description` agar tampil
+rapi di Scalar.
+
 Spec JSON tersedia di `GET /api/spec`, Scalar UI di `GET /api/docs`.
+
+Catatan: `/api/spec` dan `/api/docs` didaftarkan lewat `registerDocsRoutes(app)`
+di `src/routes/api/docs/docs.router.ts`, karena `OpenAPIHono.doc()` harus dipanggil
+di instance root agar spec memuat semua route.
 
 ### Routes
 
-Docs menyarankan file route modular, dan implementasi saat ini sudah mulai bergerak ke arah itu lewat `src/routes/api/example/` yang kemudian diregistrasikan dari `src/routes/api/index.ts`.
+Route modular adalah pola utama. Contoh aktual:
+
+- `src/routes/api/health/health.router.ts`
+- `src/routes/api/docs/docs.router.ts`
+- `src/routes/api/metrics/metrics.router.ts`
+- `src/routes/api/example/` (crud)
+
+`src/routes/api/index.ts` hanya melakukan mounting sub-router.
+
+### Metrics
+
+- Registry & definisi metrik: `src/utils/metrics.util.ts` (prom-client).
+- Middleware pengukur: `src/middlewares/common/metrics.middleware.ts`.
+- Label `path` wajib memakai pola route (`normalizeRoutePath`), ditambah label
+  `kind` (`api`/`web`).
+- `/metrics` di-exclude dari rate limiter dan request logger.
+- Metrik queue dicatat di `src/queues/base.queue.ts` (lihat catatan known issue
+  di `plans/observability/`).
 
 ### Code style
 

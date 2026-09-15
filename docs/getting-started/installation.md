@@ -40,6 +40,14 @@ DB_MONGO_ENABLED=false
 DB_REDIS_ENABLED=true
 ```
 
+## Configure Observability
+
+```env
+LOG_LEVEL=info          # debug | info | warn | error
+METRICS_ENABLED=false   # true -> GET /metrics returns Prometheus text
+METRICS_TOKEN=          # optional shared secret for /metrics
+```
+
 ### SQLite
 
 ```env
@@ -136,7 +144,9 @@ bun run prod
 ```
 
 ## Default Health Checks
-- API Health: `GET /api/health`
+- API liveness: `GET /api/health`
+- API readiness: `GET /api/health/ready`
+- Prometheus metrics: `GET /metrics` (only when `METRICS_ENABLED=true`)
 - Web SSR Landing: `GET /`
 
 ## Run Migrations

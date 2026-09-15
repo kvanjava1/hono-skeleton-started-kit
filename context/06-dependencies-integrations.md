@@ -20,6 +20,10 @@
 - `ioredis`: koneksi Redis
 - `bullmq`: queue dan worker background
 
+### Observability
+
+- `prom-client`: registry metrik + output format Prometheus (Apache-2.0)
+
 ### Development
 
 - `typescript`
@@ -88,9 +92,38 @@ Kemampuan yang sudah ada:
 
 Ini memberi jalur reuse untuk caching sederhana tanpa menambah abstraksi baru dulu.
 
+## Metrics Integration Model
+
+Metrics disediakan aplikasi, dikonsumsi alat monitoring (model *pull*):
+
+- **Registry & definisi**: `src/utils/metrics.util.ts` (prom-client).
+- **Middleware pengukur**: `src/middlewares/common/metrics.middleware.ts`.
+- **Endpoint**: `GET /metrics` (teks Prometheus); aktif bila `METRICS_ENABLED=true`.
+- **Proteksi opsional**: `METRICS_TOKEN` → wajib header `x-metrics-token`.
+- **Metrik yang tersedia**:
+  - `http_requests_total{method,path,status,kind}`
+  - `http_request_duration_ms{method,path,kind}` (histogram)
+  - `queue_jobs_total{queue,status}`
+  - `queue_job_duration_ms{queue}` (histogram)
+- **Label**: `path` memakai pola route (`{id}`), `kind` = `api`/`web`.
+- **Exclude**: `/metrics` tidak dihitung rate limiter, request logger, maupun
+  metriknya sendiri.
+- **Penyimpanan**: angka disimpan di memori proses; Prometheus yang menyimpan
+  time-series jangka panjang.
+
+## Health Integration Model
+
+- `GET /api/health` — liveness (tidak menyentuh dependency).
+- `GET /api/health/ready` — readiness: menjalankan test koneksi untuk engine
+  yang aktif, dengan timeout 2 detik (`checkDatabaseReadiness()` di
+  `src/database/index.ts`).
+- Startup juga tetap menguji koneksi via `connectAllDatabases()`.
+
 ## Integration Risk Notes
 
 - semua integrasi database bergantung pada env toggle
 - queue tidak berguna bila Redis tidak aktif
 - tidak ada fallback domain-level bila database tertentu gagal di luar startup
-- belum ada wrapper observability atau health integration per dependency selain test saat startup
+- health/readiness sudah tersedia per dependency aktif
+- **known issue**: metrik queue dicatat di proses worker yang tidak membuka
+  endpoint `/metrics`, sehingga belum bisa di-scrape dari proses API

@@ -18,7 +18,9 @@ Routing saat ini hanya ada di [src/routes/index.ts](src/routes/index.ts).
 
 Endpoint aktif:
 
-- `GET /api/health`
+- `GET /api/health` — liveness
+- `GET /api/health/ready` — readiness dependency (200/503)
+- `GET /metrics` — metrik Prometheus (404 bila `METRICS_ENABLED=false`)
 - `GET /api/spec` — OpenAPI 3.0 JSON spec
 - `GET /api/docs` — Scalar API Reference (interaktif)
 - `POST /api/example/cruds`
@@ -41,7 +43,7 @@ Middleware diatur secara modular di `src/middlewares/` dengan pola dispatcher be
 
 Urutan eksekusi secara umum:
 
-1. **Common (Semua Request)**: `requestId`, `context`, `compress`, `secureHeaders`, `rateLimiter`, `requestLogger`.
+1. **Common (Semua Request)**: `requestId`, `context`, `compress`, `secureHeaders`, `metrics`, `rateLimiter`, `requestLogger`.
 2. **API Specific (`/api/*`)**: `cors` (ketat), `jsonOnlyMiddleware`.
 3. **Web Specific (Non-API)**: `spaFallback` (static assets dari dist).
 4. **Global**: `app.onError(errorHandler)`
@@ -50,9 +52,14 @@ Dispatcher utama ada di `src/middlewares/index.ts` yang mengarahkan middleware k
 ### Notes
 
 - request id dibuat sebelum context dijalankan
-- logger bisa mengambil context request dari `AsyncLocalStorage`
+- `contextMiddleware` menyimpan `{ requestId, requestStartedAt }` ke `AsyncLocalStorage`
+- logger dan metrics sama-sama membaca `requestStartedAt`, sehingga durasi di log dan `_sum` metrik identik
 - rate limiter menggunakan Redis (`DB_REDIS_ENABLED=true`) dengan fallback ke memory `Map` jika Redis tidak aktif
 - `jsonOnlyMiddleware` mengembalikan HTTP 415 untuk POST/PUT/PATCH tanpa header `Content-Type: application/json`
+- `metricsMiddleware` mengukur semua request kecuali `/metrics`
+- `/metrics` di-exclude dari rate limiter dan request logger agar scrape tidak kena 429 dan log tidak penuh
+- label `path` pada metrik memakai pola route (`/api/example/cruds/{id}`), bukan path mentah
+- label `kind` memisahkan trafik `api` (path `/api*`) dan `web`
 
 ## Error Handling
 
