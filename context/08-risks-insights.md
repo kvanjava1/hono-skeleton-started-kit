@@ -8,7 +8,7 @@ Dokumentasi menjelaskan skeleton seolah semua layer domain sudah hadir, tetapi i
 
 ### Limited test baseline
 
-Repo sekarang memiliki **13 test files / 80 tests** (`bun test`) yang mencakup:
+Repo sekarang memiliki **13 test files / 84 tests** (`bun test`) yang mencakup:
 
 - config parsing, error handling, response contract
 - logging (redaksi, `LOG_LEVEL`, format request/job)

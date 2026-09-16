@@ -41,11 +41,18 @@ if (!product) {
 
 Controllers should not manually catch and remap expected application errors.
 
+### Route-level validation errors
+
+`@hono/zod-openapi` validates requests automatically from the schemas attached to
+`createRoute`. Failures are normalized by `openApiValidationHook`
+(`src/utils/openapi.util.ts`), wired as `defaultHook`, and return `400` with the
+standard `{ status, message, data }` contract.
+
 ### Use `transformError()` for library and driver errors
 
 Current global handler already normalizes:
 
-- Zod validation errors
+- Zod validation errors thrown from services
 - duplicate errors from MySQL
 - duplicate errors from PostgreSQL
 - duplicate errors from MongoDB

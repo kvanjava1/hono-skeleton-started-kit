@@ -90,6 +90,12 @@ Global handler melakukan:
 - log error untuk unexpected error
 - masking error message di production
 
+Validasi request di level route ditangani lebih dulu oleh `@hono/zod-openapi`:
+`.openapi()` memasang `zValidator` dari schema di `createRoute`, dan kegagalan
+dinormalisasi lewat `openApiValidationHook` (`defaultHook` pada `OpenAPIHono`)
+menjadi `400` dengan kontrak `{ status, message, data }`. `ZodError` yang
+dilempar dari service tetap ditangani global handler seperti di atas.
+
 ## Response Layer
 
 Response util ada di [src/utils/response.util.ts](src/utils/response.util.ts).
@@ -185,7 +191,7 @@ Sekarang ada modul referensi `cruds` dengan:
 
 - **Drizzle table definition** di `src/database/schema/example/crud.ts`
 - **Migration** `20260616_create_cruds.ts` untuk SQLite `sqlite1`
-- **Zod validation schemas** di `src/validations/example/crud.ts` (terpisah dari table definition)
+- **Zod validation schemas** di `src/validations/example/crud.ts` (terpisah dari table definition) — dipakai untuk spec OpenAPI sekaligus validasi runtime; controller membaca hasilnya via `c.req.valid()`
 - **Soft delete** pattern via `deleted_at TEXT DEFAULT NULL` — `DELETE` endpoint melakukan `UPDATE SET deleted_at = datetime('now')`, repository filter `WHERE deleted_at IS NULL`
 
 Konsekuensinya:

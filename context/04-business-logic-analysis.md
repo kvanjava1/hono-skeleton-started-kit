@@ -41,7 +41,8 @@ Belum ada algorithmic business calculation di source default.
 Validation yang sudah nyata:
 
 - validasi env saat startup
-- validasi error `ZodError` di global handler
+- validasi request otomatis dari schema `createRoute` (params/body) lewat
+  `openApiValidationHook`, dan `ZodError` dari service di global handler
 - JSON-only middleware untuk request content type
 - rate limiting berbasis IP
 

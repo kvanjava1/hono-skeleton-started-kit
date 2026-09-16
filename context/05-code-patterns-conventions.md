@@ -158,6 +158,14 @@ Semua route API menggunakan `@hono/zod-openapi` (`OpenAPIHono`, `createRoute`). 
 Setiap route sebaiknya mengisi `tags`, `summary`, dan `description` agar tampil
 rapi di Scalar.
 
+Validasi request berjalan otomatis: `.openapi()` memasang `zValidator` dari
+schema di `createRoute` (body, param, query, header, cookie). Error validasi
+dinormalisasi ke kontrak response aplikasi lewat `openApiValidationHook`
+(`src/utils/openapi.util.ts`) yang dipasang sebagai `defaultHook` pada
+`OpenAPIHono`. Controller membaca hasil validasi dengan `c.req.valid("json")` /
+`c.req.valid("param")`, dan tipe input diambil dari `z.infer` di file validations
+(mis. `IdParam` memakai `z.coerce.number().int().positive()`).
+
 Spec JSON tersedia di `GET /api/spec`, Scalar UI di `GET /api/docs`.
 
 Catatan: `/api/spec` dan `/api/docs` didaftarkan lewat `registerDocsRoutes(app)`

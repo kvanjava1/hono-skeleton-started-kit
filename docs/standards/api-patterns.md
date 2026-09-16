@@ -90,6 +90,17 @@ export const createPaymentSchema = z.object({
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
 ```
 
+Notes:
+
+- With `@hono/zod-openapi`, schemas attached to `createRoute` are validated
+  automatically at runtime (params, query, headers, cookies, and JSON body).
+- Validation failures are normalized to the app response contract
+  (`status`/`message`/`data`) via `openApiValidationHook`
+  (`src/utils/openapi.util.ts`), wired as `defaultHook` on `OpenAPIHono`.
+- Read validated input in controllers with `c.req.valid("json")` or
+  `c.req.valid("param")` instead of re-parsing the body.
+- Use `z.coerce.number().int().positive()` for numeric path params.
+
 ## 3. Repository
 
 Repositories handle data access only.
@@ -137,7 +148,7 @@ Controllers are HTTP boundaries.
 Responsibilities:
 
 - read params from request
-- read validated input
+- read validated input via `c.req.valid("param")` / `c.req.valid("json")`
 - call service
 - return `successResponse()`
 

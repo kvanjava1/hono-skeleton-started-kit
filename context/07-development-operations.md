@@ -76,7 +76,7 @@ Ini penting karena modul baru idealnya mengikuti stub repo, bukan ditulis dengan
 
 ## Testing Status
 
-Sekarang ada **13 test files, 80 tests, 168 expect calls** (`bun test`):
+Sekarang ada **13 test files, 84 tests, 178 expect calls** (`bun test`):
 
 | File | Type | Tests |
 |------|------|-------|
@@ -90,7 +90,7 @@ Sekarang ada **13 test files, 80 tests, 168 expect calls** (`bun test`):
 | `tests/health.test.ts` | Integration — health, readiness, 404 | 5 |
 | `tests/integration/web.test.ts` | Integration — landing page, security headers, rate limit headers | 3 |
 | `tests/integration/rateLimiter.test.ts` | Integration — rate limit threshold, block, IP isolation | 3 |
-| `tests/integration/crud.test.ts` | Integration — CRUD endpoints + OpenAPI spec + Scalar docs | 8 |
+| `tests/integration/crud.test.ts` | Integration — CRUD, validasi request, OpenAPI spec + Scalar docs | 12 |
 | `tests/integration/observability.test.ts` | Integration — format log request & `CrudService` (spy logger) | 2 |
 | `tests/integration/metrics.test.ts` | Integration — `/metrics`, token, label `kind`, cardinality | 6 |
 
