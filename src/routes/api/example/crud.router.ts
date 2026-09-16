@@ -13,8 +13,11 @@ import {
   CreateBody,
   UpdateBody,
 } from "../../../validations/example/crud.ts";
+import { openApiValidationHook } from "../../../utils/openapi.util.ts";
 
-export const crudRoutes = new OpenAPIHono();
+export const crudRoutes = new OpenAPIHono({
+  defaultHook: openApiValidationHook,
+});
 
 crudRoutes.openapi(
   createRoute({

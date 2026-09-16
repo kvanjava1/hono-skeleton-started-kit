@@ -4,8 +4,11 @@ import {
   getHealth,
   getReadiness,
 } from "../../../controllers/health/health.controller.ts";
+import { openApiValidationHook } from "../../../utils/openapi.util.ts";
 
-export const healthRoutes = new OpenAPIHono();
+export const healthRoutes = new OpenAPIHono({
+  defaultHook: openApiValidationHook,
+});
 
 healthRoutes.openapi(
   createRoute({

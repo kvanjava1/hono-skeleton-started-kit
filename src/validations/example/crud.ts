@@ -1,7 +1,11 @@
 import { z } from "@hono/zod-openapi";
 
 export const IdParam = z.object({
-  id: z.string().openapi({ example: "1", description: "Crud ID" }),
+  id: z.coerce
+    .number()
+    .int()
+    .positive()
+    .openapi({ example: 1, description: "Crud ID (positive integer)" }),
 });
 
 export const CreateBody = z.object({
@@ -26,3 +30,7 @@ export const UpdateBody = z.object({
     .optional()
     .openapi({ example: "Updated content", description: "New crud content" }),
 });
+
+export type IdParamInput = z.infer<typeof IdParam>;
+export type CreateBodyInput = z.infer<typeof CreateBody>;
+export type UpdateBodyInput = z.infer<typeof UpdateBody>;

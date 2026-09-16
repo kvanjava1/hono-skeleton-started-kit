@@ -118,6 +118,65 @@ describe("CRUD Example API", () => {
     expect(body.message).toContain("Crud not found");
   });
 
+  describe("Request validation", () => {
+    test("rejects missing title using the app error contract", async () => {
+      const res = await app.fetch(
+        new Request(`${base}/api/example/cruds`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ content: "no title" }),
+        }),
+      );
+      expect(res.status).toBe(400);
+
+      const body = await res.json();
+      expect(body.status).toBe("error");
+      expect(body.message).toBe("Validation error");
+      expect(Array.isArray(body.data)).toBe(true);
+    });
+
+    test("rejects a non-string title", async () => {
+      const res = await app.fetch(
+        new Request(`${base}/api/example/cruds`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ title: 123 }),
+        }),
+      );
+      expect(res.status).toBe(400);
+
+      const body = await res.json();
+      expect(body.status).toBe("error");
+    });
+
+    test("rejects a non-numeric id param", async () => {
+      const res = await app.fetch(
+        new Request(`${base}/api/example/cruds/abc`),
+      );
+      expect(res.status).toBe(400);
+
+      const body = await res.json();
+      expect(body.status).toBe("error");
+      expect(body.message).toBe("Validation error");
+    });
+
+    test("accepts a numeric string id param", async () => {
+      const created = await app.fetch(
+        new Request(`${base}/api/example/cruds`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ title: "coerce-id" }),
+        }),
+      );
+      const { data: crud } = await created.json();
+
+      const res = await app.fetch(
+        new Request(`${base}/api/example/cruds/${crud.id}`),
+      );
+      expect(res.status).toBe(200);
+    });
+  });
+
   describe("OpenAPI docs", () => {
     test("GET /api/spec returns OpenAPI spec", async () => {
       const res = await app.fetch(new Request(`${base}/api/spec`));
