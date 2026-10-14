@@ -17,7 +17,8 @@
 > [!NOTE]
 > **Modular Structure**: New domain features should be placed in sub-folders (e.g., `src/controllers/product/`, `src/routes/api/product/`).
 > **Router Mounting**: `src/routes/api/index.ts` should only mount sub-routers; route definitions live in their feature folder.
-> **SPA Apps**: Different Vue applications should be isolated in `resources/js/apps/[app-name]/`.
+> **Hono JSX Views**: Put server-rendered `.tsx` views in `resources/views/`.
+> **Tailwind CSS**: Add utility classes to JSX views and keep the stylesheet entry in `resources/css/app.css`.
 > **Static Assets**: Put static files in the root `/public/` directory.
 
 ## Imports

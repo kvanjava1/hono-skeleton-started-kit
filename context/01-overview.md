@@ -3,18 +3,18 @@
 ## Project Identity
 
 - Project name: `hono-multi-db-api`
-- Type: Hybrid Fullstack Boilerplate (SSR + SPA)
-- Runtime: Bun
-- Framework: Hono (Backend/SSR) & Vue.js (Frontend SPA)
+- Type: Fullstack Boilerplate (Hono JSX SSR)
+- Runtime: Bun 1.4.3 (pinned in `.bun-version`)
+- Framework: Hono (Backend and SSR)
 - Language: TypeScript
-- Repository purpose: menyediakan fondasi aplikasi fullstack modern yang menggabungkan kecepatan Hono JSX (SSR) dengan fleksibilitas Vue.js 3 (SPA), didukung oleh multi-database dan background worker.
+- Repository purpose: menyediakan fondasi aplikasi fullstack dengan Hono JSX SSR, Tailwind CSS, multi-database, dan background worker.
 
 ## Primary Purpose
 
 Repo ini menyediakan baseline teknis untuk:
 
-- **Hybrid Rendering**: Hono JSX untuk SSR/SEO-critical pages dan Vue.js untuk Dashboard/Interactive SPA.
-- **Frontend Tooling**: Integrasi Vite 8 dengan Tailwind CSS v4 (zero-config).
+- **Server-rendered UI**: Halaman dirender dengan Hono JSX.
+- **CSS Tooling**: Vite 8 menyajikan Tailwind CSS v4 saat development dan mengompilasinya untuk production.
 - **Multi-Database**: Koneksi beberapa database dengan named multi-connections.
 - **Backend Power**: Migration, Seeder, Background Queue, dan Logging.
 
@@ -25,9 +25,7 @@ Repo ini menyediakan baseline teknis untuk:
 - Hono JSX (Server-side Rendering)
 - Zod & `@hono/zod-validator`
 
-### Frontend (Assets)
-- Vue.js 3 (Composition API)
-- Vue Router 5
+### Styling and Assets
 - Vite 8
 - Tailwind CSS v4
 

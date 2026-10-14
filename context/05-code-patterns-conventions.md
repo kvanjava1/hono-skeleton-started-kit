@@ -26,14 +26,13 @@ Berdasarkan dokumentasi (dengan penyesuaian ke pola aktual):
 - database connection: `snake_case.connection.ts`
 
 ### Modular Folder Pattern
-Untuk setiap modul domain atau aplikasi SPA baru:
+Untuk setiap modul domain atau halaman web baru:
 - `src/controllers/example/`
 - `src/services/example/`
 - `src/repositories/example/`
 - `src/validations/example/`
 - `src/database/schema/example/`
 - `src/routes/api/example/`
-- `resources/js/apps/example1/pages/` (Halaman khusus aplikasi)
 - `resources/views/example/`
 
 Modul infrastruktur mengikuti pola folder yang sama. Contoh aktual:
@@ -224,15 +223,12 @@ Asumsi paling aman untuk task berikutnya:
 - Gunakan ekstensi `.tsx` untuk komponen yang mengandung JSX.
 - Tambahkan pragma `/** @jsxImportSource hono/jsx */` di bagian atas file jika IDE mengalami masalah tipe.
 - Komponen harus ditempatkan di `resources/views/`.
-- Gunakan komponen dasar seperti `await Layout(...)` atau `await IndexVue(...)` untuk merakit halaman.
-
-### Vue.js (CSR)
-- Gunakan **Composition API** dengan `<script setup lang="ts">`.
-- Pisahkan logika halaman di `resources/js/pages/` dan komponen kecil di `resources/js/components/`.
-- Gunakan data dari `window.__INITIAL_STATE__` untuk sinkronisasi awal data dari server.
+- Controller web memanggil komponen view dan mengembalikan hasilnya dengan `c.html()`.
 
 ### Styling (Tailwind v4)
 - Gunakan direktif `@import "tailwindcss";` di `resources/css/app.css`.
+- Pastikan file view JSX tercakup oleh `@source` agar class utility ikut dibuat.
+- Gunakan `bun run dev:css` untuk Vite saat development dan `bun run build:css` untuk output production di `dist/`.
 - Hindari penggunaan file `tailwind.config.js` karena v4 menggunakan konfigurasi berbasis CSS.
 
 ## Post-Implementation Checklist

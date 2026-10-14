@@ -1,33 +1,30 @@
 # 02 Architecture Structure
 
-## High-Level Architecture: Hybrid Fullstack
+## High-Level Architecture: Hono JSX SSR
 
 Dokumentasi repo menetapkan arsitektur dua wilayah:
 
-1. **Server Region (`src/`)**: 
+1. **Application Region (`src/`)**:
    `Routes -> Controllers -> Services -> Repositories -> Database`
-   Ditambah **Hono JSX** untuk Server-Side Rendering (SSR).
+   Controller merender view **Hono JSX** untuk Server-Side Rendering (SSR).
 
-2. **Asset Region (`resources/`)**: 
-   `Vue SFC -> Vue Router -> Vite -> Assets`
-   Pusat interaksi client-side (SPA).
+2. **UI and CSS (`resources/`)**:
+   `Hono JSX views + Tailwind CSS -> Vite -> CSS asset`
 
-## Important Reality Check
+## Rendering and CSS Flow
 
-Proyek ini menggunakan pola **"The Bridge"**:
-- Hono merender shell HTML awal (SSR) dan menyuntikkan data server (`initialData`).
-- Vue.js mengambil alih (hydration) untuk interaktivitas di sisi client.
-- Vite mengelola bundling aset (JS/CSS/Vue) dan manifest di produksi.
+- Hono merender halaman HTML di server dari komponen JSX.
+- Tailwind memindai class pada view JSX melalui directive `@source` di `resources/css/app.css`.
+- Saat development, Vite melayani CSS dan client HMR di port 5173.
+- Saat production, `bun run build:css` menulis CSS dan manifest ke `dist/`; Hono membaca manifest untuk menautkan stylesheet dan melayani aset `/assets/*`.
 
 ## Entry Points
 
 ### App Composition & SSR
 - [src/app.ts](src/app.ts): Bootstrap middleware and route aggregator.
-- [resources/views/example/Index.tsx](resources/views/example/Index.tsx): Pure SSR landing page entry point (Modular).
-- [resources/views/example/Vue.tsx](resources/views/example/Vue.tsx): Generic SPA Shell yang memuat berbagai aplikasi Vue.
-### Frontend Entry (Client)
-- [resources/js/apps/example1/main.ts](resources/js/apps/example1/main.ts): Entry point Vue untuk aplikasi example1.
-- [resources/js/apps/example2/main.ts](resources/js/apps/example2/main.ts): Entry point Vue untuk aplikasi example2.
+- [resources/views/example/Index.tsx](resources/views/example/Index.tsx): Hono JSX SSR landing page.
+- [resources/css/app.css](resources/css/app.css): Tailwind CSS entry dan source scanning configuration.
+- [vite.config.ts](vite.config.ts): Vite CSS dev server and production build configuration.
 
 ### Worker Entry
 - [src/workers/index.ts](src/workers/index.ts): Bootstrap untuk background processing.
@@ -40,7 +37,7 @@ Proyek ini menggunakan pola **"The Bridge"**:
       - `health/health.router.ts`, `docs/docs.router.ts`,
         `metrics/metrics.router.ts`, `example/crud.router.ts`
       - `src/routes/api/index.ts`: hanya mounting sub-router.
-    - `src/routes/web/`: Semua rute SSR/Hybrid (Hono JSX).
+    - `src/routes/web/`: Semua rute halaman SSR (Hono JSX).
     - `src/routes/index.ts`: Aggregator utama rute (termasuk Global 404).
 - `src/controllers`, `src/services`, `src/repositories`, `src/validations`, `src/database/schema`, `src/jobs`: 
     - Menggunakan struktur folder modular berbasis domain (misal: `src/controllers/example/`, `src/controllers/health/`).
@@ -53,13 +50,12 @@ Proyek ini menggunakan pola **"The Bridge"**:
     - `src/utils` mencakup `logger.util.ts`, `metrics.util.ts`, `async.util.ts`,
       `context.util.ts`, `cache.util.ts`.
 
-### Frontend Assets & UI (`resources/`)
-- `resources/js/apps/`: Folder untuk masing-masing aplikasi SPA (misal: `example1`, `example2`).
-- `resources/js/pages/`: Halaman yang dienkapsulasi di dalam folder masing-masing aplikasi.
-- `resources/css`: Tailwind CSS v4 entry.
+### UI and CSS (`resources/`)
+- `resources/views/`: Halaman Hono JSX yang dirender di server.
+- `resources/css/app.css`: Entry Tailwind CSS v4 dan lokasi `@source` untuk scanning view.
 
 ### Static Assets
-- `public/`: Folder di **root proyek** untuk aset statis mentah (favicon, robots.txt, dll). Aset di sini akan disalin langsung ke `dist/` saat build.
+- `public/`: Folder di **root proyek** untuk aset statis mentah (favicon, robots.txt, dll).
 
 - `scripts/migrations`: migration framework untuk semua target database, sekarang dengan target connection eksplisit untuk SQLite, MySQL, MongoDB, dan PostgreSQL
 - `scripts/seeders`: seeder runner

@@ -7,8 +7,6 @@ export const ROUTES = {
     ROOT: "/",
     EXAMPLE: {
       LANDING: "/example",
-      EXAMPLE1: "/example/example1",
-      EXAMPLE2: "/example/example2",
     }
   },
   API: {

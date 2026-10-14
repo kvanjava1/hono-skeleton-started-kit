@@ -6,7 +6,7 @@ const app = new Hono();
 
 /**
  * 1. Global Middleware Setup
- * Includes Logger, CORS, Security Headers, and Static File serving (SPA Fallback)
+ * Includes Logger, CORS, Security Headers, and static file serving.
  */
 setupMiddlewares(app);
 

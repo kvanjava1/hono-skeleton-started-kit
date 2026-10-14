@@ -8,7 +8,8 @@ This project is a Bun + Hono skeleton with:
 
 ## Runtime Versions
 
-- Bun: the repo does not pin `engines`, but current dev typings use `@types/bun@1.3.9`, so Bun `1.3.x` is a safe baseline
+- Bun: project runtime is pinned to `1.4.3` in `.bun-version`; CI uses the same
+  version. TypeScript declarations use `@types/bun@1.4.2`.
 - Hono: `^4.6.0`
 
 ## Installation
@@ -118,30 +119,36 @@ Compatibility note:
 
 ## Running the App
 
-### Development (Dual Server)
-It is recommended to run both Hono and Vite during development:
+### Development (Hono JSX + Tailwind CSS)
+Run Hono and Vite together so JSX pages render through Hono and Vite serves
+Tailwind CSS with hot updates:
 
 ```bash
 bun run dev:all
 ```
 
 - **Hono (SSR + API)**: http://localhost:8080
-- **Vite (Frontend Dev)**: http://localhost:5173
+- **Vite (Tailwind CSS)**: http://localhost:5173
 
 You can also run them separately:
-- `bun run dev` (Hono only)
-- `bun run dev:client` (Vite only)
+- `bun run server:code:dev` (Hono only)
+- `bun run dev:css` (Vite only)
 
 ### Production
 To build and run in production:
 
 ```bash
-# Build frontend assets
-bun run build:client
+# Compile Tailwind CSS and write its Vite manifest to dist/
+bun run build:css
 
 # Start production server
-bun run prod
+bun run server:code:prod
 ```
+
+The production server reads the stylesheet path from `dist/.vite/manifest.json`
+and serves the compiled file under `/assets/`. Set `NODE_ENV=production` in
+the production `.env` (or process environment); `bun run server:code:prod`
+follows that value.
 
 ## Default Health Checks
 - API liveness: `GET /api/health`

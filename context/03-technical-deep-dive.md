@@ -45,7 +45,7 @@ Urutan eksekusi secara umum:
 
 1. **Common (Semua Request)**: `requestId`, `context`, `compress`, `secureHeaders`, `metrics`, `rateLimiter`, `requestLogger`.
 2. **API Specific (`/api/*`)**: `cors` (ketat), `jsonOnlyMiddleware`.
-3. **Web Specific (Non-API)**: `spaFallback` (static assets dari dist).
+3. **Web Specific (Non-API)**: static assets dari `public/` dan aset Vite dari `dist/` di production.
 4. **Global**: `app.onError(errorHandler)`
 
 Dispatcher utama ada di `src/middlewares/index.ts` yang mengarahkan middleware ke Sub-App atau Path yang tepat.
@@ -229,10 +229,9 @@ State backend yang terlihat:
 - cache optional via Redis `redis1` secara default
 - semua config menggunakan Proxy/function `createLazyConfig()` dengan `reset*Config()` untuk testability
 
-State frontend (Vue):
-
-- Initial state dikirim dari Hono via `window.__INITIAL_STATE__`.
-- Vue mengambil alih manajemen state interaktif di rute `/dashboard/*` dan turunannya.
+Halaman UI saat ini dirender di server menggunakan Hono JSX. Tailwind CSS
+dipindai dari `resources/views/`, dilayani melalui Vite saat development, dan
+dibaca dari manifest Vite saat production.
 
 ## File Storage and Upload
 

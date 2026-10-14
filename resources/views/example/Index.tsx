@@ -1,7 +1,6 @@
 /** @jsxImportSource hono/jsx */
 import { configApp } from "../../../src/configs/app.config.ts";
 import { getStyle } from "../../../src/utils/vite.util.ts";
-import { ROUTES } from "../../../src/configs/routes.config.ts";
 
 interface IndexPageProps {
   title?: string;
@@ -22,8 +21,7 @@ export const IndexPage = async ({
 }: IndexPageProps) => {
   const isDev = configApp.isDevelopment();
 
-  // Resolve Tailwind CSS for production
-  const tailwindCss = isDev ? null : await getStyle("js/app.ts");
+  const stylesheet = await getStyle();
 
   return (
     <html lang="en">
@@ -32,18 +30,12 @@ export const IndexPage = async ({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
 
-        {/* Vite Dev Tools & CSS (Development mode only) */}
-        {isDev && (
-          <>
-            <script type="module" src="http://localhost:5173/@vite/client"></script>
-            <script type="module" dangerouslySetInnerHTML={{
-              __html: `import "http://localhost:5173/css/app.css"`
-            }} />
-          </>
-        )}
+        {stylesheet && <link rel="stylesheet" href={stylesheet} />}
 
-        {/* Tailwind CSS (Production mode only) */}
-        {!isDev && tailwindCss && <link rel="stylesheet" href={tailwindCss} />}
+        {/* Vite client enables CSS hot updates in development. */}
+        {isDev && (
+          <script type="module" src="http://localhost:5173/@vite/client"></script>
+        )}
       </head>
       <body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-100 selection:text-indigo-700">
         <main class="min-h-screen flex flex-col items-center justify-center p-6 bg-radial-gradient">
@@ -65,11 +57,11 @@ export const IndexPage = async ({
             </p>
 
             <div class="flex flex-wrap items-center justify-center gap-4">
-              <a href={ROUTES.WEB.EXAMPLE.EXAMPLE1} class="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200">
-                Go to Vue Example 1
+              <a href="/example/jsx" class="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200">
+                View SSR example
               </a>
-              <a href="/about" class="px-8 py-4 bg-white text-slate-900 font-bold border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all">
-                Learn More
+              <a href="/api/docs" class="px-8 py-4 bg-white text-slate-900 font-bold border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all">
+                API documentation
               </a>
             </div>
           </div>

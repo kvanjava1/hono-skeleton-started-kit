@@ -1,15 +1,14 @@
-# Hono + Vue Hybrid Fullstack Skeleton
+# Hono Fullstack Skeleton
 
-Skeleton aplikasi berarsitektur Hybrid Fullstack (Bun + Hono + Vue 3) dengan fondasi SSR, SPA Bridge, Tailwind v4, named multi-connections database, worker background, migration, dan seeder tooling.
+Skeleton aplikasi Bun + Hono dengan halaman JSX server-rendered, Tailwind CSS v4, named multi-connections database, worker background, migration, dan seeder tooling.
 
 ## Features
 
 - Bun runtime
 - Hono web framework
 - TypeScript
-- Vue 3 SPA with Vite integration (The Bridge)
-- Hono JSX for pure Server-Side Rendering (SSR)
-- Tailwind CSS v4 setup
+- Hono JSX for Server-Side Rendering (SSR)
+- Tailwind CSS v4 compiled by Vite
 - Named multi-connections for SQLite, MySQL, MongoDB, Redis, and PostgreSQL
 - **Drizzle ORM** for SQL databases (SQLite, MySQL, PostgreSQL)
 - Redis connection helpers and cache utilities
@@ -57,21 +56,22 @@ dan binary hasil compile — tanpa flag atau script tambahan.
 
 | Script | Description |
 |--------|-------------|
-| `bun run dev:all` | Start both Hono (backend) and Vite (frontend) servers |
-| `bun run dev` | Start Hono backend server only (watch mode) |
-| `bun run dev:client` | Start Vite frontend server only |
-| `bun run build:client` | Build Vue assets for production |
+| `bun run dev:all` | Start Hono and the Vite Tailwind CSS server |
+| `bun run server:code:dev` | Start Hono backend in watch mode |
+| `bun run dev:css` | Start Vite CSS server only |
+| `bun run build:css` | Compile Tailwind CSS and write the Vite manifest |
 | `bun run typecheck` | Run TypeScript type checking |
 | `bun test` | Run all tests (currently **48 tests, 101 expects, 0 fail**) |
-| `bun run prod` | Start server without watch mode (uses the machine's `.env`) |
-| `bun run worker` | Start worker process (separate process) |
+| `bun run server:code:prod` | Start Hono using the machine's `.env` and process environment |
+| `bun run worker:code:dev` | Start worker in watch mode |
+| `bun run worker:code:prod` | Start worker using the machine's `.env` and process environment |
 | `bun run migrate` | Run all migrations using `.env` |
 | `bun run migrate:fresh <target>` | Drop + re-run migrations for `<target>` (sqlite, mysql, pg, mongo) |
 | `bun run seed` | Run all seeders using the active environment |
 | `bun run make` | Generate files from local stubs |
 | `bun run build` | Compile backend into the `server` binary |
-| `bun run server:bin` | Run compiled `server` binary (API) — auto-loads `.env` |
-| `bun run worker:bin` | Run compiled `server` binary (worker) — auto-loads `.env` |
+| `bun run server:bin` | Run compiled API binary in production mode; auto-loads `.env` |
+| `bun run worker:bin` | Run compiled worker binary in production mode; auto-loads `.env` |
 
 ## Default API
 
@@ -124,9 +124,9 @@ Recommended reading order:
 
 ## Notes
 
-- Proyek ini dirancang sebagai fondasi. Saat ini menyertakan rute UI (`Index.tsx`, `IndexVue.tsx`) sebagai contoh implementasi web.
+- Proyek ini dirancang sebagai fondasi. Halaman `resources/views/example/Index.tsx` menjadi contoh Hono JSX SSR.
 - Dukungan database, Redis, cache, queue, migrasi, dan seeding sepenuhnya modular.
-- Arsitektur routing secara jelas memisahkan Pure SSR (`/`) dan Vue SPA Bridge (`/example/*`).
+- Tailwind CSS dilayani oleh Vite saat development dan dikompilasi ke `dist/` untuk production.
 - Worker skeleton tersedia dan siap diisi dengan job domain.
 - Semua POST/PUT/PATCH ke `/api/*` **wajib** menyertakan header `Content-Type: application/json` — jika tidak, server mengembalikan HTTP 415.
 - Redis **tidak wajib** untuk development (`DB_REDIS_ENABLED=false`). Tanpa Redis, cache dan queue/worker tidak berfungsi.

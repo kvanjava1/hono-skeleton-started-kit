@@ -1,33 +1,50 @@
 import { configApp } from "../configs/app.config.ts";
 import { logger } from "./logger.util.ts";
 
-let manifest: Record<string, { file?: string; css?: string[] }> | null = null;
+const cssEntry = "css/app.css";
+const viteDevServer = "http://localhost:5173";
 
-export const getAsset = async (key: string) => {
+type ManifestEntry = {
+  file?: string;
+  css?: string[];
+  src?: string;
+};
+
+let manifest: Record<string, ManifestEntry> | null = null;
+
+export const getStyle = async (): Promise<string> => {
   if (configApp.isDevelopment()) {
-    return `http://localhost:5173/${key}`;
+    return `${viteDevServer}/${cssEntry}`;
   }
 
-  if (!manifest) {
+  let currentManifest = manifest;
+  if (!currentManifest) {
     try {
-      const manifestPath = "./dist/.vite/manifest.json";
-      manifest = await Bun.file(manifestPath).json();
-    } catch (e) {
-      logger.error("Vite manifest not found. Run 'bun run build:client' first.");
+      currentManifest = await Bun.file("./dist/.vite/manifest.json").json();
+      manifest = currentManifest;
+    } catch {
+      logger.error("Vite manifest not found. Run 'bun run build:css' first.");
       return "";
     }
   }
 
-  return `/${manifest?.[key]?.file || ""}`;
-};
-
-export const getStyle = async (key: string) => {
-  if (configApp.isDevelopment()) return "";
-
-  if (!manifest) {
-    await getAsset(key);
+  if (!currentManifest) {
+    logger.error("Vite manifest is empty. Run 'bun run build:css' first.");
+    return "";
   }
 
-  const cssFile = manifest?.[key]?.css?.[0];
-  return cssFile ? `/${cssFile}` : "";
+  const resolvedManifest = currentManifest;
+  const entry = resolvedManifest[cssEntry] ?? Object.values(resolvedManifest).find(
+    (asset) => asset.src === cssEntry || asset.src?.endsWith(`/${cssEntry}`),
+  );
+  const stylesheet = entry?.file?.endsWith(".css")
+    ? entry.file
+    : entry?.css?.[0];
+
+  if (!stylesheet) {
+    logger.error(`Vite manifest does not contain the ${cssEntry} stylesheet.`);
+    return "";
+  }
+
+  return `/${stylesheet}`;
 };

@@ -20,7 +20,7 @@ export const setupMiddlewares = (app: Hono) => {
   // These are strictly applied to /api/* paths
   setupApiMiddlewares(app);
 
-  // 3. Web Specific Middlewares (static files, spa fallback)
+  // 3. Web-specific middleware (static assets)
   setupWebMiddlewares(app);
   
   // 4. Global Error Handler

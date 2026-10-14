@@ -2,18 +2,23 @@
 
 ## Fullstack Development Workflow
 
+Runtime proyek dipatok ke Bun `1.4.3` lewat `.bun-version`; workflow CI memakai
+versi yang sama.
+
 Aplikasi menjalankan dua server di mode pengembangan:
-1. **Hono Server (Port 8080)**: Melayani API dan merender HTML awal (SSR).
-2. **Vite Dev Server (Port 5173)**: Melayani aset JS/Vue dengan Hot Module Replacement (HMR).
+1. **Hono Server (Port 8080)**: Melayani API dan merender halaman JSX (SSR).
+2. **Vite Dev Server (Port 5173)**: Melayani Tailwind CSS dan client HMR.
 
 ### Development Scripts
 - `bun run dev:all`: Menjalankan Hono dan Vite secara bersamaan (disarankan).
-- `bun run dev`: Menjalankan Hono (backend).
-- `bun run dev:client`: Menjalankan Vite (frontend).
-- `bun run build:client`: Membangun aset Vue ke dalam folder `dist/` dan membuat `manifest.json`.
+- `bun run server:code:dev`: Menjalankan Hono dengan watch mode.
+- `bun run dev:css`: Menjalankan Vite untuk Tailwind CSS.
+- `bun run build:css`: Mengompilasi Tailwind CSS ke `dist/` dan membuat manifest Vite.
 - `bun run typecheck`: Melakukan pengecekan tipe TypeScript di seluruh proyek.
-- `bun run prod`: Menjalankan aplikasi di mode produksi.
-- `bun run worker`: Menjalankan worker process untuk BullMQ job processing (proses terpisah).
+- `bun run server:code:prod`: Menjalankan server dari source dengan env runtime.
+- `bun run worker:code:dev`: Menjalankan worker dengan `--watch` saat development.
+- `bun run worker:code:prod`: Menjalankan worker dari source dengan env runtime.
+- `bun run server:bin` / `bun run worker:bin`: Menjalankan binary dengan `NODE_ENV=production`.
 
 ### Migration Scripts
 - `bun run migrate`: Run all migrations (menggunakan `.env`)
@@ -25,7 +30,9 @@ Aplikasi menjalankan dua server di mode pengembangan:
 Build backend dilakukan dengan:
 - `bun build ./src/index.ts --compile --outfile server`
 
-Deployment Fullstack memerlukan folder `dist/` (hasil build frontend) agar Hono bisa melayani aset statis dan melakukan fallback SPA.
+Build production perlu menjalankan `bun run build:css` dan menyertakan folder
+`dist/` bersama server. Hono membaca `dist/.vite/manifest.json` untuk memilih
+stylesheet dan melayani hasil build melalui `/assets/*`.
 
 ## Environment Separation
 
@@ -37,8 +44,10 @@ Project memakai **satu file `.env` per mesin** (konvensi ala Laravel):
 `.env` gitignored dan tidak dibagikan antar mesin. Bun memuat `.env` secara
 otomatis (native) untuk aplikasi, script CLI (`migrate`, `seed`, `worker`),
 `bun test`, dan binary hasil compile — tanpa `--env-file`, tanpa wrapper.
-`NODE_ENV` di dalam `.env` dipakai aplikasi untuk logika runtime (misal error
-masking di production).
+`NODE_ENV` di dalam `.env` dipakai aplikasi code-mode untuk logika runtime
+(misal error masking di production). Script binary `server:bin` dan `worker:bin`
+menetapkan `NODE_ENV=production`; konfigurasi lain tetap dibaca dari `.env` atau
+environment proses.
 
 
 
@@ -149,7 +158,7 @@ Yang belum ada:
 
 - logger menulis ke filesystem via WriteStream (buffered), bukan `appendFileSync`. Namun environment read-only tetap bisa membatasi file logging.
 - rate limiter memakai Redis per-request (`INCR` + `PEXPIREAT`), fallback ke in-memory Map jika Redis tidak aktif — akurat antar instance saat Redis aktif.
-- worker skeleton sudah tersedia, siap diisi job domain. Worker adalah proses terpisah (`bun run worker`).
+- worker skeleton sudah tersedia, siap diisi job domain. Worker adalah proses terpisah (`bun run worker:code:prod`).
 - type checking kini dapat dieksekusi as-is menggunakan `bun run typecheck` (menjalankan `tsc --noEmit`) yang memastikan strict type safety tanpa intervensi build murni node.
 - OpenAPI spec tersedia di `GET /api/spec`, Scalar UI di `GET /api/docs`.
 - readiness tersedia di `GET /api/health/ready` (timeout 2 detik per dependency).

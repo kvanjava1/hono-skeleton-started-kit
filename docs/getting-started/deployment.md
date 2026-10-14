@@ -5,10 +5,15 @@ This project can be compiled into a Bun binary.
 ## Build
 
 ```bash
+# Compile Tailwind CSS and its manifest
+bun run build:css
+
+# Compile the Hono server
 bun run build
 ```
 
-This creates a `server` binary in the project root.
+This creates a `server` binary in the project root. Deploy it together with the
+`dist/` directory, which contains the compiled stylesheet and Vite manifest.
 
 ## Run
 
@@ -38,12 +43,15 @@ bun run worker:bin
 ## Important Notes
 
 - the binary reads configuration from the `.env` file in its working directory (and from environment variables in the process)
-- `NODE_ENV=production` must be present inside the server's `.env` (error messages are masked in production)
+- `bun run server:code:prod` and `bun run worker:code:prod` follow `NODE_ENV` from `.env` or the process environment
+- `bun run server:bin` and `bun run worker:bin` set `NODE_ENV=production`; other configuration still comes from `.env` or the process environment
 - keep `storages/` available for logs and SQLite files
 - if SQLite is enabled, the `sqlite1` path must exist or be creatable
 - if Redis is enabled, it must be reachable before the app starts
 - `./server` runs API mode
 - `./server --worker` runs worker mode
+- the production server reads the stylesheet path from `dist/.vite/manifest.json`
+  and serves compiled assets from `dist/` at `/assets/`
 
 ## Example systemd unit
 

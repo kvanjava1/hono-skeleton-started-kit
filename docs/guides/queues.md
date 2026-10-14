@@ -109,8 +109,11 @@ Configuration comes from the single `.env` file of the machine (see
 [Installation](../getting-started/installation.md)).
 
 ```bash
-bun run worker
+bun run worker:code:prod
 ```
+
+During development, use `bun run worker:code:dev` to restart the worker when
+its source files change.
 
 ## Job Rules
 
