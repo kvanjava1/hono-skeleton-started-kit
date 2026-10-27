@@ -1,5 +1,4 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { ROUTES } from "../../../configs/routes.config.ts";
 import {
   getAll,
   getById,
@@ -19,10 +18,11 @@ export const crudRoutes = new OpenAPIHono({
   defaultHook: openApiValidationHook,
 });
 
+// GET /api/example/cruds
 crudRoutes.openapi(
   createRoute({
     method: "get",
-    path: ROUTES.API.EXAMPLE.CRUDS,
+    path: "/",
     tags: ["Example CRUD"],
     summary: "List all cruds",
     description:
@@ -34,10 +34,11 @@ crudRoutes.openapi(
   getAll,
 );
 
+// GET /api/example/cruds/{id}
 crudRoutes.openapi(
   createRoute({
     method: "get",
-    path: ROUTES.API.EXAMPLE.CRUD_BY_ID,
+    path: "/{id}",
     tags: ["Example CRUD"],
     summary: "Get a crud by ID",
     description:
@@ -51,10 +52,11 @@ crudRoutes.openapi(
   getById,
 );
 
+// POST /api/example/cruds
 crudRoutes.openapi(
   createRoute({
     method: "post",
-    path: ROUTES.API.EXAMPLE.CRUDS,
+    path: "/",
     tags: ["Example CRUD"],
     summary: "Create a crud",
     description:
@@ -71,10 +73,11 @@ crudRoutes.openapi(
   create,
 );
 
+// PUT /api/example/cruds/{id}
 crudRoutes.openapi(
   createRoute({
     method: "put",
-    path: ROUTES.API.EXAMPLE.CRUD_BY_ID,
+    path: "/{id}",
     tags: ["Example CRUD"],
     summary: "Update a crud",
     description:
@@ -93,10 +96,11 @@ crudRoutes.openapi(
   update,
 );
 
+// POST /api/example/cruds/job
 crudRoutes.openapi(
   createRoute({
     method: "post",
-    path: ROUTES.API.EXAMPLE.CRUD_CREATE_JOB,
+    path: "/job",
     tags: ["Example CRUD"],
     summary: "Create a crud asynchronously",
     description:
@@ -113,10 +117,11 @@ crudRoutes.openapi(
   createViaJob,
 );
 
+// DELETE /api/example/cruds/{id}
 crudRoutes.openapi(
   createRoute({
     method: "delete",
-    path: ROUTES.API.EXAMPLE.CRUD_BY_ID,
+    path: "/{id}",
     tags: ["Example CRUD"],
     summary: "Delete a crud",
     description:

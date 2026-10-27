@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { configApp } from "../../../configs/index.ts";
 import { HTTP_STATUS, MESSAGES } from "../../../configs/constants.ts";
-import { ROUTES } from "../../../configs/routes.config.ts";
 import { errorResponse } from "../../../utils/response.util.ts";
 import {
   metricsContentType,
@@ -10,7 +9,7 @@ import {
 
 export const metricsRoutes = new Hono();
 
-metricsRoutes.get(ROUTES.API.METRICS, async (c) => {
+metricsRoutes.get("/", async (c) => {
   if (!configApp.metricsEnabled) {
     return errorResponse(c, MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
   }

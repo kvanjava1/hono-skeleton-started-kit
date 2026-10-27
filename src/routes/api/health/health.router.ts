@@ -1,5 +1,4 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { ROUTES } from "../../../configs/routes.config.ts";
 import {
   getHealth,
   getReadiness,
@@ -13,7 +12,7 @@ export const healthRoutes = new OpenAPIHono({
 healthRoutes.openapi(
   createRoute({
     method: "get",
-    path: ROUTES.API.HEALTH,
+    path: "/",
     tags: ["Health"],
     summary: "Liveness check",
     description: "Returns 200 while the process is running.",
@@ -27,7 +26,7 @@ healthRoutes.openapi(
 healthRoutes.openapi(
   createRoute({
     method: "get",
-    path: ROUTES.API.HEALTH_READY,
+    path: "/ready",
     tags: ["Health"],
     summary: "Readiness check",
     description:
