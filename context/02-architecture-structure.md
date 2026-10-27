@@ -16,7 +16,7 @@ Dokumentasi repo menetapkan arsitektur dua wilayah:
 - Hono merender halaman HTML di server dari komponen JSX.
 - Tailwind memindai class pada view JSX melalui directive `@source` di `resources/css/app.css`.
 - Saat development, Vite melayani CSS dan client HMR di port 5173.
-- Saat production, `bun run build:css` menulis CSS dan manifest ke `dist/`; Hono membaca manifest untuk menautkan stylesheet dan melayani aset `/assets/*`.
+- Saat production, `bun run build:css` menulis CSS dan manifest ke `public/build/`; Hono membaca manifest untuk menautkan stylesheet dan melayani aset `/build/*`.
 
 ## Entry Points
 

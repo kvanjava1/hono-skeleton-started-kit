@@ -228,7 +228,7 @@ Asumsi paling aman untuk task berikutnya:
 ### Styling (Tailwind v4)
 - Gunakan direktif `@import "tailwindcss";` di `resources/css/app.css`.
 - Pastikan file view JSX tercakup oleh `@source` agar class utility ikut dibuat.
-- Gunakan `bun run dev:css` untuk Vite saat development dan `bun run build:css` untuk output production di `dist/`.
+- Gunakan `bun run dev:css` untuk Vite saat development dan `bun run build:css` untuk output production di `public/build/`.
 - Hindari penggunaan file `tailwind.config.js` karena v4 menggunakan konfigurasi berbasis CSS.
 
 ## Post-Implementation Checklist

@@ -138,15 +138,15 @@ You can also run them separately:
 To build and run in production:
 
 ```bash
-# Compile Tailwind CSS and write its Vite manifest to dist/
+# Compile Tailwind CSS and write its Vite manifest to public/build/
 bun run build:css
 
 # Start production server
 bun run server:code:prod
 ```
 
-The production server reads the stylesheet path from `dist/.vite/manifest.json`
-and serves the compiled file under `/assets/`. Set `NODE_ENV=production` in
+The production server reads the stylesheet path from `public/build/.vite/manifest.json`
+and serves the compiled file under `/build/`. Set `NODE_ENV=production` in
 the production `.env` (or process environment); `bun run server:code:prod`
 follows that value.
 

@@ -126,7 +126,7 @@ Recommended reading order:
 
 - Proyek ini dirancang sebagai fondasi. Halaman `resources/views/example/Index.tsx` menjadi contoh Hono JSX SSR.
 - Dukungan database, Redis, cache, queue, migrasi, dan seeding sepenuhnya modular.
-- Tailwind CSS dilayani oleh Vite saat development dan dikompilasi ke `dist/` untuk production.
+- Tailwind CSS dilayani oleh Vite saat development dan dikompilasi ke `public/build/` untuk production.
 - Worker skeleton tersedia dan siap diisi dengan job domain.
 - Semua POST/PUT/PATCH ke `/api/*` **wajib** menyertakan header `Content-Type: application/json` — jika tidak, server mengembalikan HTTP 415.
 - Redis **tidak wajib** untuk development (`DB_REDIS_ENABLED=false`). Tanpa Redis, cache dan queue/worker tidak berfungsi.

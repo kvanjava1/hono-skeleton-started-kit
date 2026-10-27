@@ -7,13 +7,14 @@ setupTestEnvironment();
 import { app } from "../../src/app.ts";
 
 describe("Web Landing Page", () => {
-  test("GET / returns 200 HTML with app name", async () => {
+  test("GET / returns 200 HTML with app name and vite head tags", async () => {
     const res = await app.fetch(new Request("http://localhost/"));
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/html");
 
     const text = await res.text();
     expect(text).toContain("Hono Multi-DB");
+    expect(text).toContain("rel=\"stylesheet\"");
   });
 
 });

@@ -9,9 +9,9 @@ export default defineConfig({
   },
   plugins: [tailwindcss()],
   root: 'resources',
-  publicDir: path.resolve(__dirname, 'public'),
+  publicDir: false,
   build: {
-    outDir: '../dist',
+    outDir: path.resolve(__dirname, 'public/build'),
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {

@@ -13,7 +13,7 @@ bun run build:app
 ```
 
 This creates a `server` binary in the project root. Deploy it together with the
-`dist/` directory, which contains the compiled stylesheet and Vite manifest.
+`public/` directory (which contains static assets and the compiled `public/build/` bundle).
 
 ## Run
 
@@ -44,14 +44,14 @@ bun run worker:bin:prod
 
 - the binary reads configuration from the `.env` file in its working directory (and from environment variables in the process)
 - `bun run server:code:prod` and `bun run worker:code:prod` follow `NODE_ENV` from `.env` or the process environment
-- `bun run server:bin` and `bun run worker:bin` set `NODE_ENV=production`; other configuration still comes from `.env` or the process environment
+- `bun run server:bin:prod` and `bun run worker:bin:prod` set `NODE_ENV=production`; other configuration still comes from `.env` or the process environment
 - keep `storages/` available for logs and SQLite files
 - if SQLite is enabled, the `sqlite1` path must exist or be creatable
 - if Redis is enabled, it must be reachable before the app starts
 - `./server` runs API mode
 - `./server --worker` runs worker mode
-- the production server reads the stylesheet path from `dist/.vite/manifest.json`
-  and serves compiled assets from `dist/` at `/assets/`
+- the production server reads the stylesheet path from `public/build/.vite/manifest.json`
+  and serves compiled assets from `public/build/` under `/build/` with immutable caching headers
 
 ## Example systemd unit
 

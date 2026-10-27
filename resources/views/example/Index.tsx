@@ -1,6 +1,5 @@
 /** @jsxImportSource hono/jsx */
-import { configApp } from "../../../src/configs/app.config.ts";
-import { getStyle } from "../../../src/utils/vite.util.ts";
+import { ViteHead } from "../../../src/utils/vite.util.ts";
 
 interface IndexPageProps {
   title?: string;
@@ -19,10 +18,6 @@ export const IndexPage = async ({
   title = "Welcome | Pure SSR Mode",
   serverData = { appName: "Hono Skeleton", runtime: "Bun", features: [] }
 }: IndexPageProps) => {
-  const isDev = configApp.isDevelopment();
-
-  const stylesheet = await getStyle();
-
   return (
     <html lang="en">
       <head>
@@ -30,12 +25,7 @@ export const IndexPage = async ({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
 
-        {stylesheet && <link rel="stylesheet" href={stylesheet} />}
-
-        {/* Vite client enables CSS hot updates in development. */}
-        {isDev && (
-          <script type="module" src="http://localhost:5173/@vite/client"></script>
-        )}
+        <ViteHead />
       </head>
       <body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-100 selection:text-indigo-700">
         <main class="min-h-screen flex flex-col items-center justify-center p-6 bg-radial-gradient">

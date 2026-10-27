@@ -45,7 +45,7 @@ Urutan eksekusi secara umum:
 
 1. **Common (Semua Request)**: `requestId`, `context`, `compress`, `secureHeaders`, `metrics`, `rateLimiter`, `requestLogger`.
 2. **API Specific (`/api/*`)**: `cors` (ketat), `jsonOnlyMiddleware`.
-3. **Web Specific (Non-API)**: static assets dari `public/` dan aset Vite dari `dist/` di production.
+3. **Web Specific (Non-API)**: static assets dari `public/` (termasuk bundel Vite `public/build/` di production).
 4. **Global**: `app.onError(errorHandler)`
 
 Dispatcher utama ada di `src/middlewares/index.ts` yang mengarahkan middleware ke Sub-App atau Path yang tepat.

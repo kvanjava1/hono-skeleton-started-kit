@@ -13,7 +13,7 @@ Aplikasi menjalankan dua server di mode pengembangan:
 - `bun run dev:all`: Menjalankan Hono dan Vite secara bersamaan (disarankan).
 - `bun run server:code:dev`: Menjalankan Hono dengan watch mode.
 - `bun run dev:css`: Menjalankan Vite untuk Tailwind CSS.
-- `bun run build:css`: Mengompilasi Tailwind CSS ke `dist/` dan membuat manifest Vite.
+- `bun run build:css`: Mengompilasi Tailwind CSS ke `public/build/` dan membuat manifest Vite.
 - `bun run typecheck`: Melakukan pengecekan tipe TypeScript di seluruh proyek.
 - `bun run server:code:prod`: Menjalankan server dari source dengan env runtime.
 - `bun run worker:code:dev`: Menjalankan worker dengan `--watch` saat development.
@@ -31,8 +31,8 @@ Build backend dilakukan dengan:
 - `bun build ./src/index.ts --compile --outfile server`
 
 Build production perlu menjalankan `bun run build:css` dan menyertakan folder
-`dist/` bersama server. Hono membaca `dist/.vite/manifest.json` untuk memilih
-stylesheet dan melayani hasil build melalui `/assets/*`.
+`public/` bersama server. Hono membaca `public/build/.vite/manifest.json` untuk memilih
+stylesheet dan melayani hasil build melalui `/build/*`.
 
 ## Environment Separation
 
