@@ -1,5 +1,7 @@
-import { describe, expect, test, beforeAll } from "bun:test";
+import { describe, expect, test, afterAll } from "bun:test";
 import { setupTestEnvironment } from "../helpers/setup.ts";
+import { resetConfigRateLimiter } from "../../src/configs/index.ts";
+import { resetRateLimiterMemoryStore } from "../../src/middlewares/common/rateLimiter.middleware.ts";
 
 setupTestEnvironment({ RATE_LIMIT_MAX: "5" });
 
@@ -54,5 +56,11 @@ describe("Rate Limiter", () => {
       }),
     );
     expect(res.status).toBe(200);
+  });
+
+  afterAll(() => {
+    delete process.env.RATE_LIMIT_MAX;
+    resetConfigRateLimiter();
+    resetRateLimiterMemoryStore();
   });
 });

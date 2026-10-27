@@ -9,6 +9,7 @@ import {
   resetConfigRedis,
   resetConfigSqlite,
 } from "../../src/configs/index.ts";
+import { resetRateLimiterMemoryStore } from "../../src/middlewares/common/rateLimiter.middleware.ts";
 
 export const setupTestEnvironment = (overrides: Record<string, string> = {}) => {
   beforeAll(() => {
@@ -20,6 +21,7 @@ export const setupTestEnvironment = (overrides: Record<string, string> = {}) => 
     process.env.DB_PG_ENABLED = "false";
     process.env.DB_MONGO_ENABLED = "false";
     process.env.LOG_RETENTION_DAYS = "1";
+    process.env.RATE_LIMIT_MAX = "1000";
 
     for (const [key, value] of Object.entries(overrides)) {
       process.env[key] = value;
@@ -33,5 +35,6 @@ export const setupTestEnvironment = (overrides: Record<string, string> = {}) => 
     resetConfigMongo();
     resetConfigRedis();
     resetConfigSqlite();
+    resetRateLimiterMemoryStore();
   });
 };

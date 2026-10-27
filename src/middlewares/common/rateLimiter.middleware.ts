@@ -15,6 +15,10 @@ interface RateLimitStore {
 
 const memoryStore = new Map<string, RateLimitStore>();
 
+export const resetRateLimiterMemoryStore = (): void => {
+  memoryStore.clear();
+};
+
 const cleanupStore = (): void => {
   const now = Date.now();
   for (const [key, value] of memoryStore.entries()) {
