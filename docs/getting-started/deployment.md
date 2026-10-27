@@ -8,8 +8,8 @@ This project can be compiled into a Bun binary.
 # Compile Tailwind CSS and its manifest
 bun run build:css
 
-# Compile the Hono server
-bun run build
+# Compile the Hono server binary
+bun run build:app
 ```
 
 This creates a `server` binary in the project root. Deploy it together with the
@@ -36,8 +36,8 @@ Worker mode:
 Or use the available scripts in `package.json`:
 
 ```bash
-bun run server:bin
-bun run worker:bin
+bun run server:bin:prod
+bun run worker:bin:prod
 ```
 
 ## Important Notes

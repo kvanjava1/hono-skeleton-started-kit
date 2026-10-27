@@ -1,7 +1,21 @@
-import { z } from 'zod';
+import { z } from "@hono/zod-openapi";
 
-export const {{LOWER_NAME}}Schema = z.object({
-  // define schema here
+export const {{NAME}}IdParam = z.object({
+  id: z.coerce
+    .number()
+    .int()
+    .positive()
+    .openapi({ example: 1, description: "{{NAME}} ID (positive integer)" }),
 });
 
-export type {{NAME}} = z.infer<typeof {{LOWER_NAME}}Schema>;
+export const Create{{NAME}}Body = z.object({
+  name: z.string().min(1).openapi({ example: "Sample Name" }),
+});
+
+export const Update{{NAME}}Body = z.object({
+  name: z.string().min(1).optional().openapi({ example: "Updated Name" }),
+});
+
+export type {{NAME}}IdParamInput = z.infer<typeof {{NAME}}IdParam>;
+export type Create{{NAME}}BodyInput = z.infer<typeof Create{{NAME}}Body>;
+export type Update{{NAME}}BodyInput = z.infer<typeof Update{{NAME}}Body>;

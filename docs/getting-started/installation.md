@@ -180,6 +180,8 @@ bun run make seeder sqlite UserSeeder
 bun run make controller Product
 bun run make service sqlite Product
 bun run make repository sqlite Product
+bun run make validation Product
+bun run make job SendEmail
 ```
 
 [Back to Getting Started](./README.md)

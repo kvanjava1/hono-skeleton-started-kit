@@ -2,94 +2,127 @@
 
 ## Overview
 
-Project: Hono Multi-Database Skeleton  
-Runtime: Bun  
-Framework: Hono  
-Entry point: `src/index.ts`
+- **Project**: Hono Multi-Database Skeleton
+- **Runtime**: [Bun](https://bun.sh) (pinned to `1.4.3` via `.bun-version`)
+- **Framework**: [Hono](https://hono.dev) (`^4.6.0`)
+- **ORM / Query Builder**: [Drizzle ORM](https://orm.drizzle.team) (SQL) + Native MongoDB Driver
+- **Async Queue**: [BullMQ](https://bullmq.io) + Redis
+- **Templating / UI**: Hono JSX SSR + [Tailwind CSS v4](https://tailwindcss.com) (via Vite bundler)
+- **API Specification**: `@hono/zod-openapi` + `@scalar/hono-api-reference`
+- **Entry Point**: `src/index.ts`
 
-The app supports:
+The application runs in two distinct execution modes:
+1. **HTTP Server Mode**: Runs the Hono web server (serving API endpoints, SSR web pages, documentation, and metrics).
+2. **Worker Mode** (`--worker`): Runs background BullMQ queue workers without binding an HTTP port.
 
-- HTTP API mode
-- worker mode via `--worker`
-- named multi-connections for SQLite, MySQL, MongoDB, Redis, and PostgreSQL
-- Redis cache and BullMQ
+---
 
-## Project Structure
+## Current Project Structure
 
 ```text
-resources/
-├── css/
-├── js/
-└── views/
-src/
-├── index.ts
-├── app.ts
-├── configs/
-├── routes/
-│   └── api/            # health/, docs/, metrics/, example/
-├── controllers/
-│   └── health/         # health.controller.ts
-├── services/
-├── repositories/
-├── validations/        # Zod request/response schemas
-├── database/
-│   ├── drizzle.ts      # Drizzle client wrapper
-│   └── schema/         # Drizzle table definitions
-├── middlewares/
-│   └── common/         # termasuk metrics.middleware.ts
-├── utils/              # logger, metrics, async, context, cache
-├── queues/
-├── jobs/
-└── workers/
+.
+├── resources/
+│   ├── css/
+│   │   └── app.css               # Tailwind CSS entrypoint
+│   ├── js/                       # Optional client-side JS scripts
+│   └── views/                    # Server-rendered Hono JSX components (.tsx)
+│       └── example/
+│           ├── Index.tsx
+│           └── Layout.tsx
+├── public/                       # Public static assets (favicon, images, etc.)
+├── storages/
+│   ├── database/                 # Local SQLite database files
+│   └── logs/                     # JSONL log files (app/, cli/, queue/)
+├── scripts/
+│   ├── make.ts                   # Code generation CLI
+│   ├── migrate.ts                # Database migration runner
+│   ├── seed.ts                   # Database seeder runner
+│   ├── migrations/               # Per-database migration files
+│   └── seeders/                  # Per-database seeder files
+└── src/
+    ├── index.ts                  # Application entry point (bootstrapping app/worker)
+    ├── app.ts                    # createApp() factory & middleware pipeline
+    ├── configs/                  # App configurations & environment parsing
+    ├── routes/
+    │   ├── index.ts              # Master route mounter & 404 handler
+    │   ├── web/                  # Web routes (SSR Hono JSX)
+    │   │   └── example/
+    │   └── api/                  # API routes (OpenAPI endpoints)
+    │       ├── health/           # /api/health, /api/health/ready
+    │       ├── docs/             # /api/spec, /api/docs
+    │       ├── metrics/          # /metrics (Prometheus)
+    │       └── example/          # CRUD sample routes
+    ├── controllers/
+    │   ├── health/               # Health & readiness handlers
+    │   └── example/
+    │       ├── web/              # Web controllers (return HTML/JSX)
+    │       └── api/              # API controllers (return JSON via successResponse)
+    ├── services/                 # Business logic & orchestrator layer
+    ├── repositories/             # Database access layer
+    ├── validations/              # Zod schemas & request validations (@hono/zod-openapi)
+    ├── database/
+    │   ├── index.ts              # Parallel connection initialization registry
+    │   ├── drizzle.ts            # Drizzle ORM client wrapper (getDrizzleDb)
+    │   ├── schema/               # Drizzle ORM table definitions
+    │   │   └── example/
+    │   └── *.connection.ts       # Driver connection factories (sqlite, mysql, pg, mongo, redis)
+    ├── middlewares/
+    │   ├── common/               # Context, logger, metrics, rateLimiter, errorHandler
+    │   ├── web/                  # Web-specific middlewares (static assets)
+    │   └── api/                  # API-specific middlewares (Content-Type validation)
+    ├── utils/                    # Utilities: logger, response, async, context, metrics, cache
+    ├── queues/                   # BullMQ queue creators & connection options
+    ├── jobs/                     # Job definitions & payload interfaces
+    └── workers/                  # Worker registry & execution handlers
 ```
 
-## Current Default App Surface
+---
 
-### REST API
-- `GET /api/health` — liveness
-- `GET /api/health/ready` — readiness (checks enabled dependencies)
-- `GET /metrics` — Prometheus metrics (404 when `METRICS_ENABLED=false`)
-- `GET /api/spec` — OpenAPI 3.0 JSON spec
-- `GET /api/docs` — Scalar API Reference (interactive UI)
+## Default Endpoints (Application Surface)
 
-### CRUD Example (SQLite)
-- `POST /api/example/cruds`
-- `GET /api/example/cruds`
-- `GET /api/example/cruds/{id}`
-- `PUT /api/example/cruds/{id}`
-- `DELETE /api/example/cruds/{id}`
-- `POST /api/example/cruds/job` — async via BullMQ queue
+### 1. Web (Server-Side Rendered JSX)
+- `GET /` — SSR landing page with Tailwind CSS.
 
-### Worker
-- `src/workers/index.ts` registers `crud-create` worker for async CRUD processing
+### 2. System & Observability
+- `GET /api/health` — Liveness probe (verifies process is responsive).
+- `GET /api/health/ready` — Readiness probe (checks active database and Redis connections).
+- `GET /metrics` — Prometheus metrics (enabled when `METRICS_ENABLED=true`, optionally guarded by `x-metrics-token`).
 
-### Drizzle ORM
-SQL repositories use Drizzle ORM as query builder. MongoDB uses native driver.
-- Table definitions: `src/database/schema/`
-- Drizzle client: `src/database/drizzle.ts` — `getDrizzleDb(connectionName)`
+### 3. API Documentation
+- `GET /api/spec` — OpenAPI 3.0 JSON specification.
+- `GET /api/docs` — Interactive Scalar API Reference UI.
 
-## Database Controls
+### 4. Sample CRUD Feature (`/api/example/cruds`)
+- `GET /api/example/cruds` — List all records (backed by Redis cache).
+- `GET /api/example/cruds/{id}` — Retrieve a single record.
+- `POST /api/example/cruds` — Create a new record (automatically validated via Zod).
+- `PUT /api/example/cruds/{id}` — Update an existing record.
+- `DELETE /api/example/cruds/{id}` — Delete a record.
+- `POST /api/example/cruds/job` — Dispatch record creation asynchronously via BullMQ queue.
 
-Environment toggles:
+---
 
-- `DB_SQLITE_ENABLED`
-- `DB_MYSQL_ENABLED`
-- `DB_PG_ENABLED`
-- `DB_MONGO_ENABLED`
-- `DB_REDIS_ENABLED`
+## Multi-Database Connection Model
 
-## Observability Controls
+All database engines support explicit **named connections**:
+- **SQLite**: `sqlite1`, ...
+- **MySQL**: `mysql1`, ...
+- **PostgreSQL**: `pg1`, ...
+- **MongoDB**: `mongo1`, ...
+- **Redis**: `redis1`, ...
 
-- `LOG_LEVEL` — minimum log level (`debug|info|warn|error`, default `info`)
-- `METRICS_ENABLED` — enable `GET /metrics` (default `false`)
-- `METRICS_TOKEN` — optional shared secret; requires `x-metrics-token` header
+Database connections are enabled or disabled via environment boolean flags (`DB_SQLITE_ENABLED`, `DB_MYSQL_ENABLED`, `DB_PG_ENABLED`, `DB_MONGO_ENABLED`, `DB_REDIS_ENABLED`). Disabled databases will not initialize or block the startup sequence.
 
-## Worker Model
+---
 
-The worker entry point registers the `crud-create` job (async CRUD creation).
-Add new jobs in `src/jobs/` and register them in `src/workers/index.ts`.
+## Background Worker Model
 
-Note: queue metrics are recorded in the worker process, which does not expose an
-HTTP server, so they are not scrapeable from the API `/metrics` endpoint yet.
+Workers run as a separate background process:
+```bash
+bun run worker:code:dev
+# or in production:
+bun run worker:code:prod
+```
+The worker processes BullMQ jobs from Redis independently without blocking the HTTP server event loop.
 
 [Back to Reference](./README.md)

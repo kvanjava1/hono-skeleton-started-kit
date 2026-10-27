@@ -1,123 +1,88 @@
-# Logging
+# Logging Guide
 
-The project uses a file-based logger with console output.
+The application features a structured JSON logger with dual output: **buffered JSONL files** for automated machine ingestion and **clean, human-readable terminal output** for local debugging.
 
-## Directory Layout
+---
+
+## 📂 Log Directory Layout
+
+Log files are stored under `storages/logs/` and partitioned by service name (`SERVICE_NAME`):
 
 ```text
 storages/logs/
-├── app/
-├── cli/
-└── queue/
+├── app/                  # HTTP API & Web Server logs (SERVICE_NAME=app)
+│   └── 2026-10-27/
+│       ├── info.jsonl
+│       ├── debug.jsonl
+│       ├── warning.jsonl
+│       └── errors.jsonl
+├── queue/                # Background Worker logs (SERVICE_NAME=queue)
+└── cli/                  # Migration & Seeder CLI logs (SERVICE_NAME=cli)
 ```
 
-Each service gets date-based folders and files like:
+---
 
-- `info.jsonl`
-- `debug.jsonl`
-- `warning.jsonl`
-- `errors.jsonl`
+## 📝 Log Formats
 
-## Format
-
-### File (JSON Lines — `.jsonl`)
-
-One JSON object per line:
+### 1. File Format (JSON Lines — `.jsonl`)
+Every log line is a standalone, compressed JSON object:
 
 ```jsonl
-{"time":"2026-06-20T09:44:21.000Z","level":"INFO","service":"app","reqId":"abc-123","module":"CrudService","msg":"Crud created"}
-{"time":"2026-06-20T09:44:22.000Z","level":"ERROR","service":"app","reqId":"abc-123","module":"App","msg":"Database error","data":{"message":"Connection refused","name":"Error","stack":"Error: Connection refused\n    at ..."}}
+{"time":"2026-10-27T05:51:02.000Z","level":"INFO","service":"app","reqId":"18b205f0-...","module":"Http","msg":"Request completed","data":{"method":"GET","path":"/api/health","status":200,"durationMs":13,"ip":"127.0.0.1"}}
 ```
 
 | Field | Required | Description |
-|-------|----------|-------------|
-| `time` | ✅ | ISO 8601 UTC |
-| `level` | ✅ | DEBUG / INFO / WARN / ERROR |
-| `service` | ✅ | app / queue / cli |
-| `reqId` | ❌ | Request ID from AsyncLocalStorage |
-| `module` | ❌ | Parsed from `[ModuleName]` message prefix |
-| `msg` | ✅ | Log message |
-| `data` | ❌ | Error → `{message, name, stack}`, object → deep-copy, primitive → string |
+|---|---|---|
+| `time` | ✅ | ISO 8601 UTC timestamp |
+| `level` | ✅ | `DEBUG`, `INFO`, `WARN`, `ERROR` |
+| `service` | ✅ | `app`, `queue`, or `cli` |
+| `reqId` | ❌ | Unique Request ID from `AsyncLocalStorage` (`requestContext`) |
+| `module` | ❌ | Automatically parsed from the `[ModuleName]` prefix in log messages |
+| `msg` | ✅ | Message description |
+| `data` | ❌ | Structured metadata, stack traces, or sanitized payloads |
 
-### Console (human-readable)
-
-```
-[2026-06-20 09:44:21] [INFO] [ID: abc-123] Crud created
-```
-
-## Request Logging
-
-Every HTTP request (API and web) produces one completion log line:
-
-```json
-{
-  "level": "INFO",
-  "service": "app",
-  "reqId": "9f8c1e2a-...",
-  "module": "Http",
-  "msg": "Request completed",
-  "data": {
-    "method": "GET",
-    "path": "/api/health",
-    "status": 200,
-    "durationMs": 12,
-    "ip": "10.0.0.1"
-  }
-}
+### 2. Console Format (Human-Readable)
+```text
+[2026-10-27 12:51:02] [INFO] [ID: 18b205f0-...] [Http] Request completed { method: "GET", path: "/api/health", status: 200, durationMs: 13 }
 ```
 
-- `durationMs` is measured from `requestStartedAt` in the request context, so it
-  matches the metrics histogram (`http_request_duration_ms_sum`).
-- Requests to `/metrics` are skipped to avoid log noise.
+---
 
-Queue jobs are logged as `[Queue] Job completed` / `[Queue] Job failed` with
-`queue` and `jobId`. The worker keeps the original `reqId` (propagated through
-the job payload).
+## 🔒 Automated Sensitive Data Redaction
 
-Business logs use module prefixes, e.g. `[CrudService] Crud created`.
+The logger automatically sanitizes keys containing sensitive credentials into `[REDACTED]`, including:
+- `password`, `token`, `secret`, `authorization`, `credit_card`, `api_key`
 
-## Redaction
+---
 
-Sensitive keys are replaced with `[REDACTED]` before writing: `password`,
-`passwd`, `token`, `authorization`, `secret`, `cookie`, `apikey`, `creditcard`
-— including inside nested objects and arrays.
+## 💻 Application Usage
 
-## Log Levels
-
-- `debug`
-- `info`
-- `warn`
-- `error`
-
-Minimum level is configured via:
-
-```env
-LOG_LEVEL=info
-```
-
-Only messages at or above this level are written. Invalid values fall back to
-`info`.
-
-## Retention
-
-Configured by:
-
-```env
-LOG_RETENTION_DAYS=3
-```
-
-## Usage
+Import the singleton `logger` from `src/utils/logger.util.ts`:
 
 ```ts
-import { logger } from '../utils/logger.util.ts';
+import { logger } from '../../utils/logger.util.ts';
 
-logger.info('Server started');
-logger.warn('Rate limit reached');
-logger.error('Unexpected failure', error);
+// INFO: Standard business activity
+logger.info('[UserService] User created successfully', { userId: 42 });
+
+// WARN: Recoverable abnormalities
+logger.warn('[PaymentService] Payment gateway slow response', { retryCount: 2 });
+
+// ERROR: Fatal failures or unhandled exceptions
+logger.error('[SyncService] Failed to sync data', err);
+
+// DEBUG: Verbose technical data (only logged when LOG_LEVEL=debug)
+logger.debug('[RedisCache] Cache miss for key: user:42');
 ```
 
-## Read-only Environments
+---
 
-If the filesystem is read-only, file logging can fail. The logger is designed to avoid crashing request handling and will still log to console.
+## ⚙️ Environment Configuration (`.env`)
 
-[Back to Docs](../README.md)
+```env
+LOG_LEVEL=info    # Options: debug | info | warn | error (default: info)
+```
+
+---
+
+[Back to Guides](../README.md)

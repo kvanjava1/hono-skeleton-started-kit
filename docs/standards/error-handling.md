@@ -1,66 +1,75 @@
-# Error Handling
+# Error Handling Standard
 
-## Error Class Hierarchy
+This document details the application's error class hierarchy, HTTP status code mappings, automated error normalization, and rules for error handling.
+
+---
+
+## 🌲 Error Class Hierarchy (`src/utils/errors.util.ts`)
+
+All operational application errors extend `AppError` (which in turn extends Hono's `HTTPException`):
 
 ```text
-HTTPException
+HTTPException (Hono)
   └── AppError
-        ├── ValidationError
-        ├── UnauthorizedError
-        ├── InvalidTokenError
-        ├── ForbiddenError
-        ├── NotFoundError
-        ├── ConflictError
-        ├── DuplicateOrderError
-        ├── RateLimitError
-        ├── ScrapingError
-        └── DatabaseError
+        ├── ValidationError      -> 400 Bad Request
+        ├── UnauthorizedError    -> 401 Unauthorized
+        ├── InvalidTokenError    -> 401 Unauthorized
+        ├── ForbiddenError       -> 403 Forbidden
+        ├── NotFoundError        -> 404 Not Found
+        ├── ConflictError        -> 409 Conflict
+        ├── DuplicateOrderError  -> 409 Conflict
+        ├── RateLimitError       -> 429 Too Many Requests
+        ├── ScrapingError        -> 500 Internal Server Error
+        └── DatabaseError        -> 500 Internal Server Error
 ```
 
-## Current Status Codes
+---
 
-- `ValidationError` -> `400`
-- `UnauthorizedError` -> `401`
-- `InvalidTokenError` -> `401`
-- `ForbiddenError` -> `403`
-- `NotFoundError` -> `404`
-- `ConflictError` -> `409`
-- `RateLimitError` -> `429`
+## 🛡️ Error Handling Rules
 
-## Rules
-
-### Throw in services when possible
+### 1. Always Throw Errors from Services
+Do not return boolean flags or error objects from services. Throw the appropriate `AppError` subclass when an invalid domain state occurs:
 
 ```ts
-if (!product) {
-  throw new NotFoundError('Product not found');
+if (!user) {
+  throw new NotFoundError('User with this email was not found');
 }
 ```
 
-### Let the global error handler normalize responses
+### 2. Avoid Manual `try/catch` in Controllers
+Controllers should not manually wrap service calls with `try/catch` blocks for standard application errors. Let them bubble up to the **Global Error Handler** (`src/middlewares/common/errorHandler.ts`).
 
-Controllers should not manually catch and remap expected application errors.
+### 3. Automated Route-Level Request Validation (`@hono/zod-openapi`)
+OpenAPI routes attach `openApiValidationHook` (`src/utils/openapi.util.ts`) as the `defaultHook`. When incoming request bodies, params, or queries fail Zod schema validation:
+- The request is immediately rejected with HTTP status **400 Bad Request**.
+- The response is formatted into the standardized application error contract:
+```json
+{
+  "status": "error",
+  "message": "Validation failed",
+  "data": {
+    "target": "json",
+    "errors": [
+      {
+        "field": "price",
+        "message": "Expected number, received string"
+      }
+    ]
+  }
+}
+```
 
-### Route-level validation errors
+### 4. Database Driver Error Normalization (`transformError`)
+The Global Error Handler normalizes vendor-specific database driver exceptions into typed `AppError` instances:
+- MySQL duplicate entry (`ER_DUP_ENTRY`) -> `ConflictError (409)`
+- PostgreSQL unique violation (`23505`) -> `ConflictError (409)`
+- MongoDB duplicate key (`code: 11000`) -> `ConflictError (409)`
+- SQLite constraint violation (`SQLITE_CONSTRAINT`) -> `ConflictError (409)`
 
-`@hono/zod-openapi` validates requests automatically from the schemas attached to
-`createRoute`. Failures are normalized by `openApiValidationHook`
-(`src/utils/openapi.util.ts`), wired as `defaultHook`, and return `400` with the
-standard `{ status, message, data }` contract.
+### 5. Logging Severity Levels
+- **Operational Errors** (`4xx` such as `NotFoundError`, `ValidationError`): Logged at `WARN` level.
+- **Unexpected System Errors** (`5xx`, unhandled exceptions): Logged at `ERROR` level along with full stack traces.
 
-### Use `transformError()` for library and driver errors
+---
 
-Current global handler already normalizes:
-
-- Zod validation errors thrown from services
-- duplicate errors from MySQL
-- duplicate errors from PostgreSQL
-- duplicate errors from MongoDB
-- duplicate errors from SQLite
-
-### Logging behavior
-
-- operational errors -> `warn`
-- unexpected system errors -> `error`
-
-Request context is attached by the global error handler for easier debugging.
+[Back to Standards](./README.md)

@@ -21,7 +21,8 @@ Available Types:
   controller     Create a new controller (handler)
   service        Create a new service (business logic)
   repository     Create a new repository (raw queries)
-  schema         Create a new Zod schema/type
+  schema         Create a new Zod request validation schema (alias: validation)
+  validation     Create a new Zod request validation schema
   job            Create a new background job handler
 
 Targets:
@@ -33,7 +34,7 @@ Examples:
   bun run make controller User
   bun run make service pg User
   bun run make repository pg User
-  bun run make schema User
+  bun run make validation User
   bun run make job SendEmail
 `);
 };
@@ -47,6 +48,7 @@ if (
     "service",
     "repository",
     "schema",
+    "validation",
     "job",
     "help",
   ].includes(type) ||
@@ -95,10 +97,11 @@ const run = async () => {
         break;
 
       case "schema":
-        if (!target) throw new Error("Usage: bun run make schema <name>");
+      case "validation":
+        if (!target) throw new Error("Usage: bun run make validation <name>");
         // target is name here
-        const scPath = createSchemaFile(target);
-        console.log(`Created schema: ${scPath}`);
+        const scPath = createValidationFile(target);
+        console.log(`Created validation schema: ${scPath}`);
         break;
 
       case "job":
@@ -189,18 +192,20 @@ function createRepositoryFile(
   return filePath;
 }
 
-function createSchemaFile(name: string) {
-  const fileName = name.toLowerCase().endsWith(".schema")
-    ? name
-    : `${name}.schema`;
-  const filePath = `./src/schemas/${fileName}.ts`;
+function createValidationFile(name: string) {
+  const cleanName = name.toLowerCase().endsWith(".validation")
+    ? name.slice(0, -11)
+    : name.toLowerCase().endsWith(".schema")
+    ? name.slice(0, -7)
+    : name.toLowerCase();
+  const filePath = `./src/validations/${cleanName}.ts`;
 
   const template = getStub("schema.stub", {
     NAME: name,
-    LOWER_NAME: name.toLowerCase(),
+    LOWER_NAME: cleanName,
   });
 
-  ensureDir("./src/schemas");
+  ensureDir("./src/validations");
   fs.writeFileSync(filePath, template);
   return filePath;
 }
