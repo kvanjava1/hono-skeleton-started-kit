@@ -114,13 +114,7 @@ GET /api/docs    # Scalar API Reference (interactive)
 
 ## Documentation
 
-- [Docs Index](./docs/README.md)
-- [Project Context](./context/README.md)
-
-Recommended reading order:
-
-1. `docs/README.md` for usage, guides, standards, and reference
-2. `context/README.md` for repo-specific current-state context
+- [Documentation Index](./docs/README.md) (Getting Started, Guides, Standards, Reference)
 
 ## Notes
 
