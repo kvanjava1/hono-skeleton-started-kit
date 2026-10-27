@@ -1,0 +1,88 @@
+/* ============================================================
+   NusaAdmin — lapisan CSS kustom (di atas utility Tailwind)
+   Hanya berisi gaya yang sulit diekspresikan dengan utility:
+   scrollbar, transisi tema, dan helper kecil.
+   ============================================================ */
+
+/* Scrollbar tipis yang mengikuti tema */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(161 161 170 / 0.35) transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.35);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(161 161 170 / 0.55);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Transisi halus saat berganti light <-> dark */
+body,
+#sidebar,
+#topbar {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Angka di tabel & statistik memakai lebar digit seragam */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grid tabel — garis vertikal & horizontal agar setiap sel tampak kotak */
+table {
+  border-collapse: collapse;
+}
+table th,
+table td {
+  border-right: 1px solid #e4e4e7;   /* zinc-200 */
+  border-bottom: 1px solid #e4e4e7; /* zinc-200 */
+}
+table th:last-child,
+table td:last-child {
+  border-right: 0;
+}
+table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.dark table th,
+.dark table td {
+  border-right-color: #27272a;   /* zinc-800 */
+  border-bottom-color: #27272a;  /* zinc-800 */
+}
+/* Header gelap memakai latar zinc-800; garis dibuat sedikit lebih terang
+   agar pemisah kolom tetap terlihat. */
+.dark table th {
+  border-right-color: #3f3f46;   /* zinc-700 */
+  border-bottom-color: #3f3f46;  /* zinc-700 */
+}
+
+/* Ikon pemilih tanggal terbaca di mode gelap */
+.dark [type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+}
+
+/* Centang & titik radio: plugin forms memakai glyph putih permanen.
+   Di mode gelap isi kotak menjadi terang (currentColor zinc-100),
+   jadi glyphnya diganti versi gelap agar terlihat. */
+.dark [type='checkbox']:checked {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%2318181b' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l3.293-3.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+}
+.dark [type='radio']:checked {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%2318181b' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+}
+
+/* Sembunyikan scrollbar tapi tetap bisa di-scroll */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

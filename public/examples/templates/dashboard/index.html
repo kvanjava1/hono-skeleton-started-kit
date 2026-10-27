@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard · NusaAdmin</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E" />
+  <!-- Terapkan tema sebelum render agar tidak berkedip.
+       Default: gelap (dark-first); hanya "light" tersimpan yang memakai tema terang. -->
+  <script>
+    if (localStorage.theme !== 'light') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+  <!-- Tailwind Play CDN + plugin forms -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          boxShadow: {
+            card: '0 1px 2px 0 rgb(0 0 0 / 0.05), 0 8px 24px -12px rgb(0 0 0 / 0.15)',
+          },
+        },
+      },
+    };
+  </script>
+  <style type="text/tailwindcss">
+    /* Komponen UI dasar — untuk produksi, pindahkan ke file CSS proyek Tailwind-mu */
+    .card { @apply border border-zinc-200 bg-white shadow-card dark:border-zinc-800 dark:bg-zinc-900; }
+    .btn { @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 text-base font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950/50 dark:focus-visible:ring-zinc-100/50 disabled:pointer-events-none disabled:opacity-60; }
+    .btn-primary { @apply bg-zinc-950 text-white shadow-sm hover:bg-zinc-800 active:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200 dark:active:bg-zinc-300; }
+    .btn-secondary { @apply border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700; }
+    .btn-danger { @apply bg-rose-600 text-white hover:bg-rose-700; }
+    .icon-btn { @apply grid h-10 w-10 place-items-center text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white; }
+    /* Ikon di dalam sidebar mengikuti tema gelap permanen sidebar */
+    #sidebar .icon-btn { @apply text-zinc-400 hover:bg-zinc-800 hover:text-white; }
+    .input { @apply w-full border border-zinc-200 bg-white px-3.5 py-2.5 text-base text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-950 dark:focus:border-zinc-100 focus:outline-none focus:ring-4 focus:ring-zinc-950/10 dark:focus:ring-zinc-100/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500; }
+    .label { @apply mb-1.5 block text-base font-medium text-zinc-700 dark:text-zinc-300; }
+    .badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 text-sm font-semibold; }
+    .th { @apply px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400; }
+    .td { @apply px-4 py-3 align-middle text-base; }
+    .nav-link { @apply flex items-center gap-3 px-3 py-2.5 text-base font-medium text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white; }
+    .nav-link-active { @apply bg-zinc-100 text-zinc-950 hover:bg-zinc-100 hover:text-zinc-950; }
+    .nav-sublink { @apply block px-3 py-2 text-base font-normal text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white; }
+    .dropdown-panel { @apply absolute right-0 z-50 mt-2 w-56 origin-top-right border border-zinc-200 bg-white p-1.5 shadow-xl dark:border-zinc-700 dark:bg-zinc-900; }
+    .dropdown-item { @apply flex items-center gap-2.5 px-3 py-2 text-base text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white; }
+  </style>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body class="min-h-full bg-zinc-100 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
+
+  <!-- Partikel interaktif (dekoratif, terlihat di celah antar kartu & behind topbar blur) -->
+  <canvas id="particles" class="pointer-events-none fixed inset-0" aria-hidden="true"></canvas>
+
+  <!-- ================= Sidebar ================= -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-zinc-800 bg-zinc-900 transition-transform duration-300 lg:translate-x-0">
+    <!-- Logo -->
+    <div class="flex h-16 shrink-0 items-center justify-between border-b border-zinc-800 px-5">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <span class="grid h-10 w-10 place-items-center bg-zinc-100 text-zinc-950">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+        </span>
+        <span class="text-lg font-extrabold tracking-tight text-white">Nusa<span class="text-zinc-400">Admin</span></span>
+      </a>
+      <button data-sidebar-close class="icon-btn !h-10 !w-10 lg:hidden" aria-label="Tutup menu">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <!-- Navigasi -->
+    <nav class="flex-1 space-y-6 overflow-y-auto px-4 py-5">
+      <div>
+        <p class="px-3 pb-2 text-xs font-bold uppercase tracking-widest text-zinc-500">Menu Utama</p>
+        <ul class="space-y-1">
+          <li>
+            <a href="index.html" class="nav-link nav-link-active">
+              <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link">
+              <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+              Pesanan
+              <span class="ml-auto bg-zinc-100 px-2 py-0.5 text-xs font-bold text-zinc-950">8</span>
+            </a>
+          </li>
+          <li>
+            <button type="button" data-submenu-toggle="#submenu-produk" class="nav-link w-full text-left" aria-expanded="true" aria-controls="submenu-produk">
+              <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
+              Produk
+              <svg data-submenu-chevron class="ml-auto h-5 w-5 shrink-0 rotate-180 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+            </button>
+            <ul id="submenu-produk" class="ml-6 space-y-0.5 border-l border-zinc-800 py-1 pl-3">
+              <li><a href="#" class="nav-sublink">Semua Produk</a></li>
+              <li><a href="#" class="nav-sublink">Kategori</a></li>
+              <li><a href="#" class="nav-sublink">Stok</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="pelanggan.html" class="nav-link">
+              <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+              Pelanggan
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link">
+              <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+              Analitik
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <p class="px-3 pb-2 text-xs font-bold uppercase tracking-widest text-zinc-500">Lainnya</p>
+        <ul class="space-y-1">
+          <li>
+            <a href="settings.html" class="nav-link">
+              <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              Pengaturan
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link">
+              <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
+              Bantuan
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Kartu pengguna -->
+    <div class="shrink-0 border-t border-zinc-800 p-4">
+      <div class="flex items-center gap-3">
+        <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-base font-bold text-zinc-950">AM</span>
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-base font-semibold text-white">Andi Mahendra</p>
+          <p class="truncate text-sm text-zinc-400">andi@nusa.io</p>
+        </div>
+        <a href="login.html" class="icon-btn !h-10 !w-10" title="Keluar">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+  <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-zinc-950/50 backdrop-blur-sm lg:hidden"></div>
+
+  <!-- ================= Topbar ================= -->
+  <header id="topbar" class="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/80 lg:pl-64">
+    <div class="flex h-16 items-center gap-2 px-4 sm:gap-3 sm:px-6">
+      <button data-sidebar-toggle class="icon-btn lg:hidden" aria-label="Buka menu">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+      </button>
+
+      <div class="ml-auto flex items-center gap-1 sm:gap-1.5">
+        <!-- Toggle tema -->
+        <button data-theme-toggle class="icon-btn" aria-label="Ganti tema" title="Ganti tema">
+          <svg class="h-6 w-6 dark:hidden" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.636-1.591 1.591M21 12h-2.25m-.636 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+          <svg class="hidden h-6 w-6 dark:block" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
+        </button>
+
+        <!-- Notifikasi -->
+        <div class="relative" data-dropdown>
+          <button data-dropdown-trigger class="icon-btn relative" aria-label="Notifikasi">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+            <span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-zinc-900"></span>
+          </button>
+          <div data-dropdown-menu class="dropdown-panel hidden w-80">
+            <div class="flex items-center justify-between border-b border-zinc-100 px-3 py-2.5 dark:border-zinc-800">
+              <p class="text-base font-semibold text-zinc-900 dark:text-white">Notifikasi</p>
+              <a href="#" class="text-sm font-semibold text-zinc-950 hover:underline dark:text-zinc-100">Tandai dibaca</a>
+            </div>
+            <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
+              <li class="flex gap-3 px-3 py-3">
+                <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-base text-zinc-700 dark:text-zinc-200">Pesanan <span class="font-semibold">#INV-1048</span> baru saja masuk.</p>
+                  <p class="mt-0.5 text-sm text-zinc-400">5 menit lalu</p>
+                </div>
+              </li>
+              <li class="flex gap-3 px-3 py-3">
+                <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L19.5 4.5h-15l-4.803 11.626zM12 15.75h.007v.008H12v-.008z" /></svg>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-base text-zinc-700 dark:text-zinc-200">Stok <span class="font-semibold">Kopi Gayo 250g</span> hampir habis.</p>
+                  <p class="mt-0.5 text-sm text-zinc-400">1 jam lalu</p>
+                </div>
+              </li>
+              <li class="flex gap-3 px-3 py-3">
+                <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-base text-zinc-700 dark:text-zinc-200"><span class="font-semibold">Ayu Kusuma</span> mendaftar sebagai pelanggan baru.</p>
+                  <p class="mt-0.5 text-sm text-zinc-400">3 jam lalu</p>
+                </div>
+              </li>
+            </ul>
+            <a href="#" class="block border-t border-zinc-100 py-2.5 text-center text-sm font-semibold text-zinc-950 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-800">Lihat semua notifikasi</a>
+          </div>
+        </div>
+
+        <!-- Profil -->
+        <div class="relative" data-dropdown>
+          <button data-dropdown-trigger class="flex items-center gap-2.5 p-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Menu profil">
+            <span class="grid h-10 w-10 place-items-center bg-zinc-950 dark:bg-zinc-100 dark:text-zinc-950 text-base font-bold text-white">AM</span>
+            <span class="hidden text-left sm:block">
+              <span class="block text-base font-semibold leading-tight text-zinc-900 dark:text-white">Andi Mahendra</span>
+              <span class="block text-sm leading-tight text-zinc-500 dark:text-zinc-400">Admin</span>
+            </span>
+            <svg class="hidden h-5 w-5 text-zinc-400 sm:block" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </button>
+          <div data-dropdown-menu class="dropdown-panel hidden w-56">
+            <a href="#" class="dropdown-item">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+              Profil Saya
+            </a>
+            <a href="settings.html" class="dropdown-item">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              Pengaturan
+            </a>
+            <a href="#" class="dropdown-item">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
+              Pusat Bantuan
+            </a>
+            <div class="my-1.5 h-px bg-zinc-100 dark:bg-zinc-800"></div>
+            <a href="login.html" class="dropdown-item !text-rose-600 dark:!text-rose-400">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
+              Keluar
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= Konten ================= -->
+  <main class="relative lg:pl-64">
+    <div class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+
+      <!-- Header halaman -->
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Dashboard</h1>
+          <p class="mt-1 text-base text-zinc-500 dark:text-zinc-400">Selamat datang kembali, Andi 👋 Ini ringkasan tokomu hari ini.</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="btn btn-secondary">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+            Unduh Laporan
+          </button>
+          <button class="btn btn-primary">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+            Transaksi Baru
+          </button>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <section class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="card p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-base font-medium text-zinc-500 dark:text-zinc-400">Total Pendapatan</p>
+              <p class="tnum mt-1.5 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Rp 84,2 jt</p>
+            </div>
+            <span class="grid h-12 w-12 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
+            </span>
+          </div>
+          <div class="mt-3 flex items-center gap-1.5 text-sm">
+            <span class="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+              12,5%
+            </span>
+            <span class="text-zinc-400 dark:text-zinc-500">vs bulan lalu</span>
+          </div>
+        </div>
+
+        <div class="card p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-base font-medium text-zinc-500 dark:text-zinc-400">Pesanan</p>
+              <p class="tnum mt-1.5 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">1.893</p>
+            </div>
+            <span class="grid h-12 w-12 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+            </span>
+          </div>
+          <div class="mt-3 flex items-center gap-1.5 text-sm">
+            <span class="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+              8,1%
+            </span>
+            <span class="text-zinc-400 dark:text-zinc-500">vs bulan lalu</span>
+          </div>
+        </div>
+
+        <div class="card p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-base font-medium text-zinc-500 dark:text-zinc-400">Pelanggan Baru</p>
+              <p class="tnum mt-1.5 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">284</p>
+            </div>
+            <span class="grid h-12 w-12 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
+            </span>
+          </div>
+          <div class="mt-3 flex items-center gap-1.5 text-sm">
+            <span class="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+              4,9%
+            </span>
+            <span class="text-zinc-400 dark:text-zinc-500">vs bulan lalu</span>
+          </div>
+        </div>
+
+        <div class="card p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-base font-medium text-zinc-500 dark:text-zinc-400">Pengunjung</p>
+              <p class="tnum mt-1.5 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">128,4 rb</p>
+            </div>
+            <span class="grid h-12 w-12 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+            </span>
+          </div>
+          <div class="mt-3 flex items-center gap-1.5 text-sm">
+            <span class="badge bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400">
+              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+              2,3%
+            </span>
+            <span class="text-zinc-400 dark:text-zinc-500">vs bulan lalu</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Grafik -->
+      <section class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <!-- Pendapatan -->
+        <div class="card p-5 sm:p-6 xl:col-span-2">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-bold text-zinc-900 dark:text-white">Ringkasan Pendapatan</h2>
+              <p class="mt-0.5 text-base text-zinc-500 dark:text-zinc-400">Pendapatan vs pengeluaran per bulan</p>
+            </div>
+            <select class="border border-zinc-200 bg-white py-2 pl-3 pr-8 text-base font-medium text-zinc-600 focus:border-zinc-950 dark:focus:border-zinc-100 focus:outline-none focus:ring-4 focus:ring-zinc-950/10 dark:focus:ring-zinc-100/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+              <option>12 Bulan</option>
+              <option>6 Bulan</option>
+              <option>30 Hari</option>
+            </select>
+          </div>
+          <div class="relative mt-4 h-72">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Sumber trafik -->
+        <div class="card p-5 sm:p-6">
+          <h2 class="text-lg font-bold text-zinc-900 dark:text-white">Sumber Trafik</h2>
+          <p class="mt-0.5 text-base text-zinc-500 dark:text-zinc-400">Distribusi kunjungan bulan ini</p>
+          <div class="relative mt-4 h-52">
+            <canvas id="trafficChart"></canvas>
+            <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <p class="tnum text-3xl font-bold text-zinc-900 dark:text-white">128,4 rb</p>
+              <p class="text-sm text-zinc-500 dark:text-zinc-400">Kunjungan</p>
+            </div>
+          </div>
+          <ul class="mt-5 space-y-2.5">
+            <li class="flex items-center gap-2.5 text-base">
+              <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
+              <span class="text-zinc-600 dark:text-zinc-300">Organik</span>
+              <span class="tnum ml-auto font-semibold text-zinc-900 dark:text-white">42%</span>
+            </li>
+            <li class="flex items-center gap-2.5 text-base">
+              <span class="h-2.5 w-2.5 rounded-full bg-sky-500 dark:bg-sky-400"></span>
+              <span class="text-zinc-600 dark:text-zinc-300">Sosial Media</span>
+              <span class="tnum ml-auto font-semibold text-zinc-900 dark:text-white">28%</span>
+            </li>
+            <li class="flex items-center gap-2.5 text-base">
+              <span class="h-2.5 w-2.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
+              <span class="text-zinc-600 dark:text-zinc-300">Direct</span>
+              <span class="tnum ml-auto font-semibold text-zinc-900 dark:text-white">18%</span>
+            </li>
+            <li class="flex items-center gap-2.5 text-base">
+              <span class="h-2.5 w-2.5 rounded-full bg-violet-500 dark:bg-violet-400"></span>
+              <span class="text-zinc-600 dark:text-zinc-300">Referral</span>
+              <span class="tnum ml-auto font-semibold text-zinc-900 dark:text-white">12%</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Tabel + aktivitas -->
+      <section class="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <!-- Pesanan terbaru -->
+        <div class="card min-w-0 xl:col-span-2">
+          <div class="flex items-center justify-between border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+            <h2 class="text-lg font-bold text-zinc-900 dark:text-white">Pesanan Terbaru</h2>
+            <a href="#" class="inline-flex items-center gap-1 text-base font-semibold text-zinc-950 hover:underline dark:text-zinc-100">
+              Lihat Semua
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+            </a>
+          </div>
+          <div class="relative overflow-x-auto">
+            <table class="w-full min-w-[768px] text-left">
+              <thead class="bg-zinc-50 dark:bg-zinc-800/50">
+                <tr>
+                  <th class="th">Invoice</th>
+                  <th class="th">Pelanggan</th>
+                  <th class="th">Tanggal</th>
+                  <th class="th">Total</th>
+                  <th class="th">Status</th>
+                  <th class="th"><span class="sr-only">Aksi</span></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <tr class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+                  <td class="td font-semibold text-zinc-950 dark:text-zinc-100">#INV-1048</td>
+                  <td class="td">
+                    <div class="flex items-center gap-2.5">
+                      <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-sm font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">DL</span>
+                      <span class="font-medium text-zinc-900 dark:text-white">Dewi Lestari</span>
+                    </div>
+                  </td>
+                  <td class="td text-zinc-500 dark:text-zinc-400">26 Okt 2026</td>
+                  <td class="td tnum font-semibold text-zinc-900 dark:text-white">Rp 1.250.000</td>
+                  <td class="td"><span class="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">Lunas</span></td>
+                  <td class="td text-right">
+                    <button class="icon-btn !h-10 !w-10" aria-label="Aksi">
+                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+                  <td class="td font-semibold text-zinc-950 dark:text-zinc-100">#INV-1047</td>
+                  <td class="td">
+                    <div class="flex items-center gap-2.5">
+                      <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-sm font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">RP</span>
+                      <span class="font-medium text-zinc-900 dark:text-white">Rizky Pratama</span>
+                    </div>
+                  </td>
+                  <td class="td text-zinc-500 dark:text-zinc-400">26 Okt 2026</td>
+                  <td class="td tnum font-semibold text-zinc-900 dark:text-white">Rp 389.000</td>
+                  <td class="td"><span class="badge bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400">Diproses</span></td>
+                  <td class="td text-right">
+                    <button class="icon-btn !h-10 !w-10" aria-label="Aksi">
+                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+                  <td class="td font-semibold text-zinc-950 dark:text-zinc-100">#INV-1046</td>
+                  <td class="td">
+                    <div class="flex items-center gap-2.5">
+                      <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-sm font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">SM</span>
+                      <span class="font-medium text-zinc-900 dark:text-white">Sinta Maharani</span>
+                    </div>
+                  </td>
+                  <td class="td text-zinc-500 dark:text-zinc-400">25 Okt 2026</td>
+                  <td class="td tnum font-semibold text-zinc-900 dark:text-white">Rp 2.780.000</td>
+                  <td class="td"><span class="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">Lunas</span></td>
+                  <td class="td text-right">
+                    <button class="icon-btn !h-10 !w-10" aria-label="Aksi">
+                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+                  <td class="td font-semibold text-zinc-950 dark:text-zinc-100">#INV-1045</td>
+                  <td class="td">
+                    <div class="flex items-center gap-2.5">
+                      <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-sm font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">BS</span>
+                      <span class="font-medium text-zinc-900 dark:text-white">Budi Santoso</span>
+                    </div>
+                  </td>
+                  <td class="td text-zinc-500 dark:text-zinc-400">25 Okt 2026</td>
+                  <td class="td tnum font-semibold text-zinc-900 dark:text-white">Rp 159.000</td>
+                  <td class="td"><span class="badge bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">Menunggu</span></td>
+                  <td class="td text-right">
+                    <button class="icon-btn !h-10 !w-10" aria-label="Aksi">
+                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+                  <td class="td font-semibold text-zinc-950 dark:text-zinc-100">#INV-1044</td>
+                  <td class="td">
+                    <div class="flex items-center gap-2.5">
+                      <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-sm font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">AK</span>
+                      <span class="font-medium text-zinc-900 dark:text-white">Ayu Kusuma</span>
+                    </div>
+                  </td>
+                  <td class="td text-zinc-500 dark:text-zinc-400">24 Okt 2026</td>
+                  <td class="td tnum font-semibold text-zinc-900 dark:text-white">Rp 720.000</td>
+                  <td class="td"><span class="badge bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400">Gagal</span></td>
+                  <td class="td text-right">
+                    <button class="icon-btn !h-10 !w-10" aria-label="Aksi">
+                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr class="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+                  <td class="td font-semibold text-zinc-950 dark:text-zinc-100">#INV-1043</td>
+                  <td class="td">
+                    <div class="flex items-center gap-2.5">
+                      <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-sm font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">FN</span>
+                      <span class="font-medium text-zinc-900 dark:text-white">Fajar Nugroho</span>
+                    </div>
+                  </td>
+                  <td class="td text-zinc-500 dark:text-zinc-400">24 Okt 2026</td>
+                  <td class="td tnum font-semibold text-zinc-900 dark:text-white">Rp 1.940.000</td>
+                  <td class="td"><span class="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">Lunas</span></td>
+                  <td class="td text-right">
+                    <button class="icon-btn !h-10 !w-10" aria-label="Aksi">
+                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" /></svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Aktivitas terbaru -->
+        <div class="card">
+          <div class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+            <h2 class="text-lg font-bold text-zinc-900 dark:text-white">Aktivitas Terbaru</h2>
+          </div>
+          <ul class="divide-y divide-zinc-100 px-5 dark:divide-zinc-800">
+            <li class="flex gap-3 py-4">
+              <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              </span>
+              <div class="min-w-0">
+                <p class="text-base text-zinc-700 dark:text-zinc-200"><span class="font-semibold text-zinc-900 dark:text-white">Dewi Lestari</span> menyelesaikan pesanan <a href="#" class="font-medium text-zinc-950 hover:underline dark:text-zinc-100">#INV-1048</a></p>
+                <p class="mt-0.5 text-sm text-zinc-400">5 menit lalu</p>
+              </div>
+            </li>
+            <li class="flex gap-3 py-4">
+              <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" /></svg>
+              </span>
+              <div class="min-w-0">
+                <p class="text-base text-zinc-700 dark:text-zinc-200">Produk <span class="font-semibold text-zinc-900 dark:text-white">Kopi Gayo 250g</span> baru ditambahkan ke katalog</p>
+                <p class="mt-0.5 text-sm text-zinc-400">2 jam lalu</p>
+              </div>
+            </li>
+            <li class="flex gap-3 py-4">
+              <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L19.5 4.5h-15l-4.803 11.626zM12 15.75h.007v.008H12v-.008z" /></svg>
+              </span>
+              <div class="min-w-0">
+                <p class="text-base text-zinc-700 dark:text-zinc-200">Stok <span class="font-semibold text-zinc-900 dark:text-white">Teh Melati</span> di bawah ambang batas minimum</p>
+                <p class="mt-0.5 text-sm text-zinc-400">4 jam lalu</p>
+              </div>
+            </li>
+            <li class="flex gap-3 py-4">
+              <span class="grid h-10 w-10 shrink-0 place-items-center bg-zinc-100 text-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              </span>
+              <div class="min-w-0">
+                <p class="text-base text-zinc-700 dark:text-zinc-200"><span class="font-semibold text-zinc-900 dark:text-white">Ayu Kusuma</span> mendaftar sebagai pelanggan baru</p>
+                <p class="mt-0.5 text-sm text-zinc-400">Kemarin, 16:20</p>
+              </div>
+            </li>
+          </ul>
+          <div class="border-t border-zinc-100 px-5 py-3 dark:border-zinc-800">
+            <a href="#" class="text-base font-semibold text-zinc-950 hover:underline dark:text-zinc-100">Lihat semua aktivitas</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="mt-10 flex flex-col items-center justify-between gap-3 border-t border-zinc-200 pt-6 text-base text-zinc-500 dark:border-zinc-800 dark:text-zinc-400 sm:flex-row">
+        <p>© 2026 NusaAdmin. Semua hak dilindungi.</p>
+        <div class="flex gap-5">
+          <a href="#" class="transition-colors hover:text-zinc-950 dark:hover:text-white">Dokumentasi</a>
+          <a href="#" class="transition-colors hover:text-zinc-950 dark:hover:text-white">Changelog</a>
+          <a href="#" class="transition-colors hover:text-zinc-950 dark:hover:text-white">Dukungan</a>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script>
+    // Grafik dirender ulang setiap kali tema berubah agar warnanya menyesuaikan.
+    (function () {
+      var revenueChart = null;
+      var trafficChart = null;
+
+      function palette() {
+        var dark = document.documentElement.classList.contains('dark');
+        return {
+          grid: dark ? 'rgba(161, 161, 170, 0.10)' : 'rgba(63, 63, 70, 0.10)',
+          tick: dark ? '#a1a1aa' : '#71717a',
+          legend: dark ? '#d4d4d8' : '#52525b',
+          line: dark ? '#34d399' : '#059669',
+          fill: dark ? 'rgba(52, 211, 153, 0.16)' : 'rgba(5, 150, 105, 0.12)',
+          dash: dark ? '#fb7185' : '#e11d48',
+          slices: dark
+            ? ['#34d399', '#38bdf8', '#fbbf24', '#a78bfa']
+            : ['#10b981', '#0ea5e9', '#f59e0b', '#8b5cf6'],
+        };
+      }
+
+      function renderRevenue() {
+        var el = document.getElementById('revenueChart');
+        if (!el) return;
+        var c = palette();
+        var gradient = el.getContext('2d').createLinearGradient(0, 0, 0, 320);
+        gradient.addColorStop(0, c.fill);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        revenueChart = new Chart(el, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+            datasets: [
+              {
+                label: 'Pendapatan',
+                data: [28, 35, 31, 44, 39, 55, 49, 62, 58, 74, 68, 84],
+                borderColor: c.line,
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.45,
+                borderWidth: 2.5,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                pointBackgroundColor: c.line,
+              },
+              {
+                label: 'Pengeluaran',
+                data: [18, 22, 20, 26, 24, 31, 28, 34, 32, 38, 35, 42],
+                borderColor: c.dash,
+                borderDash: [5, 5],
+                fill: false,
+                tension: 0.45,
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                pointBackgroundColor: c.dash,
+                pointHoverBackgroundColor: c.dash,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                position: 'top',
+                align: 'end',
+                labels: { color: c.legend, usePointStyle: true, pointStyle: 'rect', boxWidth: 10, padding: 16, font: { family: 'Inter', size: 14 } },
+              },
+              tooltip: {
+                backgroundColor: '#18181b',
+                padding: 12,
+                cornerRadius: 0,
+                titleFont: { family: 'Inter', weight: '600', size: 14 },
+                bodyFont: { family: 'Inter', size: 14 },
+                callbacks: { label: function (item) { return item.dataset.label + ': Rp ' + item.parsed.y + ' jt'; } },
+              },
+            },
+            scales: {
+              x: { grid: { display: false }, border: { display: false }, ticks: { color: c.tick, font: { family: 'Inter', size: 13 } } },
+              y: { grid: { color: c.grid }, border: { display: false }, ticks: { color: c.tick, font: { family: 'Inter', size: 13 }, callback: function (v) { return 'Rp ' + v + 'jt'; } } },
+            },
+          },
+        });
+      }
+
+      function renderTraffic() {
+        var el = document.getElementById('trafficChart');
+        if (!el) return;
+        var c = palette();
+        trafficChart = new Chart(el, {
+          type: 'doughnut',
+          data: {
+            labels: ['Organik', 'Sosial Media', 'Direct', 'Referral'],
+            datasets: [{
+              data: [42, 28, 18, 12],
+              backgroundColor: c.slices,
+              borderWidth: 0,
+              hoverOffset: 6,
+              spacing: 2,
+              borderRadius: 0,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '72%',
+            plugins: { legend: { display: false } },
+          },
+        });
+      }
+
+      function renderAll() {
+        if (revenueChart) revenueChart.destroy();
+        if (trafficChart) trafficChart.destroy();
+        renderRevenue();
+        renderTraffic();
+      }
+
+      document.addEventListener('themechange', renderAll);
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
