@@ -1,6 +1,6 @@
 {
   "name": "hono-multi-db-api",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "description": "Production-ready Hello World API with multi-database support (MySQL, MongoDB, SQLite)",
   "type": "module",
   "scripts": {
