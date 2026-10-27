@@ -53,4 +53,17 @@ describe("errorResponse", () => {
     const body = await res.json();
     expect(body.data).toEqual({ field: "name" });
   });
+
+  test("includes requestId when present on context", async () => {
+    const app = new Hono();
+    app.use("*", async (c, next) => {
+      c.set("requestId", "req-test-123");
+      await next();
+    });
+    app.get("/err", (c) => errorResponse(c, "with-id"));
+
+    const res = await app.request("/err");
+    const body = await res.json();
+    expect(body.requestId).toBe("req-test-123");
+  });
 });
