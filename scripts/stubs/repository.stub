@@ -1,0 +1,11 @@
+import { getDrizzleDb } from "../../database/drizzle.ts";
+
+export const findAll = async () => {
+  // Replace with Drizzle query or native connection
+  return [];
+};
+
+export const findById = async (id: number) => {
+  // Replace with Drizzle query or native connection
+  return null;
+};

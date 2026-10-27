@@ -12,8 +12,8 @@ All new features should be placed in dedicated sub-folders organized by domain (
 |---|---|---|---|
 | **Routes (API)** | `camelCase.router.ts` | `src/routes/api/<domain>/` | `crud.router.ts` |
 | **Routes (Web)** | `camelCase.router.ts` | `src/routes/web/<domain>/` | `view.router.ts` |
-| **Controllers (API)** | `camelCase.controller.ts` | `src/controllers/<domain>/api/` | `crud.controller.ts` |
-| **Controllers (Web)** | `camelCase.controller.ts` | `src/controllers/<domain>/web/` | `view.controller.ts` |
+| **Controllers (API)** | `camelCase.controller.ts` | `src/controllers/api/<domain>/` | `crud.controller.ts` |
+| **Controllers (Web)** | `camelCase.controller.ts` | `src/controllers/web/<domain>/` | `view.controller.ts` |
 | **Validations (Zod)** | `camelCase.ts` | `src/validations/<domain>/` | `crud.ts` |
 | **Services** | `camelCase.service.ts` | `src/services/<domain>/` | `crud.service.ts` |
 | **Repositories** | `camelCase.repository.ts` | `src/repositories/<domain>/` | `crud.repository.ts` |

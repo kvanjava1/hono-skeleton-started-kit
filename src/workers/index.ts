@@ -1,3 +1,4 @@
+import type { Worker } from "bullmq";
 import { createWorker } from "../queues/base.queue.ts";
 import {
   processCrudCreate,
@@ -7,10 +8,12 @@ import {
 import { logger } from "../utils/logger.util.ts";
 import { requestContext } from "../utils/context.util.ts";
 
+const activeWorkers: Worker[] = [];
+
 const startWorkers = () => {
   logger.info("Background Workers starting...");
 
-  createWorker(CRUD_CREATE_QUEUE, async (job) => {
+  const crudWorker = createWorker(CRUD_CREATE_QUEUE, async (job) => {
     const data = job.data as CrudCreateJobData;
     await requestContext.run(
       { requestId: data.requestId ?? "unknown" },
@@ -19,18 +22,25 @@ const startWorkers = () => {
       },
     );
   });
+  activeWorkers.push(crudWorker);
 };
 
-const shutdown = async () => {
-  logger.info("Shutting down workers...");
-  process.exit(0);
+const stopWorkers = async (): Promise<void> => {
+  logger.info("Stopping background workers...");
+  await Promise.all(activeWorkers.map((w) => w.close()));
+  activeWorkers.length = 0;
+  logger.info("All background workers stopped");
 };
-
-process.on("SIGTERM", shutdown);
-process.on("SIGINT", shutdown);
 
 if (import.meta.main) {
   startWorkers();
+
+  const shutdown = async () => {
+    await stopWorkers();
+    process.exit(0);
+  };
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 }
 
-export { startWorkers };
+export { startWorkers, stopWorkers };

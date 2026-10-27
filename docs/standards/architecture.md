@@ -39,7 +39,7 @@ Validations (`src/validations/`)
   └── Auto-validate Body/Params via Zod (Rejects invalid input with 400 automatically)
       │
       ▼
-Controllers (`src/controllers/<domain>/api/`)
+Controllers (`src/controllers/api/<domain>/`)
   └── Read validated input `c.req.valid()` -> Call Service -> Format JSON via `successResponse()`
       │
       ▼
@@ -62,7 +62,7 @@ Client Request
 Routes (`src/routes/web/`)
       │
       ▼
-Controllers (`src/controllers/<domain>/web/`)
+Controllers (`src/controllers/web/<domain>/`)
   └── Render Hono JSX (`resources/views/`)
       │
       ▼

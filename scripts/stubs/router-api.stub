@@ -1,0 +1,20 @@
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { openApiValidationHook } from "../../../utils/openapi.util.ts";
+import { get{{PASCAL_NAME}}s } from "../../../controllers/api/{{DOMAIN}}/{{LOWER_NAME}}.controller.ts";
+
+export const {{CAMEL_NAME}}ApiRoutes = new OpenAPIHono({
+  defaultHook: openApiValidationHook,
+});
+
+{{CAMEL_NAME}}ApiRoutes.openapi(
+  createRoute({
+    method: "get",
+    path: "/",
+    tags: ["{{PASCAL_NAME}}"],
+    summary: "List all {{LOWER_NAME}}s",
+    responses: {
+      200: { description: "Successful operation" },
+    },
+  }),
+  get{{PASCAL_NAME}}s,
+);

@@ -52,6 +52,15 @@ export {
 } from "./sqlite.connection.ts";
 
 export {
+  getDrizzleDb,
+  getDrizzleSqliteDb,
+  getDrizzleMysqlDb,
+  getDrizzlePgDb,
+  closeDrizzleDb,
+  closeAllDrizzleDbs,
+} from "./drizzle.ts";
+
+export {
   getMongoConnectionNames,
   getMysqlConnectionNames,
   getPgConnectionNames,
@@ -146,12 +155,14 @@ export const disconnectAllDatabases = async (): Promise<void> => {
     { closeAllPgConnections },
     { closeAllRedisConnections },
     { closeAllSqliteConnections },
+    { closeAllDrizzleDbs },
   ] = await Promise.all([
     import("./mysql.connection.ts"),
     import("./mongo.connection.ts"),
     import("./pg.connection.ts"),
     import("./redis.connection.ts"),
     import("./sqlite.connection.ts"),
+    import("./drizzle.ts"),
   ]);
 
   const tasks: Promise<void>[] = [];
@@ -161,6 +172,7 @@ export const disconnectAllDatabases = async (): Promise<void> => {
   if (configApp.db.pg) tasks.push(closeAllPgConnections());
   if (configApp.db.redis) tasks.push(closeAllRedisConnections());
   if (configApp.db.sqlite) tasks.push(Promise.resolve(closeAllSqliteConnections()));
+  closeAllDrizzleDbs();
 
   await Promise.all(tasks);
 };

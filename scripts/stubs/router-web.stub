@@ -1,0 +1,6 @@
+import { Hono } from "hono";
+import { {{CAMEL_NAME}}WebController } from "../../../controllers/web/{{DOMAIN}}/{{LOWER_NAME}}.controller.ts";
+
+export const {{CAMEL_NAME}}WebRoutes = new Hono();
+
+{{CAMEL_NAME}}WebRoutes.get("/", {{CAMEL_NAME}}WebController.index);

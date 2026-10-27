@@ -1,18 +1,27 @@
-import { getEnvBool, getEnvNumber } from "./env.ts";
+import { getEnvBool, getEnvNumber, getStringValue, getNumberValue, getBoolValue } from "./env.ts";
 
 const REDIS_CONNECTION_DEFAULTS = {
   redis1: {
     envKeys: {
       host: "REDIS_HOST_1",
       port: "REDIS_PORT_1",
+      db: "REDIS_DB_1",
+      password: "REDIS_PASSWORD_1",
+      tls: "REDIS_TLS_1",
     },
     legacyEnvKeys: {
       host: "REDIS_HOST",
       port: "REDIS_PORT",
+      db: "REDIS_DB",
+      password: "REDIS_PASSWORD",
+      tls: "REDIS_TLS",
     },
     defaults: {
       host: "localhost",
       port: 6379,
+      db: 0,
+      password: undefined as string | undefined,
+      tls: false,
     },
   },
 } as const;
@@ -20,12 +29,16 @@ const REDIS_CONNECTION_DEFAULTS = {
 type RedisConnectionDefinition =
   (typeof REDIS_CONNECTION_DEFAULTS)[keyof typeof REDIS_CONNECTION_DEFAULTS];
 
-import { getStringValue, getNumberValue } from "./env.ts";
-
 const buildConnectionConfig = (
   definition: RedisConnectionDefinition,
   env: Record<string, string | undefined>,
 ) => {
+  const rawPassword =
+    env[definition.envKeys.password] ??
+    (definition.legacyEnvKeys?.password
+      ? env[definition.legacyEnvKeys.password]
+      : undefined);
+
   return {
     host: getStringValue(
       env,
@@ -39,12 +52,31 @@ const buildConnectionConfig = (
       definition.defaults.port,
       definition.legacyEnvKeys?.port,
     ),
+    db: getNumberValue(
+      env,
+      definition.envKeys.db,
+      definition.defaults.db,
+      definition.legacyEnvKeys?.db,
+    ),
+    password:
+      rawPassword && rawPassword.trim().length > 0
+        ? rawPassword.trim()
+        : undefined,
+    tls: getBoolValue(
+      env,
+      definition.envKeys.tls,
+      definition.defaults.tls,
+      definition.legacyEnvKeys?.tls,
+    ),
   };
 };
 
 export interface RedisConnectionConfig {
   host: string;
   port: number;
+  db: number;
+  password?: string;
+  tls?: boolean;
 }
 
 export interface RedisConfig {

@@ -5,12 +5,10 @@ import {
   NotFoundError,
   DatabaseError,
   ConflictError,
-  DuplicateOrderError,
   UnauthorizedError,
   InvalidTokenError,
   ForbiddenError,
   RateLimitError,
-  ScrapingError,
 } from "../../src/utils/errors.util.ts";
 import { HTTP_STATUS } from "../../src/configs/constants.ts";
 
@@ -75,14 +73,6 @@ describe("ConflictError", () => {
   });
 });
 
-describe("DuplicateOrderError", () => {
-  test("formats message with orderId", () => {
-    const err = new DuplicateOrderError("order-123");
-    expect(err.message).toBe("Order with ID order-123 has already been processed");
-    expect(err.statusCode).toBe(409);
-  });
-});
-
 describe("UnauthorizedError", () => {
   test("default message and status", () => {
     const err = new UnauthorizedError();
@@ -112,13 +102,5 @@ describe("RateLimitError", () => {
     const err = new RateLimitError();
     expect(err.message).toBe("Too many requests, please try again later");
     expect(err.statusCode).toBe(HTTP_STATUS.TOO_MANY_REQUESTS);
-  });
-});
-
-describe("ScrapingError", () => {
-  test("default message and status", () => {
-    const err = new ScrapingError();
-    expect(err.message).toBe("Failed to extract data from target source");
-    expect(err.statusCode).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
   });
 });

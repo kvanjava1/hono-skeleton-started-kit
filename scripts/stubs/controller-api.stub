@@ -1,0 +1,11 @@
+import type { Context } from "hono";
+import { successResponse } from "../../../utils/response.util.ts";
+import * as {{PASCAL_NAME}}Service from "../../../services/{{DOMAIN}}/{{LOWER_NAME}}.service.ts";
+
+/**
+ * {{PASCAL_NAME}} API Controller
+ */
+export const get{{PASCAL_NAME}}s = async (c: Context) => {
+  const data = await {{PASCAL_NAME}}Service.get{{PASCAL_NAME}}s();
+  return successResponse(c, "{{PASCAL_NAME}}s fetched successfully", data);
+};

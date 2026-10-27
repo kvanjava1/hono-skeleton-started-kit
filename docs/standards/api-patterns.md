@@ -188,7 +188,7 @@ export const createProduct = async (input: CreateProductBodyInput) => {
 
 ## Step 6: Controller
 
-Implement HTTP boundary handlers in `src/controllers/product/api/product.controller.ts`:
+Implement HTTP boundary handlers in `src/controllers/api/product/product.controller.ts`:
 
 ```ts
 import type { Context } from 'hono';
@@ -222,7 +222,7 @@ Create the sub-router in `src/routes/api/product/product.router.ts`:
 
 ```ts
 import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
-import { listProducts, getProduct, createProduct } from '../../../controllers/product/api/product.controller.ts';
+import { listProducts, getProduct, createProduct } from '../../../controllers/api/product/product.controller.ts';
 import { ProductIdParam, CreateProductBody } from '../../../validations/product/product.ts';
 import { openApiValidationHook } from '../../../utils/openapi.util.ts';
 

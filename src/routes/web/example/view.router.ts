@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { renderLandingPage } from "../../../controllers/example/web/view.controller.ts";
+import { renderLandingPage } from "../../../controllers/web/example/view.controller.ts";
 
 export const exampleWebRoutes = new Hono();
 

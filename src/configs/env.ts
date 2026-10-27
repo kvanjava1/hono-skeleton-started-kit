@@ -28,6 +28,21 @@ export const getNumberValue = (
   return parsedValue;
 };
 
+export const getBoolValue = (
+  env: Record<string, string | undefined>,
+  envKey: string,
+  defaultValue: boolean,
+  fallbackEnvKey?: string,
+): boolean => {
+  const rawValue =
+    env[envKey] ?? (fallbackEnvKey ? env[fallbackEnvKey] : undefined);
+  if (rawValue === undefined) {
+    return defaultValue;
+  }
+  const val = rawValue.trim().toLowerCase();
+  return val === "true" || val === "1" || val === "yes";
+};
+
 export const getEnv = (key: string, defaultValue?: string): string => {
   const value = process.env[key] ?? defaultValue;
   if (value === undefined) {

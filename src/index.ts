@@ -4,7 +4,7 @@ import { connectAllDatabases, disconnectAllDatabases } from './database/index.ts
 import { configApp } from './configs/index.ts';
 import { logger } from './utils/logger.util.ts';
 
-import { startWorkers } from './workers/index.ts';
+import { startWorkers, stopWorkers } from './workers/index.ts';
 
 const run = async () => {
   const isWorker = process.argv.includes('--worker');
@@ -26,8 +26,18 @@ const run = async () => {
       await connectAllDatabases();
       startWorkers();
 
-      process.on('SIGINT', () => shutdown('SIGINT'));
-      process.on('SIGTERM', () => shutdown('SIGTERM'));
+      const shutdownWorker = async (signal: string) => {
+        logger.info(`Shutting down worker (${signal})...`);
+        try {
+          await stopWorkers();
+        } catch (error) {
+          logger.error('Error stopping workers', error);
+        }
+        await shutdown(signal);
+      };
+
+      process.on('SIGINT', () => shutdownWorker('SIGINT'));
+      process.on('SIGTERM', () => shutdownWorker('SIGTERM'));
     } else {
       logger.info('Starting API Server mode...');
       logger.info(`Environment: ${configApp.nodeEnv}`);

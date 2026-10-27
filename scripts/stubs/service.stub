@@ -1,6 +1,11 @@
-import * as Repository from '../../repositories/{{TYPE}}/{{LOWER_NAME}}.repository.ts';
-import { logger } from '../../utils/logger.util.ts';
+import * as Repository from "../../repositories/{{DOMAIN}}/{{LOWER_NAME}}.repository.ts";
+import { logger } from "../../utils/logger.util.ts";
 
-export const get{{NAME}}s = async () => {
+export const get{{PASCAL_NAME}}s = async () => {
+  logger.info("Fetching {{LOWER_NAME}}s from repository");
   return await Repository.findAll();
+};
+
+export const get{{PASCAL_NAME}}ById = async (id: number) => {
+  return await Repository.findById(id);
 };

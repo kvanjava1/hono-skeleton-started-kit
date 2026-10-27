@@ -31,6 +31,9 @@ export const createRedisConnection = (
     const redis = new Redis({
       host: redisConfig.host,
       port: redisConfig.port,
+      db: redisConfig.db,
+      password: redisConfig.password,
+      tls: redisConfig.tls ? {} : undefined,
       maxRetriesPerRequest: 1,
       retryStrategy: (times) => {
         if (times > 1) {
@@ -46,7 +49,7 @@ export const createRedisConnection = (
 
     redis.on("connect", () => {
       logger.info(
-        `Redis connection "${name}" connected to ${redisConfig.host}:${redisConfig.port}`,
+        `Redis connection "${name}" connected to ${redisConfig.host}:${redisConfig.port} (db: ${redisConfig.db})`,
       );
     });
 

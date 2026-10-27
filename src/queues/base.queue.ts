@@ -19,6 +19,9 @@ const getQueueConnectionOptions = (
   return {
     host: redisConfig.host,
     port: redisConfig.port,
+    db: redisConfig.db,
+    password: redisConfig.password,
+    tls: redisConfig.tls ? {} : undefined,
   };
 };
 

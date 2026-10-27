@@ -1,0 +1,21 @@
+import { z } from "@hono/zod-openapi";
+
+export const {{PASCAL_NAME}}IdParam = z.object({
+  id: z.coerce
+    .number()
+    .int()
+    .positive()
+    .openapi({ example: 1, description: "{{PASCAL_NAME}} ID (positive integer)" }),
+});
+
+export const Create{{PASCAL_NAME}}Body = z.object({
+  name: z.string().min(1).openapi({ example: "Sample Name" }),
+});
+
+export const Update{{PASCAL_NAME}}Body = z.object({
+  name: z.string().min(1).optional().openapi({ example: "Updated Name" }),
+});
+
+export type {{PASCAL_NAME}}IdParamInput = z.infer<typeof {{PASCAL_NAME}}IdParam>;
+export type Create{{PASCAL_NAME}}BodyInput = z.infer<typeof Create{{PASCAL_NAME}}Body>;
+export type Update{{PASCAL_NAME}}BodyInput = z.infer<typeof Update{{PASCAL_NAME}}Body>;

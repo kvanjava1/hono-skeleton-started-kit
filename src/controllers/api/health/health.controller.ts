@@ -1,6 +1,6 @@
 import type { Context } from "hono";
-import { HTTP_STATUS, MESSAGES } from "../../configs/constants.ts";
-import { errorResponse, successResponse } from "../../utils/response.util.ts";
+import { HTTP_STATUS, MESSAGES } from "../../../configs/constants.ts";
+import { errorResponse, successResponse } from "../../../utils/response.util.ts";
 
 export const getHealth = (c: Context) => {
   return successResponse(c, MESSAGES.HEALTH_OK, {
@@ -10,7 +10,7 @@ export const getHealth = (c: Context) => {
 };
 
 export const getReadiness = async (c: Context) => {
-  const { checkDatabaseReadiness } = await import("../../database/index.ts");
+  const { checkDatabaseReadiness } = await import("../../../database/index.ts");
   const checks = await checkDatabaseReadiness();
   const isReady = checks.every((check) => check.status === "up");
 

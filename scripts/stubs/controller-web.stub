@@ -1,0 +1,10 @@
+import type { Context } from "hono";
+
+/**
+ * {{PASCAL_NAME}} Web Controller
+ */
+export const {{CAMEL_NAME}}WebController = {
+  index: async (c: Context) => {
+    return c.html("<h1>{{PASCAL_NAME}} Web Index (Domain: {{DOMAIN}})</h1>");
+  },
+};

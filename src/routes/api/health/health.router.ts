@@ -2,7 +2,7 @@ import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import {
   getHealth,
   getReadiness,
-} from "../../../controllers/health/health.controller.ts";
+} from "../../../controllers/api/health/health.controller.ts";
 import { openApiValidationHook } from "../../../utils/openapi.util.ts";
 
 export const healthRoutes = new OpenAPIHono({
