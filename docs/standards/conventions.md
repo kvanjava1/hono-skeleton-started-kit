@@ -70,7 +70,8 @@ The Global Error Handler in [`src/middlewares/common/errorHandler.ts`](file:///h
 {
   "status": "error",
   "message": "Product with this ID was not found",
-  "data": null
+  "data": null,
+  "requestId": "485b8bde-3563-42d1-aadb-ef97b2e3577d"
 }
 ```
 

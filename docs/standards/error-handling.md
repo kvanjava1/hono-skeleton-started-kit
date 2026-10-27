@@ -17,9 +17,7 @@ HTTPException (Hono)
         ├── ForbiddenError       -> 403 Forbidden
         ├── NotFoundError        -> 404 Not Found
         ├── ConflictError        -> 409 Conflict
-        ├── DuplicateOrderError  -> 409 Conflict
         ├── RateLimitError       -> 429 Too Many Requests
-        ├── ScrapingError        -> 500 Internal Server Error
         └── DatabaseError        -> 500 Internal Server Error
 ```
 
@@ -59,14 +57,33 @@ OpenAPI routes attach `openApiValidationHook` (`src/utils/openapi.util.ts`) as t
 }
 ```
 
-### 4. Database Driver Error Normalization (`transformError`)
-The Global Error Handler normalizes vendor-specific database driver exceptions into typed `AppError` instances:
-- MySQL duplicate entry (`ER_DUP_ENTRY`) -> `ConflictError (409)`
-- PostgreSQL unique violation (`23505`) -> `ConflictError (409)`
-- MongoDB duplicate key (`code: 11000`) -> `ConflictError (409)`
-- SQLite constraint violation (`SQLITE_CONSTRAINT`) -> `ConflictError (409)`
+### 4. Database Driver Error Normalization (`src/database/errors.ts`)
+The Global Error Handler and `errorTransformer.util.ts` normalize vendor-specific database driver exceptions into typed `AppError` instances:
+- **Duplicate / Unique Violations** -> `ConflictError (409)`:
+  - MySQL duplicate entry (`ER_DUP_ENTRY`)
+  - PostgreSQL unique violation (`23505`)
+  - MongoDB duplicate key (`code: 11000`)
+  - SQLite unique constraint (`SQLITE_CONSTRAINT_UNIQUE`)
+- **Foreign Key Violations** -> `ConflictError (409)`:
+  - MySQL foreign key constraint fail (`ER_NO_REFERENCED_ROW_2`, `ER_ROW_IS_REFERENCED_2`)
+  - PostgreSQL foreign key violation (`23503`)
+  - SQLite foreign key constraint (`SQLITE_CONSTRAINT_FOREIGNKEY`)
 
-### 5. Logging Severity Levels
+### 5. Malformed JSON Body Handling
+When incoming HTTP request bodies contain invalid JSON syntax, the parser error is caught and automatically transformed into a standardized `ValidationError (400 Bad Request)` with the message `"Malformed JSON body"`.
+
+### 6. Standardized Error Response with Request ID
+All error responses automatically attach the active `requestId` for distributed traceability:
+```json
+{
+  "status": "error",
+  "message": "Resource not found",
+  "data": null,
+  "requestId": "485b8bde-3563-42d1-aadb-ef97b2e3577d"
+}
+```
+
+### 7. Logging Severity Levels
 - **Operational Errors** (`4xx` such as `NotFoundError`, `ValidationError`): Logged at `WARN` level.
 - **Unexpected System Errors** (`5xx`, unhandled exceptions): Logged at `ERROR` level along with full stack traces.
 
