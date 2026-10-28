@@ -5,7 +5,7 @@
 [![Bun](https://img.shields.io/badge/Bun-1.4.3-black?logo=bun)](https://bun.sh)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
 
-Skeleton aplikasi Bun + Hono dengan halaman JSX server-rendered, Tailwind CSS v4, named multi-connections database, worker background, migration, seeder tooling, dan observability lengkap.
+Skeleton aplikasi Bun + Hono dengan halaman JSX server-rendered, Tailwind CSS v4, named multi-connections database, worker background, migration, seeder tooling, sistem pengiriman email (Mailable + BullMQ), dan observability lengkap.
 
 ## Features
 
@@ -18,8 +18,9 @@ Skeleton aplikasi Bun + Hono dengan halaman JSX server-rendered, Tailwind CSS v4
 - **Drizzle ORM** untuk SQL databases (SQLite, MySQL, PostgreSQL)
 - **Redis Connection Helpers**, database selector (`REDIS_DB_1`), password & TLS support, serta cache utilities
 - **BullMQ** base queue dan worker factory
+- **Laravel-Style Mail System**: Mailable class, template responsif Hono JSX, fluent API (`Mail.to().queue()`), multi-driver (`log`, `smtp`, `resend`), dan pengiriman background via BullMQ
 - **Migration & Seeder Tooling** dengan target-awareness (`sqlite`, `mysql`, `pg`, `mongo`)
-- **Make CLI (Domain Generator)** untuk scaffold lengkap (`bun run make domain <name>`)
+- **Make CLI (Code Generator)** untuk scaffold domain, mailable (`bun run make mail <name>`), controller, service, repository, dll.
 - **Modular Middlewares**: Isolasi namespace `api/`, `web/`, dan `common/`
 - **File-based Structured JSONL Logging** dengan rotasi harian dan penelusuran `requestId`
 - **Health & Readiness Endpoints** (`GET /api/health`, `GET /api/health/ready`)
@@ -71,7 +72,7 @@ Project ini memakai **satu file `.env` per mesin** (konvensi ala Laravel):
 | `bun run dev:css` | Menjalankan dev server Vite untuk CSS saja |
 | `bun run build:css` | Mengompilasi Tailwind CSS dan membuat manifest Vite ke `public/build/` |
 | `bun run typecheck` | Menjalankan TypeScript type check (`tsc --noEmit`) |
-| `bun test` | Menjalankan test suite (saat ini **105 tests, 216 expects, 0 fail**) |
+| `bun test` | Menjalankan test suite (saat ini **120 tests, 267 expects, 0 fail**) |
 | `bun run server:code:prod` | Menjalankan server Hono dari source dengan env runtime |
 | `bun run worker:code:dev` | Menjalankan BullMQ worker dalam watch mode |
 | `bun run worker:code:prod` | Menjalankan BullMQ worker dari source dengan env runtime |
@@ -110,12 +111,13 @@ GET /api/docs          # Scalar API Reference (UI interaktif)
 | PUT | `/api/example/cruds/{id}` | Update a CRUD item |
 | DELETE | `/api/example/cruds/{id}` | Soft-delete a CRUD item |
 | POST | `/api/example/cruds/job` | Enqueue async CRUD creation via BullMQ |
+| POST | `/api/example/cruds/send-email` | Enqueue example welcome email via BullMQ |
 
 ## Documentation
 
 Dokumentasi lengkap terpusat di folder [`docs/`](./docs/README.md):
 - [Getting Started](./docs/getting-started/README.md) (Instalasi & Deployment)
-- [Guides](./docs/guides/README.md) (Migrasi, Seeder, Logging, Queues, Make CLI, Metrics)
+- [Guides](./docs/guides/README.md) (Migrasi, Seeder, Logging, Queues, Mail System, Make CLI, Metrics)
 - [Standards](./docs/standards/README.md) (Arsitektur, Konvensi, Error Handling, API Patterns)
 - [Reference](./docs/reference/README.md) (Architecture Overview, Connection Model)
 
