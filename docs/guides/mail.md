@@ -4,12 +4,13 @@ This skeleton includes a comprehensive, production-ready mail system inspired by
 
 ---
 
-## 🚀 Key Concepts
+## 🚀 Key Concepts & Architecture
 
-1. **Mailable Class:** An independent class in `src/mail/` representing an individual email, defining its subject, recipients, and JSX template.
-2. **Hono JSX Templates:** HTML email templates located in `resources/views/emails/` leveraging type-safe TypeScript props and responsive table layouts.
-3. **Fluent Dispatcher (`Mail::to`):** Clean and expressive syntax to queue or send emails.
-4. **Multi-Driver Transport:** Easily switch between `log`, `smtp`, and `resend` via environment variables.
+1. **Technical Mail Drivers (`src/libraries/mail/`):** Transport adapters implementing the `MailDriver` contract (`LogDriver`, `SmtpDriver`, `ResendDriver`) and driver factory `getMailDriver()`.
+2. **Service Facade (`src/services/mail/`):** Clean, high-level `Mail.to()` facade and `PendingMail` builder with synchronous (`.send()`) and asynchronous (`.queue()`) dispatches.
+3. **Mailable Class (`src/mail/`):** Independent class representing an individual email, defining its subject, recipients, and JSX template.
+4. **Hono JSX Templates (`resources/views/emails/`):** HTML email templates leveraging type-safe TypeScript props and responsive table layouts.
+5. **Multi-Driver Transport:** Easily switch between `log`, `smtp`, and `resend` via environment variables.
 
 ---
 
@@ -61,7 +62,7 @@ This scaffolds two files:
 Offloads the rendering and delivery to the BullMQ background worker in $<5\text{ ms}$:
 
 ```typescript
-import { Mail } from '../services/mail/mail.service.ts';
+import { Mail } from '../services/mail/index.ts';
 import { WelcomeMail } from '../mail/Welcome.mail.ts';
 
 // In your controller or service:

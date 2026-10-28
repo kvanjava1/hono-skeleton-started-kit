@@ -1,6 +1,6 @@
 import type { Job } from "bullmq";
 import { createQueue } from "../../queues/base.queue.ts";
-import { getMailDriver } from "../../services/mail/drivers/index.ts";
+import { getMailDriver } from "../../libraries/mail/index.ts";
 import type { MailAddress } from "../../mail/mailable.ts";
 import type { MailDriverType } from "../../configs/mail.config.ts";
 import { getContext } from "../../utils/context.util.ts";

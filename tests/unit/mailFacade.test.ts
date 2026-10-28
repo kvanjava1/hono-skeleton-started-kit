@@ -30,7 +30,7 @@ const { Mail } = await import("../../src/services/mail/mail.service.ts");
 const { WelcomeMail } = await import("../../src/mail/Welcome.mail.ts");
 const { resetConfigMail } = await import("../../src/configs/mail.config.ts");
 const { resetMailDrivers } = await import(
-  "../../src/services/mail/drivers/index.ts"
+  "../../src/libraries/mail/index.ts"
 );
 const { requestContext } = await import("../../src/utils/context.util.ts");
 

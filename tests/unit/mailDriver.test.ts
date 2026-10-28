@@ -5,7 +5,7 @@ import {
   ResendDriver,
   getMailDriver,
   resetMailDrivers,
-} from "../../src/services/mail/drivers/index.ts";
+} from "../../src/libraries/mail/index.ts";
 import { resetConfigMail } from "../../src/configs/mail.config.ts";
 
 describe("Mail Drivers", () => {

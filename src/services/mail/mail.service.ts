@@ -1,7 +1,6 @@
 import type { Mailable, MailAddress } from "../../mail/mailable.ts";
 import type { MailDriverType } from "../../configs/mail.config.ts";
-import type { MailSendResult } from "./drivers/mail.driver.ts";
-import { getMailDriver } from "./drivers/index.ts";
+import { getMailDriver, type MailSendResult } from "../../libraries/mail/index.ts";
 import { enqueueSendEmail } from "../../jobs/mail/sendEmail.job.ts";
 
 export class PendingMail {
