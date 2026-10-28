@@ -1,27 +1,34 @@
 # Hono Fullstack Skeleton
 
-Skeleton aplikasi Bun + Hono dengan halaman JSX server-rendered, Tailwind CSS v4, named multi-connections database, worker background, migration, dan seeder tooling.
+[![CI](https://github.com/kvanjava1/hono-skeleton-started-kit/actions/workflows/test.yml/badge.svg)](https://github.com/kvanjava1/hono-skeleton-started-kit/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/kvanjava1/hono-skeleton-started-kit?include_prereleases&label=release)](https://github.com/kvanjava1/hono-skeleton-started-kit/releases)
+[![Bun](https://img.shields.io/badge/Bun-1.4.3-black?logo=bun)](https://bun.sh)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
+
+Skeleton aplikasi Bun + Hono dengan halaman JSX server-rendered, Tailwind CSS v4, named multi-connections database, worker background, migration, seeder tooling, dan observability lengkap.
 
 ## Features
 
-- Bun runtime
-- Hono web framework
-- TypeScript
-- Hono JSX for Server-Side Rendering (SSR)
-- Tailwind CSS v4 compiled by Vite
-- Named multi-connections for SQLite, MySQL, MongoDB, Redis, and PostgreSQL
-- **Drizzle ORM** for SQL databases (SQLite, MySQL, PostgreSQL)
-- Redis connection helpers and cache utilities
-- BullMQ base queue and worker factory
-- Migration and seeder tooling
-- Modular Middlewares: Isolated `api/`, `web/`, and `common/` namespaces
-- File-based logging with daily rotation
-- Health endpoint at `GET /api/health`
-- **OpenAPI 3.0** spec generation via `@hono/zod-openapi`
-- **Scalar API Reference** at `/api/docs` (interactive API docs)
-- **Content-Type enforcement** — rejects non-JSON POST/PUT/PATCH with HTTP 415
-- **Soft delete** support with `deleted_at` column pattern
-- **Async job processing** via BullMQ queue + worker
+- **Bun Runtime** (pinned di `1.4.3`)
+- **Hono Web Framework**
+- **TypeScript** dengan strict type safety
+- **Hono JSX** untuk Server-Side Rendering (SSR)
+- **Tailwind CSS v4** dikompilasi oleh Vite
+- **Named Multi-Connections** untuk SQLite, MySQL, MongoDB, Redis, dan PostgreSQL
+- **Drizzle ORM** untuk SQL databases (SQLite, MySQL, PostgreSQL)
+- **Redis Connection Helpers**, database selector (`REDIS_DB_1`), password & TLS support, serta cache utilities
+- **BullMQ** base queue dan worker factory
+- **Migration & Seeder Tooling** dengan target-awareness (`sqlite`, `mysql`, `pg`, `mongo`)
+- **Make CLI (Domain Generator)** untuk scaffold lengkap (`bun run make domain <name>`)
+- **Modular Middlewares**: Isolasi namespace `api/`, `web/`, dan `common/`
+- **File-based Structured JSONL Logging** dengan rotasi harian dan penelusuran `requestId`
+- **Health & Readiness Endpoints** (`GET /api/health`, `GET /api/health/ready`)
+- **Prometheus Metrics** di `GET /metrics` via `prom-client`
+- **OpenAPI 3.0** spec generation otomatis via `@hono/zod-openapi`
+- **Scalar API Reference** di `/api/docs` (dokumentasi API interaktif)
+- **Content-Type Validation** — mendukung JSON dan `multipart/form-data`, menolak tipe yang tidak didukung dengan HTTP 415
+- **Soft Delete Pattern** dengan kolom `deleted_at`
+- **Async Job Processing** via BullMQ queue + worker background
 
 ## Named Connections
 
@@ -31,7 +38,7 @@ Skeleton aplikasi Bun + Hono dengan halaman JSX server-rendered, Tailwind CSS v4
 - Redis: `redis1`
 - PostgreSQL: `pg1`
 
-Compatibility defaults still exist for some helpers, but new code should prefer explicit connection targeting.
+Compatibility defaults tetap tersedia, namun kode baru disarankan menargetkan nama koneksi secara eksplisit.
 
 ## Quick Start
 
@@ -41,6 +48,11 @@ cp .env.example .env
 bun run dev:all
 ```
 
+Aplikasi default berjalan di:
+- **Hono Server (API & SSR):** `http://localhost:8080`
+- **Vite Dev Server (Tailwind CSS HMR):** `http://localhost:5173`
+- **Scalar API Docs:** `http://localhost:8080/api/docs`
+
 ## Environment Configuration
 
 Project ini memakai **satu file `.env` per mesin** (konvensi ala Laravel):
@@ -48,50 +60,44 @@ Project ini memakai **satu file `.env` per mesin** (konvensi ala Laravel):
 - Laptop/development: `.env` berisi nilai development (contoh di `.env.example`)
 - Server produksi: buat `.env` sendiri dengan nilai produksi (`NODE_ENV=production`, host, password, path DB)
 
-`.env` tidak dibagikan antar mesin (gitignored). Bun otomatis memuat `.env`
-saat menjalankan aplikasi, script CLI (`migrate`, `seed`, `worker`), `bun test`,
-dan binary hasil compile — tanpa flag atau script tambahan.
+`.env` tidak dibagikan antar mesin (gitignored). Bun otomatis memuat `.env` saat menjalankan aplikasi, script CLI (`migrate`, `seed`, `worker`), `bun test`, dan binary hasil compile — tanpa flag atau script tambahan.
 
 ## Available Scripts
 
 | Script | Description |
 |--------|-------------|
-| `bun run dev:all` | Start Hono and the Vite Tailwind CSS server |
-| `bun run server:code:dev` | Start Hono backend in watch mode |
-| `bun run dev:css` | Start Vite CSS server only |
-| `bun run build:css` | Compile Tailwind CSS and write the Vite manifest |
-| `bun run typecheck` | Run TypeScript type checking |
-| `bun test` | Run all tests (currently **48 tests, 101 expects, 0 fail**) |
-| `bun run server:code:prod` | Start Hono using the machine's `.env` and process environment |
-| `bun run worker:code:dev` | Start worker in watch mode |
-| `bun run worker:code:prod` | Start worker using the machine's `.env` and process environment |
-| `bun run migrate` | Run all migrations using `.env` |
-| `bun run migrate:fresh <target>` | Drop + re-run migrations for `<target>` (sqlite, mysql, pg, mongo) |
-| `bun run seed` | Run all seeders using the active environment |
-| `bun run make` | Generate files from local stubs |
-| `bun run build` | Compile backend into the `server` binary |
-| `bun run server:bin` | Run compiled API binary in production mode; auto-loads `.env` |
-| `bun run worker:bin` | Run compiled worker binary in production mode; auto-loads `.env` |
+| `bun run dev:all` | Menjalankan server Hono dan dev server Vite Tailwind CSS bersamaan |
+| `bun run server:code:dev` | Menjalankan backend Hono dalam watch mode |
+| `bun run dev:css` | Menjalankan dev server Vite untuk CSS saja |
+| `bun run build:css` | Mengompilasi Tailwind CSS dan membuat manifest Vite ke `public/build/` |
+| `bun run typecheck` | Menjalankan TypeScript type check (`tsc --noEmit`) |
+| `bun test` | Menjalankan test suite (saat ini **105 tests, 216 expects, 0 fail**) |
+| `bun run server:code:prod` | Menjalankan server Hono dari source dengan env runtime |
+| `bun run worker:code:dev` | Menjalankan BullMQ worker dalam watch mode |
+| `bun run worker:code:prod` | Menjalankan BullMQ worker dari source dengan env runtime |
+| `bun run migrate` | Menjalankan migrasi database aktif menggunakan `.env` |
+| `bun run migrate:fresh <target>` | Drop + re-run migrasi untuk `<target>` (`sqlite`, `mysql`, `pg`, `mongo`) |
+| `bun run seed` | Menjalankan seeder database menggunakan environment aktif |
+| `bun run make` | Generator kode modular (domain, controller, service, repository, dll) |
+| `bun run build:app` | Meng-compile backend menjadi binary mandiri `./server` |
+| `bun run server:bin:prod` | Menjalankan binary `./server` dalam mode API production |
+| `bun run worker:bin:prod` | Menjalankan binary `./server --worker` dalam mode Worker production |
 
-## Default API
+## Default Endpoints
 
-### REST API
+### Health & Observability
 
 ```http
-GET /api/health
+GET /api/health        # Liveness check (uptime & timestamp)
+GET /api/health/ready  # Readiness check (memeriksa konektivitas database yang aktif)
+GET /metrics           # Prometheus metrics (aktif jika METRICS_ENABLED=true)
 ```
 
-Example response:
+### OpenAPI Documentation
 
-```json
-{
-  "status": "success",
-  "message": "OK",
-  "data": {
-    "uptime": 12.34,
-    "timestamp": "2026-04-10T12:34:56.000Z"
-  }
-}
+```http
+GET /api/spec          # OpenAPI 3.0 JSON spec
+GET /api/docs          # Scalar API Reference (UI interaktif)
 ```
 
 ### CRUD Example (SQLite)
@@ -105,16 +111,13 @@ Example response:
 | DELETE | `/api/example/cruds/{id}` | Soft-delete a CRUD item |
 | POST | `/api/example/cruds/job` | Enqueue async CRUD creation via BullMQ |
 
-### OpenAPI Documentation
-
-```http
-GET /api/spec    # OpenAPI 3.0 JSON spec
-GET /api/docs    # Scalar API Reference (interactive)
-```
-
 ## Documentation
 
-- [Documentation Index](./docs/README.md) (Getting Started, Guides, Standards, Reference)
+Dokumentasi lengkap terpusat di folder [`docs/`](./docs/README.md):
+- [Getting Started](./docs/getting-started/README.md) (Instalasi & Deployment)
+- [Guides](./docs/guides/README.md) (Migrasi, Seeder, Logging, Queues, Make CLI, Metrics)
+- [Standards](./docs/standards/README.md) (Arsitektur, Konvensi, Error Handling, API Patterns)
+- [Reference](./docs/reference/README.md) (Architecture Overview, Connection Model)
 
 ## Notes
 
@@ -122,5 +125,5 @@ GET /api/docs    # Scalar API Reference (interactive)
 - Dukungan database, Redis, cache, queue, migrasi, dan seeding sepenuhnya modular.
 - Tailwind CSS dilayani oleh Vite saat development dan dikompilasi ke `public/build/` untuk production.
 - Worker skeleton tersedia dan siap diisi dengan job domain.
-- Semua POST/PUT/PATCH ke `/api/*` **wajib** menyertakan header `Content-Type: application/json` — jika tidak, server mengembalikan HTTP 415.
-- Redis **tidak wajib** untuk development (`DB_REDIS_ENABLED=false`). Tanpa Redis, cache dan queue/worker tidak berfungsi.
+- Endpoint POST/PUT/PATCH ke `/api/*` mendukung format `application/json` dan `multipart/form-data` (request dengan tipe yang tidak didukung akan mengembalikan HTTP 415).
+- Redis **tidak wajib** untuk development dasar (`DB_REDIS_ENABLED=false`). Tanpa Redis, cache dan queue/worker tidak berfungsi.
