@@ -70,6 +70,7 @@ Workflow-oriented operational guides.
 - [Migrations](./guides/migrations.md) — Multi-engine database migration runner with explicit target connections.
 - [Seeders](./guides/seeders.md) — Database seeder runner with multi-target support.
 - [Queues & Workers](./guides/queues.md) — Asynchronous background jobs via BullMQ & Redis.
+- [Mail System](./guides/mail.md) — Laravel-style Mailable architecture, Hono JSX email templates, multi-driver transports, and BullMQ queue integration.
 - [Logging](./guides/logging.md) — Structured JSONL logging, buffered write streams, and context tracing.
 - [Metrics](./guides/metrics.md) — Prometheus metrics (`/metrics`), latency histograms, and authentication tokens.
 

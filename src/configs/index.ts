@@ -47,3 +47,9 @@ export {
   type ConfigSqlite,
   type SqliteConnectionName,
 } from "./sqlite.config.ts";
+export {
+  configMail,
+  resetConfigMail,
+  type ConfigMail,
+  type MailDriverType,
+} from "./mail.config.ts";

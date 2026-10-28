@@ -1,0 +1,21 @@
+import type { Mailable, MailEnvelope } from './mailable.ts';
+import { {{PASCAL_NAME}}Email } from '../../resources/views/emails/{{PASCAL_NAME}}Email.tsx';
+
+export interface {{PASCAL_NAME}}MailProps {
+  name?: string;
+  actionUrl?: string;
+}
+
+export class {{PASCAL_NAME}}Mail implements Mailable {
+  constructor(public props: {{PASCAL_NAME}}MailProps) {}
+
+  envelope(): MailEnvelope {
+    return {
+      subject: '{{PASCAL_NAME}} Notification',
+    };
+  }
+
+  content(): string {
+    return {{PASCAL_NAME}}Email(this.props).toString();
+  }
+}

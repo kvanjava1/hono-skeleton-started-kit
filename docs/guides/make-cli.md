@@ -23,8 +23,9 @@ bun run make validation <domain> [name]    # Alias: bun run make schema <domain>
 bun run make migration <target> <name>
 bun run make seeder <target> <name>
 
-# Background Jobs
+# Background Jobs & Mail
 bun run make job <name>
+bun run make mail <name>
 ```
 
 ### Supported Database Targets (Migrations & Seeders):
@@ -95,10 +96,18 @@ bun run make seeder pg ProductSeeder
 
 ### 8. Create a Background Job
 ```bash
-bun run make job SendEmail
+bun run make job ProcessReport
 ```
-*Output*: `src/jobs/sendEmail.job.ts`  
+*Output*: `src/jobs/processReport.job.ts`  
 Generates a BullMQ queue factory and an asynchronous job processor.
+
+### 9. Create a Mailable & JSX Template
+```bash
+bun run make mail WelcomeNotification
+```
+*Output*:
+- `src/mail/WelcomeNotification.mail.ts` (Mailable class)
+- `resources/views/emails/WelcomeNotificationEmail.tsx` (Hono JSX responsive email template)
 
 ---
 

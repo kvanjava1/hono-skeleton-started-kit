@@ -22,6 +22,7 @@ Available Types:
   migration      Create a new migration file (<target> <name>)
   seeder         Create a new seeder file (<target> <name>)
   job            Create a new background job handler (<name>)
+  mail           Create a new Mailable class and Hono JSX template (<name>)
 
 Targets for migration/seeder:
   mysql, mongo, pg, sqlite
@@ -36,6 +37,7 @@ Examples:
   bun run make migration pg add_users_table
   bun run make seeder pg UserSeeder
   bun run make job SendEmail
+  bun run make mail OrderShipped
 `);
 };
 
@@ -51,6 +53,7 @@ if (
     "schema",
     "validation",
     "job",
+    "mail",
     "help",
   ].includes(type) ||
   type === "help"
@@ -217,6 +220,27 @@ function createJobFile(name: string) {
   return filePath;
 }
 
+function createMailFiles(name: string) {
+  const clean = cleanSuffix(cleanSuffix(name, ".mail"), "Mail");
+  const pascalName = toPascalCase(clean);
+
+  const mailFilePath = `./src/mail/${pascalName}.mail.ts`;
+  const viewFilePath = `./resources/views/emails/${pascalName}Email.tsx`;
+
+  const mailTemplate = getStub("mail.stub", {
+    PASCAL_NAME: pascalName,
+  });
+
+  const viewTemplate = getStub("mail-view.stub", {
+    PASCAL_NAME: pascalName,
+  });
+
+  writeFileSafely(mailFilePath, mailTemplate);
+  writeFileSafely(viewFilePath, viewTemplate);
+
+  return { mailFilePath, viewFilePath };
+}
+
 // --- Runner ---
 
 const run = async () => {
@@ -299,6 +323,16 @@ const run = async () => {
         if (!name) throw new Error("Usage: bun run make job <name>");
         const jPath = createJobFile(name);
         console.log(`Created job: ${jPath}`);
+        break;
+      }
+
+      case "mail": {
+        const name = args[1];
+        if (!name) throw new Error("Usage: bun run make mail <name>");
+        const { mailFilePath, viewFilePath } = createMailFiles(name);
+        console.log(`  ✓ Mailable: ${mailFilePath}`);
+        console.log(`  ✓ Template: ${viewFilePath}`);
+        console.log(`\nMailable "${name}" scaffolded successfully!`);
         break;
       }
 

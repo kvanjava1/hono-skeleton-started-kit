@@ -5,6 +5,11 @@ import {
   CRUD_CREATE_QUEUE,
   type CrudCreateJobData,
 } from "../jobs/example/crudCreate.job.ts";
+import {
+  processSendEmail,
+  SEND_EMAIL_QUEUE,
+  type SendEmailJobData,
+} from "../jobs/mail/sendEmail.job.ts";
 import { logger } from "../utils/logger.util.ts";
 import { requestContext } from "../utils/context.util.ts";
 
@@ -23,6 +28,17 @@ const startWorkers = () => {
     );
   });
   activeWorkers.push(crudWorker);
+
+  const mailWorker = createWorker(SEND_EMAIL_QUEUE, async (job) => {
+    const data = job.data as SendEmailJobData;
+    await requestContext.run(
+      { requestId: data.requestId ?? "unknown" },
+      async () => {
+        await processSendEmail(job);
+      },
+    );
+  });
+  activeWorkers.push(mailWorker);
 };
 
 const stopWorkers = async (): Promise<void> => {
