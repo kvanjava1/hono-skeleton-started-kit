@@ -26,6 +26,9 @@ The application runs in two distinct execution modes:
 │   │   └── app.css               # Tailwind CSS entrypoint
 │   ├── js/                       # Optional client-side JS scripts
 │   └── views/                    # Server-rendered Hono JSX components (.tsx)
+│       ├── emails/               # Responsive HTML email templates
+│       │   ├── layouts/
+│       │   └── WelcomeEmail.tsx
 │       └── example/
 │           ├── Index.tsx
 │           └── Layout.tsx
@@ -38,7 +41,8 @@ The application runs in two distinct execution modes:
 │   ├── migrate.ts                # Database migration runner
 │   ├── seed.ts                   # Database seeder runner
 │   ├── migrations/               # Per-database migration files
-│   └── seeders/                  # Per-database seeder files
+│   ├── seeders/                  # Per-database seeder files
+│   └── stubs/                    # Generator code stubs
 └── src/
     ├── index.ts                  # Application entry point (bootstrapping app/worker)
     ├── app.ts                    # createApp() factory & middleware pipeline
@@ -57,9 +61,11 @@ The application runs in two distinct execution modes:
     │   └── example/
     │       ├── web/              # Web controllers (return HTML/JSX)
     │       └── api/              # API controllers (return JSON via successResponse)
-    ├── services/                 # Business logic & orchestrator layer
+    ├── services/                 # Pure domain business logic layer
     ├── repositories/             # Database access layer
     ├── validations/              # Zod schemas & request validations (@hono/zod-openapi)
+    ├── libraries/                # Technical adapters & 3rd-party transports (mail drivers)
+    ├── mail/                     # Mailable classes (envelope, content, template linkage)
     ├── database/
     │   ├── index.ts              # Parallel connection initialization registry
     │   ├── drizzle.ts            # Drizzle ORM client wrapper (getDrizzleDb)
@@ -70,9 +76,9 @@ The application runs in two distinct execution modes:
     │   ├── common/               # Context, logger, metrics, rateLimiter, errorHandler
     │   ├── web/                  # Web-specific middlewares (static assets)
     │   └── api/                  # API-specific middlewares (Content-Type validation)
-    ├── utils/                    # Utilities: logger, response, async, context, metrics, cache
+    ├── utils/                    # Utilities: mail facade, logger, response, async, metrics, cache
     ├── queues/                   # BullMQ queue creators & connection options
-    ├── jobs/                     # Job definitions & payload interfaces
+    ├── jobs/                     # Job definitions & payload interfaces (mail, example)
     └── workers/                  # Worker registry & execution handlers
 ```
 
@@ -99,6 +105,7 @@ The application runs in two distinct execution modes:
 - `PUT /api/example/cruds/{id}` — Update an existing record.
 - `DELETE /api/example/cruds/{id}` — Delete a record.
 - `POST /api/example/cruds/job` — Dispatch record creation asynchronously via BullMQ queue.
+- `POST /api/example/cruds/send-email` — Dispatch example welcome email asynchronously via BullMQ queue.
 
 ---
 
@@ -112,6 +119,15 @@ All database engines support explicit **named connections**:
 - **Redis**: `redis1`, ...
 
 Database connections are enabled or disabled via environment boolean flags (`DB_SQLITE_ENABLED`, `DB_MYSQL_ENABLED`, `DB_PG_ENABLED`, `DB_MONGO_ENABLED`, `DB_REDIS_ENABLED`). Disabled databases will not initialize or block the startup sequence.
+
+---
+
+## Mail System Architecture
+
+The application provides a type-safe, multi-driver mail system:
+- **Drivers (`src/libraries/mail/drivers/`)**: `log` (default for dev/testing), `smtp` (Nodemailer connection pool), and `resend` (HTTP API).
+- **Utility Facade (`src/utils/mail.util.ts`)**: `Mail.to(recipient).queue(mailable)` or `Mail.to(recipient).send(mailable)`.
+- **Background Worker (`src/workers/index.ts`)**: Consumes the `send-email` BullMQ queue to send emails asynchronously without blocking web requests.
 
 ---
 

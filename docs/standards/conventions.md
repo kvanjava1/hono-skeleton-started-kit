@@ -20,8 +20,11 @@ All new features should be placed in dedicated sub-folders organized by domain (
 | **DB Schemas (Drizzle)**| `camelCase.schema.ts` | `src/database/schema/<domain>/` | `crud.schema.ts` |
 | **Views (Hono JSX)** | `PascalCase.tsx` | `resources/views/<domain>/` | `Index.tsx`, `Layout.tsx` |
 | **Jobs** | `camelCase.job.ts` | `src/jobs/<domain>/` | `crudCreate.job.ts` |
+| **Mailables** | `PascalCase.mail.ts` | `src/mail/` | `Welcome.mail.ts` |
+| **Email Views** | `PascalCaseEmail.tsx` | `resources/views/emails/` | `WelcomeEmail.tsx` |
+| **Libraries** | `camelCase.driver.ts` | `src/libraries/<category>/` | `smtp.driver.ts` |
 | **Middlewares** | `camelCase.middleware.ts` | `src/middlewares/<group>/` | `rateLimiter.middleware.ts` |
-| **Utils** | `camelCase.util.ts` | `src/utils/` | `logger.util.ts`, `response.util.ts` |
+| **Utils** | `camelCase.util.ts` | `src/utils/` | `logger.util.ts`, `mail.util.ts` |
 | **DB Connections** | `snake_case.connection.ts`| `src/database/` | `sqlite.connection.ts` |
 
 ---

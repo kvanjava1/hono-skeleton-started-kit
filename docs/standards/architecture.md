@@ -11,12 +11,14 @@ src/
 ├── routes/          # Route definitions & mounters (Web & API)
 ├── validations/     # Zod request/params/query schemas (@hono/zod-openapi)
 ├── controllers/     # HTTP boundary (Web & API separated)
-├── services/        # Pure business logic (agnostic of Hono Context)
+├── services/        # Pure domain business logic (agnostic of Hono Context)
 ├── repositories/    # Database queries & data access
 ├── database/
 │   └── schema/      # Drizzle ORM table definitions
+├── libraries/       # Technical adapters & third-party wrappers (Mail transports)
+├── mail/            # Mailable classes (envelope, content, JSX template linkage)
 ├── middlewares/     # HTTP middleware pipeline
-├── utils/           # Shared utilities & helpers
+├── utils/           # Shared utilities & helpers (Mail facade, logger, cache)
 ├── queues/          # BullMQ queue wiring
 ├── jobs/            # Job definitions & handlers
 └── workers/         # Background worker entry point
@@ -87,6 +89,24 @@ Job Handler (`src/jobs/<domain>/`)
 Service Layer (`src/services/`)
 ```
 
+### 4. Mail Flow (Laravel-Style Mailable)
+```text
+Service / Controller
+  └── Mail.to(email).queue(new WelcomeMail(props))
+      │
+      ▼
+Render JSX Template (`resources/views/emails/`) -> Pure HTML String
+      │
+      ▼
+BullMQ Job (`send-email` in Redis `redis1`)
+      │
+      ▼
+Background Worker (`src/workers/index.ts`)
+      │
+      ▼
+Transport Driver (`src/libraries/mail/drivers/` -> Log / SMTP / Resend)
+```
+
 ---
 
 ## 📋 Layer Boundaries & Responsibilities
@@ -110,7 +130,7 @@ Service Layer (`src/services/`)
   - Heavy business logic calculations.
 
 ### 4. Services (`src/services/`)
-- Encapsulate all business logic, orchestrate across multiple repositories, integrate with cache, and dispatch background jobs.
+- Encapsulate all business logic, orchestrate across multiple repositories, integrate with cache, and dispatch background jobs or mail.
 - **Prohibited**:
   - Importing or referencing Hono `Context` (`c`).
   - Shaping HTTP JSON responses manually.
@@ -124,6 +144,14 @@ Service Layer (`src/services/`)
 ### 6. Database Schemas (`src/database/schema/`)
 - Contain Drizzle ORM table definitions (distinct from request validation schemas).
 - Organized by feature/domain (e.g., `src/database/schema/example/crud.schema.ts`).
+
+### 7. Libraries & Transports (`src/libraries/`)
+- Pure infrastructure adapters and third-party protocol wrappers (e.g., `src/libraries/mail/drivers/` for SMTP, Resend, and Log).
+- Kept completely separate from domain services.
+
+### 8. Mailables & Email Templates (`src/mail/` & `resources/views/emails/`)
+- **Mailable classes** (`src/mail/`) define email metadata (subject, sender, CC/BCC) and bind data to JSX templates.
+- **Email views** (`resources/views/emails/`) contain responsive HTML components using Hono JSX server rendering with inline CSS styling.
 
 ---
 

@@ -64,7 +64,7 @@ Initial setup guide to get the skeleton running locally and in production.
 - [Installation & Setup](./getting-started/installation.md) — Runtime installation, single `.env` setup, migrations, and running the app.
 - [Deployment](./getting-started/deployment.md) — Compiling Tailwind CSS, Bun standalone binary, and production server setup.
 
-### 📖 2. [Guides](./guides/make-cli.md)
+### 📖 2. [Guides](./guides/README.md)
 Workflow-oriented operational guides.
 - [Make CLI](./guides/make-cli.md) — Stub-based code generation (controllers, services, repositories, validations, jobs, etc.).
 - [Migrations](./guides/migrations.md) — Multi-engine database migration runner with explicit target connections.
