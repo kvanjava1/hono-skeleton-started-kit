@@ -31,6 +31,19 @@ export const UpdateBody = z.object({
     .openapi({ example: "Updated content", description: "New crud content" }),
 });
 
+export const SendEmailBody = z.object({
+  email: z
+    .string()
+    .email()
+    .openapi({ example: "user@example.com", description: "Target recipient email address" }),
+  name: z
+    .string()
+    .min(1)
+    .default("Teman")
+    .openapi({ example: "Budi Santoso", description: "Recipient name" }),
+});
+
 export type IdParamInput = z.infer<typeof IdParam>;
 export type CreateBodyInput = z.infer<typeof CreateBody>;
 export type UpdateBodyInput = z.infer<typeof UpdateBody>;
+export type SendEmailBodyInput = z.infer<typeof SendEmailBody>;

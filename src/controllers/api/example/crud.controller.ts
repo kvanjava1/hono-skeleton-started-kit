@@ -7,12 +7,14 @@ import {
   addCrud,
   editCrud,
   removeCrud,
+  sendExampleEmail,
 } from "../../../services/example/crud.service.ts";
 import { enqueueCrudCreate } from "../../../jobs/example/crudCreate.job.ts";
 import type {
   CreateBodyInput,
   IdParamInput,
   UpdateBodyInput,
+  SendEmailBodyInput,
 } from "../../../validations/example/crud.ts";
 
 type JsonContext<T> = Context<any, string, { out: { json: T } }>;
@@ -53,4 +55,10 @@ export const remove = async (c: ParamContext<IdParamInput>) => {
   const { id } = c.req.valid("param");
   await removeCrud(id);
   return successResponse(c, MESSAGES.CRUD_DELETED, null);
+};
+
+export const sendEmail = async (c: JsonContext<SendEmailBodyInput>) => {
+  const { email, name } = c.req.valid("json");
+  const result = await sendExampleEmail(email, name);
+  return successResponse(c, "Email berhasil dimasukkan ke antrean pengiriman", result, HTTP_STATUS.ACCEPTED);
 };

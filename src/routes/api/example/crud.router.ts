@@ -6,11 +6,13 @@ import {
   update,
   remove,
   createViaJob,
+  sendEmail,
 } from "../../../controllers/api/example/crud.controller.ts";
 import {
   IdParam,
   CreateBody,
   UpdateBody,
+  SendEmailBody,
 } from "../../../validations/example/crud.ts";
 import { openApiValidationHook } from "../../../utils/openapi.util.ts";
 
@@ -133,4 +135,25 @@ crudRoutes.openapi(
     },
   }),
   remove,
+);
+
+// POST /api/example/cruds/send-email
+crudRoutes.openapi(
+  createRoute({
+    method: "post",
+    path: "/send-email",
+    tags: ["Example CRUD"],
+    summary: "Send example welcome email via queue",
+    description:
+      "Dispatches a WelcomeMail to the background BullMQ queue to demonstrate email sending in Hono Skeleton.",
+    request: {
+      body: {
+        content: { "application/json": { schema: SendEmailBody } },
+      },
+    },
+    responses: {
+      202: { description: "Email queued successfully for delivery" },
+    },
+  }),
+  sendEmail,
 );

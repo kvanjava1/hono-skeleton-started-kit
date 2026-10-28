@@ -2,6 +2,8 @@ import { NotFoundError } from "../../utils/errors.util.ts";
 import { MESSAGES } from "../../configs/constants.ts";
 import { cacheGet, cacheSet, cacheDelete } from "../../utils/cache.util.ts";
 import { logger } from "../../utils/logger.util.ts";
+import { Mail } from "../../utils/mail.util.ts";
+import { WelcomeMail } from "../../mail/Welcome.mail.ts";
 import {
   getAllCruds,
   getCrudById,
@@ -78,4 +80,17 @@ export const removeCrud = async (id: number): Promise<void> => {
 
   await Promise.all([cacheDelete(listKey), cacheDelete(byIdKey(id))]);
   logger.info("[CrudService] Crud deleted", { id });
+};
+
+/**
+ * Example demonstration of queueing an email using Mail util and WelcomeMail.
+ */
+export const sendExampleEmail = async (email: string, name: string): Promise<{ jobId: string }> => {
+  logger.info("[CrudService] Queueing example welcome email", { email, name });
+  return await Mail.to(email).queue(
+    new WelcomeMail({
+      name,
+      actionUrl: "https://example.com/welcome",
+    }),
+  );
 };

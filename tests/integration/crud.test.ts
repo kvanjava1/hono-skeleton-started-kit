@@ -175,6 +175,21 @@ describe("CRUD Example API", () => {
       );
       expect(res.status).toBe(200);
     });
+
+    test("rejects invalid email for send-email endpoint", async () => {
+      const res = await app.fetch(
+        new Request(`${base}/api/example/cruds/send-email`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email: "not-an-email" }),
+        }),
+      );
+      expect(res.status).toBe(400);
+
+      const body = await res.json();
+      expect(body.status).toBe("error");
+      expect(body.message).toBe("Validation error");
+    });
   });
 
   describe("OpenAPI docs", () => {
@@ -188,6 +203,7 @@ describe("CRUD Example API", () => {
       expect(body.paths).toBeDefined();
       expect(body.paths["/api/example/cruds"]).toBeDefined();
       expect(body.paths["/api/example/cruds/{id}"]).toBeDefined();
+      expect(body.paths["/api/example/cruds/send-email"]).toBeDefined();
     });
 
     test("GET /api/docs returns Scalar API reference HTML", async () => {

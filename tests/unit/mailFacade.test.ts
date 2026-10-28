@@ -26,7 +26,7 @@ mock.module("bullmq", () => ({
   },
 }));
 
-const { Mail } = await import("../../src/services/mail/mail.service.ts");
+const { Mail } = await import("../../src/utils/mail.util.ts");
 const { WelcomeMail } = await import("../../src/mail/Welcome.mail.ts");
 const { resetConfigMail } = await import("../../src/configs/mail.config.ts");
 const { resetMailDrivers } = await import(
