@@ -91,3 +91,39 @@ export const inertiaErrorResponse = (
 
   return c.json({ errors }, 422);
 };
+
+/**
+ * Origin page description a web controller provides when re-rendering its
+ * own page after a failed form submission. `url` is the URL of the page the
+ * user is on — not the form action — so the client keeps the address bar.
+ */
+export interface InertiaOriginPage {
+  component: string;
+  url: string;
+  props: Record<string, unknown>;
+}
+
+/**
+ * Renders a failed form submission as a VALID Inertia response (422):
+ * `X-Inertia` response header + page envelope whose props carry `errors`.
+ * Client `@inertiajs/core` 3.x replaces page props wholesale and reads
+ * `page.props.errors` after `setPage()`; a plain `{ errors }` JSON is
+ * rejected with the "plain JSON response" modal and the error bag never fills.
+ */
+export const inertiaValidationErrorResponse = (
+  c: Context,
+  origin: InertiaOriginPage,
+  errors: Record<string, string>,
+): Response => {
+  c.header("Vary", "Accept, X-Inertia");
+  c.header("X-Inertia", "true");
+  return c.json(
+    {
+      component: origin.component,
+      props: { ...getSharedProps(), ...origin.props, errors },
+      url: origin.url,
+      version: getAssetVersion(),
+    },
+    422,
+  );
+};

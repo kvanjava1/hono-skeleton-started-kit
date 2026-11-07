@@ -6,7 +6,10 @@ import {
   IdParam,
 } from "../../../validations/example/crud.ts";
 import { ValidationError } from "../../../utils/errors.util.ts";
-import { toInertiaErrorBag } from "../../../utils/inertia.util.ts";
+import {
+  inertiaValidationErrorResponse,
+  toInertiaErrorBag,
+} from "../../../utils/inertia.util.ts";
 import { logger } from "../../../utils/logger.util.ts";
 import { ROUTES } from "../../../configs/routes.config.ts";
 
@@ -19,6 +22,12 @@ import { ROUTES } from "../../../configs/routes.config.ts";
 const parseJsonBody = async (c: Context): Promise<unknown> => {
   return await c.req.json().catch(() => ({}));
 };
+
+const getIndexProps = async () => ({ cruds: await CrudService.listCruds() });
+
+const getEditProps = async (id: number) => ({
+  crud: await CrudService.findCrud(id),
+});
 
 /** GET / — CRUD list page (Inertia). */
 export const showCrudsIndex = async (c: Context) => {
@@ -36,7 +45,21 @@ export const showCrudEdit = async (c: Context) => {
 export const createCrudFromWeb = async (c: Context) => {
   const parsed = CreateBody.safeParse(await parseJsonBody(c));
   if (!parsed.success) {
-    throw new ValidationError("Validation failed", toInertiaErrorBag(parsed.error));
+    const errors = toInertiaErrorBag(parsed.error);
+    if (c.req.header("X-Inertia")) {
+      // Re-render the origin page at 422: the client replaces page props
+      // wholesale, so the envelope must carry the full page props.
+      return inertiaValidationErrorResponse(
+        c,
+        {
+          component: "example1/Cruds/Index",
+          url: ROUTES.WEB.ROOT,
+          props: await getIndexProps(),
+        },
+        errors,
+      );
+    }
+    throw new ValidationError("Validation failed", errors);
   }
 
   const crud = await CrudService.addCrud({
@@ -56,7 +79,19 @@ export const updateCrudFromWeb = async (c: Context) => {
 
   const parsed = UpdateBody.safeParse(await parseJsonBody(c));
   if (!parsed.success) {
-    throw new ValidationError("Validation failed", toInertiaErrorBag(parsed.error));
+    const errors = toInertiaErrorBag(parsed.error);
+    if (c.req.header("X-Inertia")) {
+      return inertiaValidationErrorResponse(
+        c,
+        {
+          component: "example1/Cruds/Edit",
+          url: `/cruds/${idParsed.data.id}/edit`,
+          props: await getEditProps(idParsed.data.id),
+        },
+        errors,
+      );
+    }
+    throw new ValidationError("Validation failed", errors);
   }
 
   await CrudService.editCrud(idParsed.data.id, parsed.data);

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Link, router, useForm } from '@inertiajs/svelte'
+  import { ROUTES, route } from '../../../../lib/routes.ts'
 
   interface Crud {
     id: number
@@ -18,14 +19,16 @@
   let { appName = '', cruds = [] }: Props = $props()
 
   // Create form — server replies 422 + { errors } on validation failure and
-  // Inertia fills this error bag automatically. Success redirects to "/".
+  // Inertia fills this error bag automatically. On success the server
+  // redirects back to "/" and the fields are reset explicitly.
   const form = useForm({ title: '', content: '' })
 
-  const create = () => form.post('/cruds')
+  const create = () =>
+    form.post(route(ROUTES.WEB.EXAMPLE_CRUD.CREATE), { onSuccess: () => form.reset() })
 
   const destroy = (crud: Crud) => {
     if (!confirm(`Delete "${crud.title}"?`)) return
-    router.delete(`/cruds/${crud.id}`)
+    router.delete(route(ROUTES.WEB.EXAMPLE_CRUD.DELETE, { id: crud.id }))
   }
 
   const formatDate = (value: string) => new Date(value.replace(' ', 'T') + 'Z').toLocaleString()
@@ -94,7 +97,7 @@
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <Link
-              href={`/cruds/${crud.id}/edit`}
+              href={route(ROUTES.WEB.EXAMPLE_CRUD.EDIT, { id: crud.id })}
               class="px-3 py-2 text-sm font-semibold text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50"
             >
               Edit
@@ -112,8 +115,5 @@
     {/if}
   </div>
 
-  <div class="mt-8 flex gap-4 text-sm">
-    <Link href="/spa-demo" class="font-semibold text-indigo-600 hover:underline">SPA demo page →</Link>
-    <a href="/api/docs" class="font-semibold text-slate-500 hover:underline">API documentation</a>
-  </div>
+  <a href="/api/docs" class="mt-8 inline-block text-sm font-semibold text-slate-500 hover:underline">API documentation</a>
 </div>

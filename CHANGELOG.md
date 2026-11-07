@@ -30,6 +30,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inertia client bootstrap resolves pages across multiple client apps (`resources/js/apps/*/pages/`) with app-namespaced page names (`example1/Cruds/Index`).
 - `GET /` now serves the Inertia CRUD demo reusing the same `CrudService` and Zod schemas as `/api/example/cruds` (`src/controllers/web/example/crud.controller.ts`): list, create (`POST /cruds`), edit (`GET /cruds/:id/edit`, `PUT /cruds/:id`), soft-delete (`DELETE /cruds/:id`) — all mutations same-origin guarded.
 
+### 🐛 Fixed
+- **Inertia form validation errors now reach `useForm()` on `@inertiajs/core` 3.x:** the previous `422 { errors }` plain-JSON response was rejected by the client ("plain JSON response" error modal) and the error bag never filled. Web controllers now re-render the origin page at `422` as a valid Inertia response — `X-Inertia` response header + full page envelope with `errors` merged into `props` (`inertiaValidationErrorResponse` in `src/utils/inertia.util.ts`); HTTP status stays `422`.
+- **Svelte CRUD pages (`resources/js/apps/example1/pages/Cruds/`):** the create form resets its fields after a successful create (prevents accidental duplicate submissions), the edit page's Cancel action uses Inertia `<Link>` (SPA navigation, no full page reload), and the dead `/spa-demo` link was removed.
+
+### 🔄 Changed (route registry)
+- Web paths now resolve from the **`ROUTES.WEB` registry** (`src/configs/routes.config.ts`) with the **`route(pattern, params)` helper** (throws on missing params); the registry is re-exported to the client via `resources/js/lib/routes.ts` (cross-root Vite import, verified by `build:assets`). The web CRUD router and both Svelte pages now reference the constants — the previously unused and wrong `EXAMPLE_CRUD.INDEX` (`/cruds` → `/`) is fixed.
+- `make domain` now scaffolds the `ROUTES.WEB.<DOMAIN>` block automatically (inserted above the `[make:web-domain]` marker) and its web-router stub references the registry constants instead of literals.
+
+### 🗑️ Removed
+- Dead code `src/validations/spa/spa.ts` (`DemoContactForm`) — a leftover of the removed Vue SPA demo, referenced nowhere.
+
 ---
 
 ## [1.0.0-beta.2] - 2026-10-29

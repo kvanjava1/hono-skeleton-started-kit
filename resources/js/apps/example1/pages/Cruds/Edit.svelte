@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { useForm } from '@inertiajs/svelte'
+  import { Link, useForm } from '@inertiajs/svelte'
+  import { ROUTES, route } from '../../../../lib/routes.ts'
 
   interface Crud {
     id: number
@@ -23,7 +24,7 @@
     content: crud.content,
   }))
 
-  const update = () => form.put(`/cruds/${crud.id}`)
+  const update = () => form.put(route(ROUTES.WEB.EXAMPLE_CRUD.UPDATE, { id: crud.id }))
 </script>
 
 <svelte:head>
@@ -66,7 +67,7 @@
       >
         {form.processing ? 'Saving…' : 'Update'}
       </button>
-      <a href="/" class="text-sm font-semibold text-slate-500 hover:underline">Cancel</a>
+      <Link href="/" class="text-sm font-semibold text-slate-500 hover:underline">Cancel</Link>
     </div>
   </form>
 </div>

@@ -90,12 +90,15 @@ Global props (`appName`, `isDev`) come from `getSharedProps()` in `src/utils/ine
 Forms are submitted **to web routes** via Inertia (`useForm().post('/path')`) — not to `/api/*`. The contract differs from the API error envelope **on purpose**:
 
 ```text
-X-Inertia request + ValidationError  →  422 { "errors": { "field": "message" } }
-Any other request                    →  existing contract: { status, message, data }
+X-Inertia request + form validation failure  →  422 page envelope:
+                                                { component, props: { ..., errors: { field: message } }, url, version }
+                                                + X-Inertia response header
+Any other request                            →  existing contract: { status, message, data }
 ```
 
-- The mapping Zod → error bag lives in `toInertiaErrorBag()` (`src/utils/inertia.util.ts`); throw `new ValidationError("Validation failed", toInertiaErrorBag(parsed.error))`.
-- The Global Error Handler (`src/middlewares/common/errorHandler.ts`) converts it to the 422 `{errors}` response when the request carries `X-Inertia`; `useForm()` fills `form.errors` automatically.
+- `@inertiajs/core` 3.x treats any response **without the `X-Inertia` response header** as "not a valid Inertia response" (error modal) and fills `useForm()` errors from `page.props.errors` after `setPage()`. A plain `422 { errors }` JSON therefore never reaches the error bag.
+- Web controllers re-render the **origin page** themselves via `inertiaValidationErrorResponse()` (`src/utils/inertia.util.ts`): the envelope must carry the page's **full props** (the client replaces props wholesale) and `url` must be the origin page URL — not the form action — so the address bar stays put. The Zod → error bag mapping lives in `toInertiaErrorBag()`.
+- The Global Error Handler's `inertiaErrorResponse()` remains the fallback for `ValidationError`s thrown from services on Inertia requests (plain `{ errors }` JSON — known limitation: the client shows its error modal; the session/flash-based flow is the Phase 2 fix).
 - Because there is no redirect on failure, submitted values remain intact in the client — no "old input" mechanism needed.
 - Success path: `c.redirect(...)` (POST-redirect-GET). The middleware rewrites 302→303 automatically for PUT/PATCH/DELETE Inertia requests per protocol.
 
@@ -107,6 +110,25 @@ Unsafe web methods (POST/PUT/PATCH/DELETE) go through `sameOriginGuard` (`src/mi
 
 ---
 
+## 🧭 Route Registry (single source of truth for web paths)
+
+Every web path is defined exactly once, in `ROUTES.WEB` (`src/configs/routes.config.ts`). The file is dependency-free on purpose so the client bundle can import it.
+
+1. **Define the path once**: `ROUTES.WEB.<DOMAIN>.<ACTION>` with `:name` params (e.g. `/cruds/:id/edit`). Action names are method-agnostic — the HTTP method is chosen at the call site (`router.put`, `form.post`, ...).
+2. **Routers use the constants**, never string literals (see `src/routes/web/example/crud.router.ts`).
+3. **Client code resolves paths with `route()`**: import `{ ROUTES, route }` from `resources/js/lib/routes.ts` (a straight re-export of the registry) — never interpolate strings in Svelte pages.
+4. **Params are mandatory**: `route()` throws when a required param is missing, so `/cruds/undefined/edit` can never be built silently.
+5. **`make domain` scaffolds it**: the generator inserts the `ROUTES.WEB.<DOMAIN>` block above the `[make:web-domain]` marker and its web router references the constants.
+6. **Adding a route manually**: add the constant to the registry first, then reference it from the router and the client.
+
+```svelte
+import { ROUTES, route } from '../../../../lib/routes.ts'
+form.post(route(ROUTES.WEB.EXAMPLE_CRUD.CREATE))
+router.delete(route(ROUTES.WEB.EXAMPLE_CRUD.DELETE, { id: crud.id }))
+```
+
+---
+
 ## 🧱 Client Side
 
 - Bootstrap: **per app** — `resources/js/apps/<app>/app.ts` (`createInertiaApp` from `@inertiajs/svelte` with `import.meta.glob('./pages/**/*.svelte')` lazy resolution + code splitting per page). The app prefix of the page name is stripped in `resolve`, so the file is identical for every app.
@@ -115,9 +137,10 @@ Unsafe web methods (POST/PUT/PATCH/DELETE) go through `sameOriginGuard` (`src/mi
 ```svelte
 <script lang="ts">
 import { Link, useForm } from '@inertiajs/svelte'
+import { ROUTES, route } from '../../../../lib/routes.ts'
 let { appName = '', cruds = [] }: Props = $props()
 const form = useForm({ title: '', content: '' })
-const submit = () => form.post('/cruds')
+const submit = () => form.post(route(ROUTES.WEB.EXAMPLE_CRUD.CREATE))
 </script>
 ```
 
@@ -147,6 +170,7 @@ Production serves hashed assets from `/build/*` via the existing static-asset mi
 4. **Do not skip `sameOriginGuard`** on web POST/PUT/PATCH/DELETE routes.
 5. **Run `bun run build:assets` before production** — a missing manifest disables versioning (logged as an error).
 6. `resources/views/` is now reserved for the Inertia root shell and email templates — do not reintroduce JSX-only web pages for Inertia-covered routes without a reason.
+7. **Resolve web paths through `ROUTES.WEB` + `route()`** — no string literals or template interpolation in routers, controllers, or Svelte pages (see [Route Registry](#-route-registry-single-source-of-truth-for-web-paths)).
 
 ---
 

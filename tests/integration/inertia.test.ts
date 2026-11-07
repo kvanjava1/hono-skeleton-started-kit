@@ -175,12 +175,21 @@ describe("Inertia CRUD demo (web layer reuses CrudService)", () => {
     ).toBeUndefined();
   });
 
-  test("invalid create returns 422 with the Inertia error bag", async () => {
+  test("invalid create returns a 422 Inertia page response with props.errors", async () => {
     const res = await inertiaRequest("/cruds", "POST", { title: "" });
     expect(res.status).toBe(422);
+    // @inertiajs/core 3.x rejects any response without this header as
+    // "plain JSON" and shows its error modal instead of filling the bag.
+    expect(res.headers.get("x-inertia")).toBe("true");
 
-    const body = await res.json();
-    expect(body.errors.title).toBeString();
+    const page = await res.json();
+    expect(page.component).toBe("example1/Cruds/Index");
+    expect(page.url).toBe("/");
+    expect(page.version).toBe("dev");
+    // Props are replaced wholesale by the client, so they must be complete.
+    expect(page.props.appName).toBe("Hono Skeleton Multi-DB");
+    expect(Array.isArray(page.props.cruds)).toBe(true);
+    expect(page.props.errors.title).toBeString();
   });
 
   test("cross-origin mutation is rejected with 403", async () => {

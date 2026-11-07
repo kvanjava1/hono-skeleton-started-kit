@@ -14,7 +14,7 @@ Usage:
   bun run make <type> [args...]
 
 Available Types:
-  domain         Scaffold a complete domain bundle (Web + API + Service + Repository + Validation)
+  domain         Scaffold a complete domain bundle (Web + API + Service + Repository + Validation + ROUTES.WEB registry entry)
   controller     Create a new controller (<web|api> <domain> [name])
   service        Create a new service (<domain> [name])
   repository     Create a new repository (<domain> [name])
@@ -82,6 +82,13 @@ function cleanSuffix(str: string, suffix: string): string {
   return str;
 }
 
+function toScreamingSnakeCase(str: string): string {
+  return str
+    .replace(/[-_](\w)/g, (_, c) => c.toUpperCase())
+    .replace(/-/g, "_")
+    .toUpperCase();
+}
+
 function getStub(stubName: string, replacements: Record<string, string>) {
   const stubPath = path.join("./scripts/stubs", stubName);
   if (!fs.existsSync(stubPath)) {
@@ -146,10 +153,42 @@ function createRouterFile(
     LOWER_NAME: toCamelCase(clean),
     PASCAL_NAME: toPascalCase(clean),
     CAMEL_NAME: toCamelCase(clean),
+    DOMAIN_KEY: toScreamingSnakeCase(domain),
   });
 
   writeFileSafely(filePath, template);
   return filePath;
+}
+
+/**
+ * Inserts the ROUTES.WEB.<DOMAIN_KEY> block into src/configs/routes.config.ts
+ * (above the [make:web-domain] marker) so generated web routers resolve their
+ * paths from the registry instead of string literals.
+ */
+function createWebRouteRegistryEntry(domain: string): string {
+  const configPath = "./src/configs/routes.config.ts";
+  const key = toScreamingSnakeCase(domain);
+  const marker = "    // [make:web-domain]";
+  const block = [
+    `    ${key}: {`,
+    `      INDEX: "/${domain}",`,
+    `      CREATE: "/${domain}",`,
+    `      EDIT: "/${domain}/:id/edit",`,
+    `      UPDATE: "/${domain}/:id",`,
+    `      DELETE: "/${domain}/:id",`,
+    `    },`,
+    "",
+  ].join("\n");
+
+  const content = fs.readFileSync(configPath, "utf-8");
+  if (!content.includes(marker)) {
+    throw new Error(`Marker not found in ${configPath}`);
+  }
+  if (content.includes(`${key}: {`)) {
+    throw new Error(`ROUTES.WEB.${key} already exists in ${configPath}`);
+  }
+  fs.writeFileSync(configPath, content.replace(marker, `${block}${marker}`), "utf-8");
+  return key;
 }
 
 function createServiceFile(domain: string, rawName?: string) {
@@ -258,11 +297,13 @@ const run = async () => {
         const sPath = createServiceFile(domain);
         const repoPath = createRepositoryFile(domain);
         const vPath = createValidationFile(domain);
+        const webKey = createWebRouteRegistryEntry(domain);
 
         console.log(`  ✓ Controller (API): ${cApiPath}`);
         console.log(`  ✓ Controller (Web): ${cWebPath}`);
         console.log(`  ✓ Route (API):      ${rApiPath}`);
         console.log(`  ✓ Route (Web):      ${rWebPath}`);
+        console.log(`  ✓ Route registry:   ROUTES.WEB.${webKey} (src/configs/routes.config.ts)`);
         console.log(`  ✓ Service:          ${sPath}`);
         console.log(`  ✓ Repository:       ${repoPath}`);
         console.log(`  ✓ Validation:       ${vPath}`);
