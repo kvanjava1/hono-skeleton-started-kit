@@ -1,24 +1,24 @@
-# Inertia Patterns (Inertia.js + Vue 3)
+# Inertia Patterns (Inertia.js + Svelte 5)
 
-This document defines the conventions for building web pages with **Inertia.js + Vue 3** on top of this skeleton, using the official [`@hono/inertia`](https://github.com/honojs/middleware) middleware. It extends — never replaces — the [Architecture Standard](./architecture.md): the `Routes → Controllers → Services → Repositories` flow is unchanged.
+This document defines the conventions for building web pages with **Inertia.js + Svelte 5** on top of this skeleton, using the official [`@hono/inertia`](https://github.com/honojs/middleware) middleware. It extends — never replaces — the [Architecture Standard](./architecture.md): the `Routes → Controllers → Services → Repositories` flow is unchanged.
 
 ---
 
 ## 🧭 Mental Model
 
-Inertia is **not an API consumer**. A "page" is a Vue component served by a normal web route:
+Inertia is **not an API consumer**. A "page" is a Svelte component served by a normal web route:
 
-- **First visit**: Hono renders the root shell (`resources/views/inertia/AppShell.tsx`) containing the serialized page object — Vue mounts and renders the component.
+- **First visit**: Hono renders the root shell (`resources/views/inertia/AppShell.tsx`) containing the serialized page object — Svelte mounts and renders the component.
 - **Subsequent navigation**: requests carry the `X-Inertia` header; the middleware responds with a JSON page object and the client swaps components — no full page reload, no API layer.
 
 ```text
 GET / (first visit)
   Routes → Web Controller → c.render('example1/Cruds/Index', props)
          → AppShell.tsx (HTML shell + data-page JSON)
-         → Vue mounts Cruds/Index.vue
+         → Svelte mounts Cruds/Index.svelte
 
 GET /cruds/1/edit (Inertia navigation)
-  Same handler → JSON page object (X-Inertia: true) → Vue swaps component
+  Same handler → JSON page object (X-Inertia: true) → Svelte swaps component
 ```
 
 A full working reference lives in `src/controllers/web/example/crud.controller.ts` (+ `src/routes/web/example/crud.router.ts`): it serves the CRUD demo at `/` **reusing the same `CrudService` and Zod schemas as `/api/example/cruds`** — one service layer, two HTTP boundaries (REST API and Inertia pages).
@@ -30,7 +30,7 @@ A full working reference lives in `src/controllers/web/example/crud.controller.t
 | Component | Path | Naming |
 |---|---|---|
 | Client bootstrap (per app) | `resources/js/apps/<app>/app.ts` | `app.ts` |
-| Page components | `resources/js/apps/<app>/pages/` | `PascalCase.vue` (e.g. `Cruds/Index.vue`) |
+| Page components | `resources/js/apps/<app>/pages/` | `PascalCase.svelte` (e.g. `Cruds/Index.svelte`) |
 | Root view (HTML shell) | `resources/views/inertia/AppShell.tsx` | `AppShell` |
 | Inertia utils | `src/utils/inertia.util.ts` | `camelCase.util.ts` |
 | Web controllers / routes | `src/controllers/web/<domain>/`, `src/routes/web/<domain>/` | existing conventions |
@@ -45,14 +45,14 @@ resources/js/apps/
     ├── app.ts           ← bootstrap entry (createInertiaApp)
     └── pages/
         └── Cruds/
-            ├── Index.vue
-            └── Edit.vue
+            ├── Index.svelte
+            └── Edit.svelte
 ```
 
 Page names are **namespaced by app** on the server; the root shell derives which app's entry to load from the page name prefix:
 
 ```ts
-c.render("example1/Cruds/Index", { cruds }) // → resources/js/apps/example1/pages/Cruds/Index.vue
+c.render("example1/Cruds/Index", { cruds }) // → resources/js/apps/example1/pages/Cruds/Index.svelte
 ```
 
 To add a new client app:
@@ -109,20 +109,22 @@ Unsafe web methods (POST/PUT/PATCH/DELETE) go through `sameOriginGuard` (`src/mi
 
 ## 🧱 Client Side
 
-- Bootstrap: **per app** — `resources/js/apps/<app>/app.ts` (`createInertiaApp` with `import.meta.glob('./pages/**/*.vue')` lazy resolution + code splitting per page). The app prefix of the page name is stripped in `resolve`, so the file is identical for every app.
-- Pages are plain Vue SFCs with typed props:
+- Bootstrap: **per app** — `resources/js/apps/<app>/app.ts` (`createInertiaApp` from `@inertiajs/svelte` with `import.meta.glob('./pages/**/*.svelte')` lazy resolution + code splitting per page). The app prefix of the page name is stripped in `resolve`, so the file is identical for every app.
+- Pages are plain Svelte 5 components with typed props (runes):
 
-```vue
-<script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3'
-const props = defineProps<{ appName?: string; cruds?: Crud[] }>()
+```svelte
+<script lang="ts">
+import { Link, useForm } from '@inertiajs/svelte'
+let { appName = '', cruds = [] }: Props = $props()
 const form = useForm({ title: '', content: '' })
 const submit = () => form.post('/cruds')
 </script>
 ```
 
-- Use `<Head title="..." />` for the document title, `<Link>` for SPA navigation.
+- Use `<svelte:head><title>...</title></svelte:head>` for the document title (the Svelte adapter has no `<Head>` component), `<Link>` for SPA navigation, and `router` for programmatic visits (`router.delete(...)` etc.).
+- Form state is directly reactive: `bind:value={form.field}`, `form.errors.field`, `form.processing`.
 - Tailwind CSS classes work out of the box (global stylesheet).
+- Type checking for `.svelte` files runs via `bun run check:frontend` (`svelte-check` + `resources/js/tsconfig.json`) — `tsc --noEmit` only covers TypeScript sources, not Svelte components.
 
 ---
 
@@ -130,7 +132,7 @@ const submit = () => form.post('/cruds')
 
 | Script | Purpose |
 |---|---|
-| `bun run dev:all` | Hono server + Vite dev server (Tailwind CSS **and** Vue HMR) |
+| `bun run dev:all` | Hono server + Vite dev server (Tailwind CSS **and** Svelte HMR) |
 | `bun run build:assets` | One Vite build → CSS + JS + `public/build/.vite/manifest.json` |
 
 Production serves hashed assets from `/build/*` via the existing static-asset middleware; the compiled `./server` binary is unaffected (client bundles are static files).

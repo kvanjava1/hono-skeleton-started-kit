@@ -9,7 +9,7 @@ import {
 } from "../../../controllers/web/example/crud.controller.ts";
 
 /**
- * Web routes for the Inertia + Vue CRUD demo (mounted at "/").
+ * Web routes for the Inertia + Svelte CRUD demo (mounted at "/").
  * Mutations reuse the same CrudService as the REST API and are guarded by
  * the same-origin middleware (session-bound CSRF tokens arrive in Phase 2).
  */

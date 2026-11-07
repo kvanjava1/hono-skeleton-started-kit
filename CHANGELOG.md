@@ -10,12 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### 🚀 Added
-- **Inertia.js + Vue 3 Integration (PoC):**
+- **Inertia.js + Svelte 5 Integration (PoC):**
   - Official `@hono/inertia` middleware wired into the web layer (`src/middlewares/web/index.ts`) with the Inertia protocol: HTML shell on first visit, JSON page objects on `X-Inertia` navigation, `409 + X-Inertia-Location` on asset version mismatch.
   - Asset versioning sourced from the SHA-256 hash of the Vite manifest (`src/utils/inertia.util.ts`).
   - Shared props for every Inertia page (`appName`, `isDev`) via the middleware `share` option.
   - Root view shell `resources/views/inertia/AppShell.tsx` embedding the serialized page object (`serializePage`).
-  - Vue 3 client bootstrap **per client app** (`resources/js/apps/<app>/app.ts`, copied verbatim for new apps) with lazy `import.meta.glob` page resolution, app-namespaced page names (`example1/Cruds/Index`), and per-page code splitting.
+  - Svelte 5 client bootstrap **per client app** (`resources/js/apps/<app>/app.ts`, copied verbatim for new apps) with lazy `import.meta.glob` page resolution, app-namespaced page names (`example1/Cruds/Index`), and per-page code splitting.
   - CRUD demo page at `GET /` (`resources/js/apps/example1/pages/Cruds/` + `src/controllers/web/example/crud.controller.ts`) as the living reference — **reusing the same `CrudService` and Zod schemas as `/api/example/cruds`**.
   - Form validation mapped to the Inertia error bag (`toInertiaErrorBag`) and returned as `422 { errors }` for `X-Inertia` requests via the Global Error Handler — `useForm()` fills its error bag automatically.
   - Same-origin guard for unsafe web methods (`src/middlewares/web/sameOrigin.middleware.ts`) covering JSON content-types that the built-in `hono/csrf` does not.
@@ -23,10 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New standard document: `docs/standards/inertia-patterns.md`.
 
 ### 🔄 Changed
-- Vite now builds both the Tailwind CSS entry and the Vue client entry (`vite.config.ts`, `@vitejs/plugin-vue`).
+- Vite now builds both the Tailwind CSS entry and the Svelte client entry (`vite.config.ts`, `@sveltejs/vite-plugin-svelte`); `.svelte` files are type-checked by `svelte-check` (`bun run check:frontend`, also wired into CI).
 - Scripts renamed for accuracy: `build:css` → `build:assets`, `dev:css` → `dev:assets` (one Vite build produces CSS + JS + manifest).
 - `src/utils/vite.util.ts`: extracted shared manifest loader (`loadViteManifest`) and added `getScriptEntry()` alongside the existing `getStyle()`.
-- **Pure JSX SSR example removed** (`src/controllers/web/example/view.controller.ts`, `resources/views/example/`); web pages are now Inertia + Vue. `resources/views/` is reserved for the Inertia root shell and email templates.
+- **Pure JSX SSR example removed** (`src/controllers/web/example/view.controller.ts`, `resources/views/example/`); web pages are now Inertia + Svelte. `resources/views/` is reserved for the Inertia root shell and email templates.
 - Inertia client bootstrap resolves pages across multiple client apps (`resources/js/apps/*/pages/`) with app-namespaced page names (`example1/Cruds/Index`).
 - `GET /` now serves the Inertia CRUD demo reusing the same `CrudService` and Zod schemas as `/api/example/cruds` (`src/controllers/web/example/crud.controller.ts`): list, create (`POST /cruds`), edit (`GET /cruds/:id/edit`, `PUT /cruds/:id`), soft-delete (`DELETE /cruds/:id`) — all mutations same-origin guarded.
 

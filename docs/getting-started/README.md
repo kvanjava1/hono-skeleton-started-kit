@@ -13,7 +13,7 @@ Initial setup guides for running the skeleton locally and preparing for producti
    - Running database migrations (`bun run migrate`) and seeders (`bun run seed`).
 
 2. **[Deployment & Production](./deployment.md)**
-   - Building CSS + Vue assets (`bun run build:assets`) and standalone compiled binary (`bun run build:app`).
+   - Building CSS + Svelte assets (`bun run build:assets`) and standalone compiled binary (`bun run build:app`).
    - Running the API server (`./server` / `bun run server:bin:prod`) and worker (`./server --worker` / `bun run worker:bin:prod`).
    - Example Systemd service unit templates for Linux servers.
 

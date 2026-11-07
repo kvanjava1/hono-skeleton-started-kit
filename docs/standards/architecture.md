@@ -56,7 +56,7 @@ Repositories (`src/repositories/<domain>/`)
 Database (SQLite / MySQL / Postgres / Mongo)
 ```
 
-### 2. Web Flow (Inertia.js + Vue 3)
+### 2. Web Flow (Inertia.js + Svelte 5)
 ```text
 Client Request
       │
@@ -72,7 +72,7 @@ HTML Shell (`resources/views/inertia/AppShell.tsx`) on first visit
 or JSON page object on `X-Inertia` navigation
       │
       ▼
-Vue 3 page component (`resources/js/apps/<app>/pages/`) renders the UI
+Svelte 5 page component (`resources/js/apps/<app>/pages/`) renders the UI
 ```
 
 ### 3. Background Job Flow (BullMQ Worker)

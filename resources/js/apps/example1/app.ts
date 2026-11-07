@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
-import { createInertiaApp } from "@inertiajs/vue3";
-import { createSSRApp, h, type DefineComponent } from "vue";
+import { createInertiaApp } from "@inertiajs/svelte";
+import { mount, type Component } from "svelte";
 
 /**
  * Bootstrap for the `example1` client app.
@@ -14,7 +14,9 @@ import { createSSRApp, h, type DefineComponent } from "vue";
  * e.g. `example1/Cruds/Index`); the app prefix is stripped here so the
  * resolve logic is identical for every app.
  */
-const pages = import.meta.glob<DefineComponent>("./pages/**/*.vue");
+const pages = import.meta.glob<{ default: Component }>(
+  "./pages/**/*.svelte",
+);
 
 createInertiaApp({
   resolve: async (name: string) => {
@@ -25,15 +27,13 @@ createInertiaApp({
       );
     }
 
-    const loader = pages[`./pages/${pagePath}.vue`];
+    const loader = pages[`./pages/${pagePath}.svelte`];
     if (!loader) {
       throw new Error(`Inertia page not found: ${name}`);
     }
     return await loader();
   },
-  setup({ el, App, props, plugin }) {
-    createSSRApp({ render: () => h(App, props) })
-      .use(plugin)
-      .mount(el);
+  setup({ el, App, props }) {
+    mount(App, { target: el as HTMLElement, props });
   },
 });

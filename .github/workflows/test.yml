@@ -34,5 +34,8 @@ jobs:
       - name: Typecheck TypeScript
         run: bun run typecheck
 
+      - name: Typecheck Svelte frontend
+        run: bun run check:frontend
+
       - name: Run Test Suite
         run: bun test

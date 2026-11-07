@@ -11,7 +11,7 @@ import { logger } from "../../../utils/logger.util.ts";
 import { ROUTES } from "../../../configs/routes.config.ts";
 
 /**
- * Web controller for the Example CRUD demo driven by Inertia.js + Vue.
+ * Web controller for the Example CRUD demo driven by Inertia.js + Svelte.
  * Reuses the same service and Zod validation schemas as the REST API
  * (`/api/example/cruds`) — no duplicated business logic.
  */

@@ -132,7 +132,7 @@ bun run dev:all
 
 You can also run them separately:
 - `bun run server:code:dev` (Hono only)
-- `bun run dev:assets` (Vite only — Tailwind CSS + Vue HMR)
+- `bun run dev:assets` (Vite only — Tailwind CSS + Svelte HMR)
 
 ### Production
 To build and run in production:
@@ -154,7 +154,7 @@ follows that value.
 - API liveness: `GET /api/health`
 - API readiness: `GET /api/health/ready`
 - Prometheus metrics: `GET /metrics` (only when `METRICS_ENABLED=true`)
-- Web root: `GET /` (Inertia.js + Vue CRUD demo)
+- Web root: `GET /` (Inertia.js + Svelte CRUD demo)
 
 ## Run Migrations
 

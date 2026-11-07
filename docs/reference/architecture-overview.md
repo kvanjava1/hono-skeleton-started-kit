@@ -25,8 +25,8 @@ The application runs in two distinct execution modes:
 │   ├── css/
 │   │   └── app.css               # Tailwind CSS entrypoint
 │   ├── js/
-│   │   └── apps/                 # Inertia client apps (Vue 3), one folder per app
-│   │       └── example1/         # app.ts (bootstrap entry) + pages/ (e.g. Cruds/Index.vue)
+│   │   └── apps/                 # Inertia client apps (Svelte 5), one folder per app
+│   │       └── example1/         # app.ts (bootstrap entry) + pages/ (e.g. Cruds/Index.svelte)
 │   └── views/                    # Hono JSX (.tsx)
 │       ├── emails/               # Responsive HTML email templates
 │       │   ├── layouts/
@@ -50,7 +50,7 @@ The application runs in two distinct execution modes:
     ├── configs/                  # App configurations & environment parsing
     ├── routes/
     │   ├── index.ts              # Master route mounter & 404 handler
-    │   ├── web/                  # Web routes (Inertia.js + Vue pages)
+    │   ├── web/                  # Web routes (Inertia.js + Svelte pages)
     │   │   └── example/          # CRUD demo at "/" (reuses CrudService)
     │   └── api/                  # API routes (OpenAPI endpoints)
     │       ├── health/           # /api/health, /api/health/ready
@@ -87,7 +87,7 @@ The application runs in two distinct execution modes:
 
 ## Default Endpoints (Application Surface)
 
-### 1. Web (Inertia.js + Vue 3 — SPA-feel)
+### 1. Web (Inertia.js + Svelte 5 — SPA-feel)
 - `GET /` — CRUD demo page (Inertia page reusing `CrudService`, same service as `/api/example/cruds`).
 - `GET /cruds/{id}/edit` + `POST|PUT|DELETE /cruds[...]` — web CRUD mutations via Inertia forms (Zod → `422 { errors }` error bag, same-origin guarded).
 

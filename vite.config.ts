@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
-import vue from '@vitejs/plugin-vue'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 import path from 'path'
 
 export default defineConfig({
@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
-  plugins: [tailwindcss(), vue()],
+  plugins: [tailwindcss(), svelte({ configFile: path.resolve(__dirname, 'svelte.config.js') })],
   root: 'resources',
   publicDir: false,
   build: {

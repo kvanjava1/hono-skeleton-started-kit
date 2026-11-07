@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "check:frontend": "svelte-check --tsconfig resources/js/tsconfig.json",
     "test": "bun test",
     "migrate": "SERVICE_NAME=cli bun run scripts/migrate.ts up",
     "migrate:fresh": "SERVICE_NAME=cli bun run scripts/migrate.ts fresh",
@@ -25,7 +26,7 @@
     "@hono/inertia": "^0.8.1",
     "@hono/zod-openapi": "^1.4.0",
     "@hono/zod-validator": "^0.7.6",
-    "@inertiajs/vue3": "^3.11.0",
+    "@inertiajs/svelte": "^3.11.0",
     "@scalar/hono-api-reference": "^0.11.3",
     "bullmq": "^5.69.3",
     "drizzle-orm": "^0.45.2",
@@ -36,17 +37,18 @@
     "nodemailer": "^10.2.1",
     "postgres": "^3.4.8",
     "prom-client": "^15.1.3",
-    "vue": "^3.5.45",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tailwindcss/vite": "^4.2.2",
     "@types/bun": "1.4.2",
     "@types/node": "^22.10.0",
     "@types/nodemailer": "^8.0.2",
-    "@vitejs/plugin-vue": "^6.0.10",
     "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.10",
+    "svelte": "^5.57.3",
+    "svelte-check": "^4.7.8",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.7.0",
     "vite": "^8.0.8"

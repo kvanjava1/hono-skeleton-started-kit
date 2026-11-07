@@ -7,8 +7,8 @@ import {
 } from "../../../src/utils/vite.util.ts";
 
 /**
- * Root view for Inertia pages (the HTML shell that boots the Vue SPA).
- * All page content is rendered client-side by Vue; this shell only carries:
+ * Root view for Inertia pages (the HTML shell that boots the Svelte SPA).
+ * All page content is rendered client-side by Svelte; this shell only carries:
  * - the compiled stylesheet (Vite manifest in prod, dev server in dev)
  * - the Vite HMR client (dev only)
  * - the serialized Inertia page object (`data-page="app"`)
