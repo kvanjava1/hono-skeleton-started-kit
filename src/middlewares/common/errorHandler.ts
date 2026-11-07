@@ -4,8 +4,9 @@ import { HTTP_STATUS, MESSAGES } from "../../configs/constants.ts";
 import { errorResponse } from "../../utils/response.util.ts";
 import { logger } from "../../utils/logger.util.ts";
 import { configApp } from "../../configs/index.ts";
-import { AppError } from "../../utils/errors.util.ts";
+import { AppError, ValidationError } from "../../utils/errors.util.ts";
 import { transformError } from "../../utils/errorTransformer.util.ts";
+import { inertiaErrorResponse } from "../../utils/inertia.util.ts";
 
 export { transformError } from "../../utils/errorTransformer.util.ts";
 
@@ -71,5 +72,13 @@ export const errorHandler = async (
 ): Promise<Response> => {
   const normalizedError = transformError(err);
   logHandledError(normalizedError, c);
+
+  // Inertia requests use the Inertia error contract: validation failures are
+  // returned as 422 + { errors: { field: message } } so the client-side
+  // useForm() error bag fills automatically. Non-Inertia requests keep the
+  // standard application error contract unchanged.
+  const inertiaResponse = inertiaErrorResponse(c, normalizedError);
+  if (inertiaResponse) return inertiaResponse;
+
   return sendHandledResponse(normalizedError, c);
 };

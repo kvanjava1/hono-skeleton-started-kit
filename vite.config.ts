@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
+import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
 export default defineConfig({
@@ -7,7 +8,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
-  plugins: [tailwindcss()],
+  plugins: [tailwindcss(), vue()],
   root: 'resources',
   publicDir: false,
   build: {
@@ -15,7 +16,10 @@ export default defineConfig({
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {
-      input: path.resolve(__dirname, 'resources/css/app.css'),
+      input: [
+        path.resolve(__dirname, 'resources/css/app.css'),
+        path.resolve(__dirname, 'resources/js/apps/example1/app.ts'),
+      ],
     },
   }
 })

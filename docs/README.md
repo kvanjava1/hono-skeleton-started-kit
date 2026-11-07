@@ -80,6 +80,7 @@ Architecture rules and code conventions for this repository.
 - [Code Conventions](./standards/conventions.md) — Naming conventions, explicit `.ts` imports, response formatting, and logging tags.
 - [API Patterns](./standards/api-patterns.md) — Step-by-step guide to adding new modules with OpenAPI validation.
 - [Error Handling](./standards/error-handling.md) — `AppError` class hierarchy, automated error normalization, and driver error translation.
+- [Inertia Patterns](./standards/inertia-patterns.md) — Inertia.js + Vue 3 pages, form error bag contract, and asset versioning.
 
 ### 🔍 4. [Reference](./reference/README.md)
 Stable technical facts, directory trees, and connection specifications.

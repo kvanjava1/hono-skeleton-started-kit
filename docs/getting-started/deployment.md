@@ -6,7 +6,7 @@ This project can be compiled into a Bun binary.
 
 ```bash
 # Compile Tailwind CSS and its manifest
-bun run build:css
+bun run build:assets
 
 # Compile the Hono server binary
 bun run build:app

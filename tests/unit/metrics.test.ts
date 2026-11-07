@@ -31,7 +31,7 @@ describe("classifyRequestKind", () => {
 
   test("classifies non-api paths as web", () => {
     expect(classifyRequestKind("/", "/api")).toBe("web");
-    expect(classifyRequestKind("/example/jsx", "/api")).toBe("web");
+    expect(classifyRequestKind("/spa-demo", "/api")).toBe("web");
   });
 });
 

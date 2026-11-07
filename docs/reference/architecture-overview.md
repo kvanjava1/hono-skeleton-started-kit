@@ -24,14 +24,15 @@ The application runs in two distinct execution modes:
 ├── resources/
 │   ├── css/
 │   │   └── app.css               # Tailwind CSS entrypoint
-│   ├── js/                       # Optional client-side JS scripts
-│   └── views/                    # Server-rendered Hono JSX components (.tsx)
+│   ├── js/
+│   │   └── apps/                 # Inertia client apps (Vue 3), one folder per app
+│   │       └── example1/         # app.ts (bootstrap entry) + pages/ (e.g. Cruds/Index.vue)
+│   └── views/                    # Hono JSX (.tsx)
 │       ├── emails/               # Responsive HTML email templates
 │       │   ├── layouts/
 │       │   └── WelcomeEmail.tsx
-│       └── example/
-│           ├── Index.tsx
-│           └── Layout.tsx
+│       └── inertia/
+│           └── AppShell.tsx      # Inertia root view (HTML shell + page object)
 ├── public/                       # Public static assets (favicon, images, etc.)
 ├── storages/
 │   ├── database/                 # Local SQLite database files
@@ -49,8 +50,8 @@ The application runs in two distinct execution modes:
     ├── configs/                  # App configurations & environment parsing
     ├── routes/
     │   ├── index.ts              # Master route mounter & 404 handler
-    │   ├── web/                  # Web routes (SSR Hono JSX)
-    │   │   └── example/
+    │   ├── web/                  # Web routes (Inertia.js + Vue pages)
+    │   │   └── example/          # CRUD demo at "/" (reuses CrudService)
     │   └── api/                  # API routes (OpenAPI endpoints)
     │       ├── health/           # /api/health, /api/health/ready
     │       ├── docs/             # /api/spec, /api/docs
@@ -86,8 +87,9 @@ The application runs in two distinct execution modes:
 
 ## Default Endpoints (Application Surface)
 
-### 1. Web (Server-Side Rendered JSX)
-- `GET /` — SSR landing page with Tailwind CSS.
+### 1. Web (Inertia.js + Vue 3 — SPA-feel)
+- `GET /` — CRUD demo page (Inertia page reusing `CrudService`, same service as `/api/example/cruds`).
+- `GET /cruds/{id}/edit` + `POST|PUT|DELETE /cruds[...]` — web CRUD mutations via Inertia forms (Zod → `422 { errors }` error bag, same-origin guarded).
 
 ### 2. System & Observability
 - `GET /api/health` — Liveness probe (verifies process is responsive).

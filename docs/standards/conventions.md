@@ -18,7 +18,7 @@ All new features should be placed in dedicated sub-folders organized by domain (
 | **Services** | `camelCase.service.ts` | `src/services/<domain>/` | `crud.service.ts` |
 | **Repositories** | `camelCase.repository.ts` | `src/repositories/<domain>/` | `crud.repository.ts` |
 | **DB Schemas (Drizzle)**| `camelCase.schema.ts` | `src/database/schema/<domain>/` | `crud.schema.ts` |
-| **Views (Hono JSX)** | `PascalCase.tsx` | `resources/views/<domain>/` | `Index.tsx`, `Layout.tsx` |
+| **Inertia Pages (Vue)** | `PascalCase.vue` | `resources/js/apps/<app>/pages/` | `Cruds/Index.vue`, `Cruds/Edit.vue` |
 | **Jobs** | `camelCase.job.ts` | `src/jobs/<domain>/` | `crudCreate.job.ts` |
 | **Mailables** | `PascalCase.mail.ts` | `src/mail/` | `Welcome.mail.ts` |
 | **Email Views** | `PascalCaseEmail.tsx` | `resources/views/emails/` | `WelcomeEmail.tsx` |

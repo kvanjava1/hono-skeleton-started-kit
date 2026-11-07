@@ -56,7 +56,7 @@ Repositories (`src/repositories/<domain>/`)
 Database (SQLite / MySQL / Postgres / Mongo)
 ```
 
-### 2. Web Flow (Hono JSX SSR)
+### 2. Web Flow (Inertia.js + Vue 3)
 ```text
 Client Request
       │
@@ -65,10 +65,14 @@ Routes (`src/routes/web/`)
       │
       ▼
 Controllers (`src/controllers/web/<domain>/`)
-  └── Render Hono JSX (`resources/views/`)
+  └── c.render('<app>/<Page>', props) — Inertia page object
       │
       ▼
-HTML Response (with Tailwind CSS stylesheet link)
+HTML Shell (`resources/views/inertia/AppShell.tsx`) on first visit
+or JSON page object on `X-Inertia` navigation
+      │
+      ▼
+Vue 3 page component (`resources/js/apps/<app>/pages/`) renders the UI
 ```
 
 ### 3. Background Job Flow (BullMQ Worker)
@@ -122,7 +126,7 @@ Transport Driver (`src/libraries/mail/drivers/` -> Log / SMTP / Resend)
 
 ### 3. Controllers (`src/controllers/`)
 - Act as the HTTP boundary: parse input from requests and return HTTP responses.
-- **Web Controllers** render JSX components (`return c.html(<View />)`).
+- **Web Controllers** render Inertia pages (`c.render("example1/Cruds/Index", props)`) — see [Inertia Patterns](./inertia-patterns.md).
 - **API Controllers** read validated input via `c.req.valid("json")` or `c.req.valid("param")` and return JSON via `successResponse(c, message, data)`.
 - **Prohibited**:
   - Direct database queries.

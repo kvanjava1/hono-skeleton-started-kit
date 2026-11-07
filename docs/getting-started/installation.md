@@ -132,14 +132,14 @@ bun run dev:all
 
 You can also run them separately:
 - `bun run server:code:dev` (Hono only)
-- `bun run dev:css` (Vite only)
+- `bun run dev:assets` (Vite only — Tailwind CSS + Vue HMR)
 
 ### Production
 To build and run in production:
 
 ```bash
 # Compile Tailwind CSS and write its Vite manifest to public/build/
-bun run build:css
+bun run build:assets
 
 # Start production server
 bun run server:code:prod
@@ -154,7 +154,7 @@ follows that value.
 - API liveness: `GET /api/health`
 - API readiness: `GET /api/health/ready`
 - Prometheus metrics: `GET /metrics` (only when `METRICS_ENABLED=true`)
-- Web SSR Landing: `GET /`
+- Web root: `GET /` (Inertia.js + Vue CRUD demo)
 
 ## Run Migrations
 

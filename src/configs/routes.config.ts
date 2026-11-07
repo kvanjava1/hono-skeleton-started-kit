@@ -5,8 +5,12 @@
 export const ROUTES = {
   WEB: {
     ROOT: "/",
-    EXAMPLE: {
-      LANDING: "/example",
+    EXAMPLE_CRUD: {
+      INDEX: "/cruds",
+      EDIT: "/cruds/:id/edit",
+      CREATE: "/cruds",
+      UPDATE: "/cruds/:id",
+      DELETE: "/cruds/:id",
     },
   },
   API: {

@@ -25,6 +25,11 @@ Refer to this section when authoring new code, refactoring existing modules, or 
    - Automatic `@hono/zod-openapi` validation error normalization via `openApiValidationHook`.
    - Third-party database driver error translation.
 
+5. **[Inertia Patterns](./inertia-patterns.md)**
+   - Inertia.js + Vue 3 page conventions (`resources/js/apps/<app>/pages/`).
+   - `c.render()` page objects, shared props, and asset versioning.
+   - Form submission error bag contract (`422 { errors }`) and same-origin guard.
+
 ---
 
 ## 🌟 Golden Rules

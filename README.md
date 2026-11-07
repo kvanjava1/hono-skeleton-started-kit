@@ -11,6 +11,7 @@ Skeleton aplikasi Bun + Hono dengan halaman JSX server-rendered, Tailwind CSS v4
 
 - **Bun Runtime** (pinned di `1.4.3`)
 - **Hono Web Framework**
+- **Inertia.js + Vue 3** — halaman web SPA-feel via middleware resmi `@hono/inertia`, root template tetap Hono JSX; CRUD demo di `/` memakai **service yang sama** dengan `/api/example/cruds` (lihat `docs/standards/inertia-patterns.md`)
 - **TypeScript** dengan strict type safety
 - **Hono JSX** untuk Server-Side Rendering (SSR)
 - **Tailwind CSS v4** dikompilasi oleh Vite
@@ -69,10 +70,10 @@ Project ini memakai **satu file `.env` per mesin** (konvensi ala Laravel):
 |--------|-------------|
 | `bun run dev:all` | Menjalankan server Hono dan dev server Vite Tailwind CSS bersamaan |
 | `bun run server:code:dev` | Menjalankan backend Hono dalam watch mode |
-| `bun run dev:css` | Menjalankan dev server Vite untuk CSS saja |
-| `bun run build:css` | Mengompilasi Tailwind CSS dan membuat manifest Vite ke `public/build/` |
+| `bun run dev:assets` | Menjalankan dev server Vite untuk Tailwind CSS + Vue (HMR) |
+| `bun run build:assets` | Mengompilasi Tailwind CSS + bundle Vue (Inertia) dan membuat manifest Vite ke `public/build/` |
 | `bun run typecheck` | Menjalankan TypeScript type check (`tsc --noEmit`) |
-| `bun test` | Menjalankan test suite (saat ini **120 tests, 267 expects, 0 fail**) |
+| `bun test` | Menjalankan test suite (saat ini **133 tests, 317 expects, 0 fail**) |
 | `bun run server:code:prod` | Menjalankan server Hono dari source dengan env runtime |
 | `bun run worker:code:dev` | Menjalankan BullMQ worker dalam watch mode |
 | `bun run worker:code:prod` | Menjalankan BullMQ worker dari source dengan env runtime |
@@ -101,6 +102,16 @@ GET /api/spec          # OpenAPI 3.0 JSON spec
 GET /api/docs          # Scalar API Reference (UI interaktif)
 ```
 
+### SPA — Inertia.js + Vue 3 (Web Layer)
+
+```http
+GET    /                    # CRUD demo (Inertia page, reuses CrudService)
+GET    /cruds/{id}/edit     # Edit page
+POST   /cruds               # Create via Inertia form (Zod → 422 error bag)
+PUT    /cruds/{id}          # Update via Inertia form (302 → 303 per protocol)
+DELETE /cruds/{id}          # Soft-delete via Inertia (302 → 303 per protocol)
+```
+
 ### CRUD Example (SQLite)
 
 | Method | Path | Description |
@@ -123,7 +134,7 @@ Dokumentasi lengkap terpusat di folder [`docs/`](./docs/README.md):
 
 ## Notes
 
-- Proyek ini dirancang sebagai fondasi. Halaman `resources/views/example/Index.tsx` menjadi contoh Hono JSX SSR.
+- Proyek ini dirancang sebagai fondasi. Halaman web memakai **Inertia.js + Vue 3** (`resources/js/apps/<app>/pages/`, mulai dari CRUD demo di `/`); Hono JSX tersisa untuk root template Inertia (`resources/views/inertia/AppShell.tsx`) dan template email (`resources/views/emails/`).
 - Dukungan database, Redis, cache, queue, migrasi, dan seeding sepenuhnya modular.
 - Tailwind CSS dilayani oleh Vite saat development dan dikompilasi ke `public/build/` untuk production.
 - Worker skeleton tersedia dan siap diisi dengan job domain.
