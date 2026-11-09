@@ -16,9 +16,9 @@
     "dev:all": "concurrently \"bun run server:code:dev\" \"bun run dev:assets\"",
     "build:app": "bun build ./src/index.ts --compile --outfile server",
     "server:code:dev": "SERVICE_NAME=app bun run --watch src/index.ts",
-    "server:code:prod": "SERVICE_NAME=app bun run src/index.ts",
+    "server:code:prod": "SERVICE_NAME=app NODE_ENV=production bun run src/index.ts",
     "worker:code:dev": "SERVICE_NAME=queue bun run --watch src/workers/index.ts",
-    "worker:code:prod": "SERVICE_NAME=queue bun run src/workers/index.ts",
+    "worker:code:prod": "SERVICE_NAME=queue NODE_ENV=production bun run src/workers/index.ts",
     "server:bin:prod": "NODE_ENV=production SERVICE_NAME=app ./server",
     "worker:bin:prod": "NODE_ENV=production SERVICE_NAME=queue ./server --worker"
   },
