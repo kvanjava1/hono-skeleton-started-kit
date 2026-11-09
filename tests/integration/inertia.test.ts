@@ -95,13 +95,40 @@ describe("JSX example removal (pure SSR pages are gone by design)", () => {
 });
 
 describe("Inertia CRUD demo (web layer reuses CrudService)", () => {
+  // Mini cookie jar: the web layer runs a signed-cookie session with a
+  // session-bound CSRF token, so mutations must replay the cookies and the
+  // X-XSRF-TOKEN header exactly the way the Inertia client does.
+  const jar = new Map<string, string>();
+
+  const extractCookies = (res: Response): void => {
+    for (const line of res.headers.getSetCookie()) {
+      const pair = line.split(";")[0]!;
+      const idx = pair.indexOf("=");
+      jar.set(pair.slice(0, idx), pair.slice(idx + 1));
+    }
+  };
+
+  const cookieHeader = (): string =>
+    [...jar.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
+
+  const establishSession = async (): Promise<void> => {
+    const res = await app.fetch(
+      new Request("http://localhost/", {
+        headers: { "X-Inertia": "true", "X-Inertia-Version": "dev" },
+      }),
+    );
+    expect(res.status).toBe(200);
+    extractCookies(res);
+  };
+
   const inertiaRequest = async (
     path: string,
     method: string,
     payload?: unknown,
     headers: Record<string, string> = {},
-  ): Promise<Response> =>
-    await app.fetch(
+  ): Promise<Response> => {
+    if (jar.size === 0) await establishSession();
+    const res = await app.fetch(
       new Request(`http://localhost${path}`, {
         method,
         headers: {
@@ -109,19 +136,31 @@ describe("Inertia CRUD demo (web layer reuses CrudService)", () => {
           "X-Inertia": "true",
           "X-Inertia-Version": "dev",
           Origin: "http://localhost",
+          Cookie: cookieHeader(),
+          "X-XSRF-TOKEN": jar.get("XSRF-TOKEN") ?? "",
           ...headers,
         },
         ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),
       }),
     );
+    // Mutations rewrite the session cookie (e.g. carrying flash data) — a
+    // real browser applies it before the redirect follow-up; mirror that.
+    extractCookies(res);
+    return res;
+  };
 
   const readPageProps = async (path: string) => {
     const res = await app.fetch(
       new Request(`http://localhost${path}`, {
-        headers: { "X-Inertia": "true", "X-Inertia-Version": "dev" },
+        headers: {
+          "X-Inertia": "true",
+          "X-Inertia-Version": "dev",
+          ...(jar.size > 0 ? { Cookie: cookieHeader() } : {}),
+        },
       }),
     );
     expect(res.status).toBe(200);
+    extractCookies(res);
     const page = await res.json();
     return page.props;
   };
@@ -202,11 +241,50 @@ describe("Inertia CRUD demo (web layer reuses CrudService)", () => {
     expect(res.status).toBe(403);
   });
 
-  test("non-Inertia requests keep the standard application error contract", async () => {
+  test("mutation without a valid CSRF token is rejected with 403", async () => {
+    // Fresh request with no cookies: the middleware creates a brand-new
+    // session whose token cannot match the forged header.
     const res = await app.fetch(
       new Request("http://localhost/cruds", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Origin: "http://localhost" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Inertia": "true",
+          "X-Inertia-Version": "dev",
+          Origin: "http://localhost",
+          "X-XSRF-TOKEN": "forged-token",
+        },
+        body: JSON.stringify({ title: "No token" }),
+      }),
+    );
+    expect(res.status).toBe(403);
+  });
+
+  test("flash success is delivered once and then consumed", async () => {
+    const res = await inertiaRequest("/cruds", "POST", { title: "Flash Check" });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("/");
+
+    const first = await readPageProps("/");
+    expect(first.flash?.success).toContain("Flash Check");
+
+    const second = await readPageProps("/");
+    expect(second.flash?.success ?? null).toBeNull();
+  });
+
+  test("non-Inertia requests keep the standard application error contract", async () => {
+    // Same-origin, but no X-Inertia header: the web CSRF guard still applies
+    // (cookies + token), while the response keeps the standard JSON contract.
+    if (jar.size === 0) await establishSession();
+    const res = await app.fetch(
+      new Request("http://localhost/cruds", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "http://localhost",
+          Cookie: cookieHeader(),
+          "X-XSRF-TOKEN": jar.get("XSRF-TOKEN") ?? "",
+        },
         body: JSON.stringify({ title: "" }),
       }),
     );

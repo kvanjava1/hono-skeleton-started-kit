@@ -14,14 +14,22 @@
   interface Props {
     appName?: string
     cruds?: Crud[]
+    flash?: { success?: string; error?: string; errors?: Record<string, string> }
+    errors?: Record<string, string>
   }
 
-  let { appName = '', cruds = [] }: Props = $props()
+  let { appName = '', cruds = [], flash = {}, errors = {} }: Props = $props()
 
   // Create form — server replies 422 + { errors } on validation failure and
   // Inertia fills this error bag automatically. On success the server
   // redirects back to "/" and the fields are reset explicitly.
   const form = useForm({ title: '', content: '' })
+
+  // Validation errors that arrive via the session flash (redirect-back flow
+  // for service-level errors) are surfaced through the shared `errors` prop.
+  $effect(() => {
+    if (Object.keys(errors).length > 0) form.setError(errors)
+  })
 
   const create = () =>
     form.post(route(ROUTES.WEB.EXAMPLE_CRUD.CREATE), { onSuccess: () => form.reset() })
@@ -42,6 +50,17 @@
   <div class="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-widest text-indigo-600 uppercase bg-indigo-50 rounded-full">
     {appName} — CRUD via Inertia (same service as /api/example/cruds)
   </div>
+
+  {#if flash?.success}
+    <div class="mb-6 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-semibold">
+      {flash.success}
+    </div>
+  {/if}
+  {#if flash?.error}
+    <div class="mb-6 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold">
+      {flash.error}
+    </div>
+  {/if}
 
   <h1 class="text-3xl font-black text-slate-900 mb-6 tracking-tight">Example CRUD</h1>
 

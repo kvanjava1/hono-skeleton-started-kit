@@ -11,8 +11,10 @@ import type { Context } from "hono";
 import type { ZodError } from "zod";
 import { readFileSync } from "node:fs";
 import { configApp } from "../configs/app.config.ts";
+import { ROUTES } from "../configs/routes.config.ts";
 import { logger } from "./logger.util.ts";
 import { ValidationError } from "./errors.util.ts";
+import { consumeWebFlash, setWebFlash } from "./session.util.ts";
 
 export const APP_NAME = "Hono Skeleton Multi-DB";
 
@@ -54,11 +56,23 @@ export const getAssetVersion = (): string | null => {
 /**
  * Shared props injected into every Inertia page (mirrors Laravel's
  * HandleInertiaRequests::share()). Page-specific props override these keys.
+ *
+ * With a Context, the per-request session flash is consumed exactly once
+ * and exposed as `flash` (+ Laravel-style `errors` for the redirect-back
+ * validation flow). Without a Context (e.g. building envelopes manually)
+ * only the static props are returned.
  */
-export const getSharedProps = () => ({
-  appName: APP_NAME,
-  isDev: configApp.isDevelopment(),
-});
+export const getSharedProps = (c?: Context) => {
+  const base = {
+    appName: APP_NAME,
+    isDev: configApp.isDevelopment(),
+  };
+  if (!c) return base;
+
+  const session = c.get("webSession");
+  const flash = session ? consumeWebFlash(session) : {};
+  return { ...base, flash, errors: flash.errors ?? {} };
+};
 
 /**
  * Maps a ZodError into the Inertia error bag shape: { fieldName: message }.
@@ -74,10 +88,14 @@ export const toInertiaErrorBag = (error: ZodError): Record<string, string> => {
 };
 
 /**
- * Produces the Inertia validation error response (422 + { errors }) for
- * requests marked with the X-Inertia header. Returns null when the request
- * is not an Inertia request or the error carries no field errors — in that
- * case the caller falls back to the standard error contract.
+ * Fallback for ValidationErrors thrown OUTSIDE the web controllers (e.g.
+ * from services) on Inertia requests. Controller-level validation renders
+ * the 422 envelope itself (see inertiaValidationErrorResponse); this path
+ * instead redirects back (303) with the error bag flashed to the session,
+ * where getSharedProps() exposes it as the `errors` prop — replacing the
+ * plain 422 JSON that the Inertia client rejected with its error modal.
+ * Returns null when the request is not an Inertia request or the error
+ * carries no field errors — the caller then uses the standard contract.
  */
 export const inertiaErrorResponse = (
   c: Context,
@@ -89,7 +107,21 @@ export const inertiaErrorResponse = (
   const errors = error.data;
   if (!errors || typeof errors !== "object") return null;
 
-  return c.json({ errors }, 422);
+  const session = c.get("webSession");
+  if (!session) return c.json({ errors }, 422);
+
+  setWebFlash(session, "errors", errors as Record<string, string>);
+  let back = ROUTES.WEB.ROOT;
+  const referer = c.req.header("referer");
+  if (referer) {
+    try {
+      const url = new URL(referer);
+      back = url.pathname + url.search;
+    } catch {
+      // Keep the root fallback for a malformed referer.
+    }
+  }
+  return c.redirect(back, 303);
 };
 
 /**

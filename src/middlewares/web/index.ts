@@ -17,7 +17,8 @@ export const setupWebMiddlewares = (app: Hono) => {
   //    first visit, JSON page object when the request carries X-Inertia.
   //    - version: Vite manifest hash (changes per build -> 409 + full reload)
   //    - rootView: resources/views/inertia/AppShell.tsx (Hono JSX-style shell)
-  //    - share: global props merged into every Inertia page
+  //    - share: global props merged into every Inertia page — receives the
+  //      Context so the per-request session flash can be consumed exactly once
   //    The middleware is a pass-through for non-Inertia traffic (API routes,
   //    JSX SSR pages are untouched); it only decorates c.render() calls.
   app.use(
@@ -25,14 +26,12 @@ export const setupWebMiddlewares = (app: Hono) => {
     inertia({
       version: getAssetVersion(),
       rootView: inertiaRootView,
-      share: () => getSharedProps(),
+      share: (c) => getSharedProps(c),
     }),
   );
-
-  // Session/CSRF middlewares are planned for Phase 2
-  // (see plans/inertia-vue-integration/phase-1/ideas/03-session-csrf-error-bag.md).
 };
 
 // Re-export for easier access
 export * from "./staticAssets.middleware.ts";
-export { sameOriginGuard } from "./sameOrigin.middleware.ts";
+export { csrfGuard } from "./sameOrigin.middleware.ts";
+export { webSessionMiddleware } from "./session.middleware.ts";

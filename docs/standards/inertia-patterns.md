@@ -98,15 +98,18 @@ Any other request                            →  existing contract: { status, m
 
 - `@inertiajs/core` 3.x treats any response **without the `X-Inertia` response header** as "not a valid Inertia response" (error modal) and fills `useForm()` errors from `page.props.errors` after `setPage()`. A plain `422 { errors }` JSON therefore never reaches the error bag.
 - Web controllers re-render the **origin page** themselves via `inertiaValidationErrorResponse()` (`src/utils/inertia.util.ts`): the envelope must carry the page's **full props** (the client replaces props wholesale) and `url` must be the origin page URL — not the form action — so the address bar stays put. The Zod → error bag mapping lives in `toInertiaErrorBag()`.
-- The Global Error Handler's `inertiaErrorResponse()` remains the fallback for `ValidationError`s thrown from services on Inertia requests (plain `{ errors }` JSON — known limitation: the client shows its error modal; the session/flash-based flow is the Phase 2 fix).
-- Because there is no redirect on failure, submitted values remain intact in the client — no "old input" mechanism needed.
+- Service-level `ValidationError`s (thrown outside the web controllers) take the **redirect-back fallback**: the Global Error Handler flashes the error bag to the session and responds 303 to the Referer path — `getSharedProps(c)` then exposes it as the `errors` prop, which pages map into `form.setError()`. Submitted input is NOT preserved on this fallback path (old-input handling is a Phase 3 item).
+- Controller-level failures respond in-place (no redirect), so submitted values remain intact there — no "old input" mechanism needed on the main path.
 - Success path: `c.redirect(...)` (POST-redirect-GET). The middleware rewrites 302→303 automatically for PUT/PATCH/DELETE Inertia requests per protocol.
 
-> **Phase 2 note:** flash messages and session-bound CSRF tokens require the session layer (see `plans/inertia-vue-integration/phase-1/ideas/03-session-csrf-error-bag.md`). Until then, avoid authenticated mutations via Inertia.
+### Session, CSRF & flash (web only)
 
-### Same-origin guard
+- **Session** (Laravel `SESSION_DRIVER=cookie` parity): `webSessionMiddleware` (`src/middlewares/web/session.middleware.ts`, wired on the web router) loads or creates the session state (CSRF token + flash bag) from a single httpOnly signed cookie and persists both cookies **after** the handler, so flash written on redirect responses survives. Config lives in `src/configs/session.config.ts` — `SESSION_SECRET` (required in production; dev falls back to an insecure fixed value), `SESSION_COOKIE_NAME`, `SESSION_TTL_MINUTES`. API paths pass through untouched.
+- **CSRF (two layers)**: `csrfGuard` (evolved from `sameOriginGuard`) keeps the Origin/Referer check **and** validates the `X-XSRF-TOKEN` header against `webSession.csrfToken`. The Inertia client (3.11 `XhrHttpClient`) reads the non-httpOnly `XSRF-TOKEN` cookie and sends the header automatically on same-origin mutations — zero client changes. Missing/mismatched token → 403.
+- **Flash**: `flashSuccess()` / `flashError()` write to the session; `getSharedProps(c)` consumes the flash **once per render** and exposes `flash` (+ Laravel-style `errors`) as shared props. The demo pages render a one-shot banner and map `errors` into `form.setError()`.
+- **Service-level `ValidationError` fallback (P17)**: the global error handler now redirects back (303) with the error bag flashed to the session — no more plain-JSON response the client rejects with its modal. Controller-level Zod failures keep the 422 envelope.
 
-Unsafe web methods (POST/PUT/PATCH/DELETE) go through `sameOriginGuard` (`src/middlewares/web/sameOrigin.middleware.ts`): an `Origin`/`Referer` that mismatches the request host is rejected with 403. Note: the built-in `hono/csrf` only covers classic form content-types, while Inertia submits JSON — hence the custom guard. Strict session-bound CSRF tokens are Phase 2.
+> **Phase 3 note:** auth (register/login/logout), old-input handling, and error-page rendering build on this session layer; see `plans/inertia-session-csrf/phase-1/ideas/01-options.md`.
 
 ---
 
@@ -167,7 +170,7 @@ Production serves hashed assets from `/build/*` via the existing static-asset mi
 1. **Never build an API endpoint just to feed an Inertia page** — use the web controller + `c.render`.
 2. **Props must be JSON-serializable** and should be typed on both ends.
 3. **Keep services unaware of Inertia** — no `c`, no page objects inside `src/services/`.
-4. **Do not skip `sameOriginGuard`** on web POST/PUT/PATCH/DELETE routes.
+4. **Do not skip `csrfGuard`** (origin check + session-bound token) on web POST/PUT/PATCH/DELETE routes.
 5. **Run `bun run build:assets` before production** — a missing manifest disables versioning (logged as an error).
 6. `resources/views/` is now reserved for the Inertia root shell and email templates — do not reintroduce JSX-only web pages for Inertia-covered routes without a reason.
 7. **Resolve web paths through `ROUTES.WEB` + `route()`** — no string literals or template interpolation in routers, controllers, or Svelte pages (see [Route Registry](#-route-registry-single-source-of-truth-for-web-paths)).

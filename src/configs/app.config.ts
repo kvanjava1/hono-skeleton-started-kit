@@ -62,7 +62,13 @@ export const resetConfigApp = (): void => {
   _cachedConfigApp = null;
 };
 
-function createLazyConfig<T extends object>(build: () => T): { proxy: T; reset(): void } {
+/**
+ * Lazy single-config builder shared by sibling config modules
+ * (session.config.ts, ...) so tests can reset each config independently.
+ */
+export function createLazyConfig<T extends object>(
+  build: () => T,
+): { proxy: T; reset(): void } {
   let cached: T | null = null;
   return {
     proxy: new Proxy<T>({} as T, {

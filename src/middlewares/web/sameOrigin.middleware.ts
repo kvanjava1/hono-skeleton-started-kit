@@ -1,23 +1,25 @@
 import type { MiddlewareHandler } from "hono";
-import { HTTPException } from "hono/http-exception";
 import { logger } from "../../utils/logger.util.ts";
+import { ForbiddenError } from "../../utils/errors.util.ts";
 
 const SAFE_METHOD_RE = /^(GET|HEAD|OPTIONS)$/;
 
 /**
- * Same-origin guard for unsafe web methods (POST/PUT/PATCH/DELETE).
+ * CSRF guard for unsafe web methods (POST/PUT/PATCH/DELETE) — two layers:
  *
- * Why not the built-in `hono/csrf` alone: it only guards classic form
- * content-types (urlencoded/multipart), while Inertia submits JSON bodies.
- * This guard applies the origin check to every unsafe method:
- * - Origin/Referer present and mismatched with the request host -> 403.
- * - No Origin/Referer (non-browser client) -> allowed for now and logged;
- *   strict enforcement (session-bound CSRF token) lands in Phase 2.
+ * 1. Origin/Referer must match the request host when present. (The built-in
+ *    `hono/csrf` alone is not enough: it only guards classic form
+ *    content-types, while Inertia submits JSON bodies.)
+ * 2. Session-bound token: the Inertia client (`XhrHttpClient` in
+ *    @inertiajs/core 3.11) reads the `XSRF-TOKEN` cookie and sends it back
+ *    automatically as the `X-XSRF-TOKEN` header on same-origin mutations.
+ *    The header must equal `webSession.csrfToken` — a token tied to the
+ *    server-side session state, which plain cookie injection cannot forge.
  *
- * Inertia's axios client always sends `Origin` on POST requests, so real
- * navigations pass while cross-site forgeries are rejected.
+ * Requires `webSessionMiddleware` to have run first (wired at the web
+ * router level).
  */
-export const sameOriginGuard: MiddlewareHandler = async (c, next) => {
+export const csrfGuard: MiddlewareHandler = async (c, next) => {
   if (SAFE_METHOD_RE.test(c.req.method)) return next();
 
   const requestOrigin = new URL(c.req.url).origin;
@@ -34,19 +36,23 @@ export const sameOriginGuard: MiddlewareHandler = async (c, next) => {
   }
 
   if (clientOrigin && clientOrigin !== requestOrigin) {
-    logger.warn("[SameOriginGuard] Cross-origin request rejected", {
+    logger.warn("[CsrfGuard] Cross-origin request rejected", {
       method: c.req.method,
       path: c.req.path,
       clientOrigin,
     });
-    throw new HTTPException(403, { message: "Cross-origin request rejected" });
+    throw new ForbiddenError("Cross-origin request rejected");
   }
 
-  if (!clientOrigin) {
-    logger.debug("[SameOriginGuard] Unsafe request without Origin/Referer", {
+  const session = c.get("webSession");
+  const headerToken = c.req.header("x-xsrf-token");
+  if (!session || !headerToken || headerToken !== session.csrfToken) {
+    logger.warn("[CsrfGuard] CSRF token missing or invalid", {
       method: c.req.method,
       path: c.req.path,
+      hasToken: Boolean(headerToken),
     });
+    throw new ForbiddenError("CSRF token missing or invalid");
   }
 
   await next();

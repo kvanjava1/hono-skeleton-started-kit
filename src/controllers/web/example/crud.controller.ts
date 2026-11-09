@@ -11,6 +11,7 @@ import {
   toInertiaErrorBag,
 } from "../../../utils/inertia.util.ts";
 import { logger } from "../../../utils/logger.util.ts";
+import { flashSuccess } from "../../../utils/session.util.ts";
 import { ROUTES } from "../../../configs/routes.config.ts";
 
 /**
@@ -67,6 +68,7 @@ export const createCrudFromWeb = async (c: Context) => {
     content: parsed.data.content ?? "",
   });
   logger.info("[CrudWeb] Crud created via Inertia form", { id: crud.id });
+  flashSuccess(c, `Item "${crud.title}" created`);
   return c.redirect(ROUTES.WEB.ROOT);
 };
 
@@ -96,6 +98,7 @@ export const updateCrudFromWeb = async (c: Context) => {
 
   await CrudService.editCrud(idParsed.data.id, parsed.data);
   logger.info("[CrudWeb] Crud updated via Inertia form", { id: idParsed.data.id });
+  flashSuccess(c, `Item #${idParsed.data.id} updated`);
   return c.redirect(ROUTES.WEB.ROOT);
 };
 
@@ -108,5 +111,6 @@ export const deleteCrudFromWeb = async (c: Context) => {
 
   await CrudService.removeCrud(idParsed.data.id);
   logger.info("[CrudWeb] Crud deleted via Inertia", { id: idParsed.data.id });
+  flashSuccess(c, `Item #${idParsed.data.id} deleted`);
   return c.redirect(ROUTES.WEB.ROOT);
 };

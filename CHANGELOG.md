@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - CRUD demo page at `GET /` (`resources/js/apps/example1/pages/Cruds/` + `src/controllers/web/example/crud.controller.ts`) as the living reference — **reusing the same `CrudService` and Zod schemas as `/api/example/cruds`**.
   - Form validation mapped to the Inertia error bag (`toInertiaErrorBag`) and returned as `422 { errors }` for `X-Inertia` requests via the Global Error Handler — `useForm()` fills its error bag automatically.
   - Same-origin guard for unsafe web methods (`src/middlewares/web/sameOrigin.middleware.ts`) covering JSON content-types that the built-in `hono/csrf` does not.
+  - **Session layer** (Laravel `SESSION_DRIVER=cookie` parity): signed-cookie session holding the CSRF token + flash bag (`src/utils/session.util.ts`, `session.middleware.ts`), configured via `SESSION_SECRET` (required in production), `SESSION_COOKIE_NAME`, `SESSION_TTL_MINUTES`; API paths stay cookie-free.
+  - **Two-layer CSRF guard** (`csrfGuard`): Origin/Referer check + session-bound token via the `XSRF-TOKEN` cookie that the Inertia client mirrors into `X-XSRF-TOKEN` automatically (verified in `@inertiajs/core` 3.11 `XhrHttpClient`); mutations without a valid token are rejected with 403.
+  - **Flash messages**: consume-once `flash`/`errors` shared props (`flashSuccess`/`flashError`), one-shot banner in the demo pages, and the service-level `ValidationError` fallback now redirects back (303) with flashed errors instead of the plain JSON the client rejected with its modal.
   - Integration tests for the protocol, form error bag, origin guard, and JSX SSR regression (`tests/integration/inertia.test.ts`).
   - New standard document: `docs/standards/inertia-patterns.md`.
 
