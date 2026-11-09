@@ -20,6 +20,7 @@ export const ROUTES = {
       LOGIN_SUBMIT: "/admin/login",
       LOGOUT: "/admin/logout",
       USERS: "/admin/users",
+      USERS_CREATE_PAGE: "/admin/users/create",
       USERS_CREATE: "/admin/users",
       USERS_UPDATE: "/admin/users/:id",
       USERS_DELETE: "/admin/users/:id",

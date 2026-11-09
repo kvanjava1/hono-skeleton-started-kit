@@ -81,23 +81,6 @@
       { preserveScroll: true },
     )
 
-  // Form create (modal) — validasi 422 mengisi error bag otomatis.
-  const createForm = useForm({ name: '', email: '', password: '' })
-  let createOpen = $state(false)
-
-  const openCreate = () => {
-    createForm.reset()
-    createOpen = true
-  }
-
-  const submitCreate = () =>
-    createForm.post(route(ROUTES.WEB.ADMIN.USERS_CREATE), {
-      onSuccess: () => {
-        createOpen = false
-        createForm.reset()
-      },
-    })
-
   // Form edit (modal) — password kosong berarti "pertahankan sandi lama".
   const editForm = useForm({ name: '', email: '', password: '' })
   let editOpen = $state(false)
@@ -131,8 +114,7 @@
   $effect(() => {
     if (Object.keys(errors).length === 0) return
     untrack(() => {
-      if (createOpen) createForm.setError(errors)
-      else if (editOpen) editForm.setError(errors)
+      if (editOpen) editForm.setError(errors)
     })
   })
 
@@ -206,10 +188,12 @@
         Cari Pengguna
       </Button>
 
-      <Button onclick={openCreate}>
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-        Tambah Pengguna
-      </Button>
+      <Link href={route(ROUTES.WEB.ADMIN.USERS_CREATE_PAGE)}>
+        <Button>
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+          Tambah Pengguna
+        </Button>
+      </Link>
     </div>
 
     <!-- Tabel pengguna -->
@@ -305,31 +289,6 @@
   statusLabel="Status Pengguna"
   onApply={applySearch}
 />
-
-<!-- Modal tambah pengguna -->
-<Modal bind:open={createOpen} title="Tambah Pengguna" description="Buat akun admin baru yang dapat masuk ke panel.">
-  <form class="space-y-5" onsubmit={e => { e.preventDefault(); submitCreate() }}>
-    <div>
-      <label class="label" for="create-name">Nama</label>
-      <TextInput id="create-name" bind:value={createForm.name} placeholder="Nama lengkap" error={createForm.errors.name} required />
-    </div>
-    <div>
-      <label class="label" for="create-email">Email</label>
-      <TextInput id="create-email" type="email" bind:value={createForm.email} autocomplete="off" placeholder="nama@perusahaan.id" error={createForm.errors.email} required />
-    </div>
-    <div>
-      <label class="label" for="create-password">Sandi</label>
-      <PasswordInput id="create-password" bind:value={createForm.password} autocomplete="new-password" error={createForm.errors.password} required />
-      <p class="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">Minimal 8 karakter.</p>
-    </div>
-    <div class="flex flex-col gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800 sm:flex-row sm:justify-end">
-      <Button variant="secondary" class="w-full sm:w-auto" onclick={() => (createOpen = false)}>Batal</Button>
-      <Button type="submit" class="w-full sm:w-auto" disabled={createForm.processing}>
-        {createForm.processing ? 'Menyimpan…' : 'Simpan'}
-      </Button>
-    </div>
-  </form>
-</Modal>
 
 <!-- Modal edit pengguna -->
 <Modal bind:open={editOpen} title="Edit Pengguna" description="Perbarui data akun. Biarkan sandi kosong untuk mempertahankan sandi lama.">

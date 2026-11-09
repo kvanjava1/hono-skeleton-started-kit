@@ -13,6 +13,7 @@ import {
 } from "../../src/repositories/admin/user.repository.ts";
 
 const USERS_COMPONENT = "dashboard-admin\\/Admin\\/Users\\/Index";
+const CREATE_USER_COMPONENT = "dashboard-admin\\/Admin\\/Users\\/Create";
 
 beforeAll(async () => {
   const db = await getSqliteDb("sqlite1");
@@ -88,6 +89,17 @@ describe("Admin User Management (web only — no API)", () => {
     const text = await res.text();
     expect(text).toContain(`"component":"${USERS_COMPONENT}"`);
     expect(text).toContain("Admin Owner");
+  });
+
+  test("logged-in admin sees the Create User page", async () => {
+    await loginAsOwner();
+
+    const res = await app.fetch(
+      new Request(`${base}/admin/users/create`, { headers: { cookie: cookieHeader() } }),
+    );
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain(`"component":"${CREATE_USER_COMPONENT}"`);
   });
 
   test("POST /admin/users without CSRF is rejected with 403", async () => {

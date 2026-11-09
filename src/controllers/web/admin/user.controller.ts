@@ -63,6 +63,22 @@ const getListProps = async (c: Context) => {
   };
 };
 
+const getAuthUserSummary = async (c: Context) => {
+  const session = c.get("webSession");
+  const authUserId = getAuthUser(session);
+
+  let authUser: { name: string; email: string } | null = null;
+  if (authUserId !== null) {
+    try {
+      const user = await UserService.findUser(authUserId);
+      authUser = { name: user.name, email: user.email };
+    } catch {
+      authUser = null;
+    }
+  }
+  return { authUserId: authUserId ?? 0, authUser };
+};
+
 /** Origin page description for 422 error-bag re-renders of the list page. */
 const indexOriginPage = async (c: Context) => {
   const url = new URL(c.req.url);
@@ -73,36 +89,47 @@ const indexOriginPage = async (c: Context) => {
   };
 };
 
+/** Origin page description for 422 error-bag re-renders of the create page. */
+const createOriginPage = async (c: Context) => {
+  const { authUserId, authUser } = await getAuthUserSummary(c);
+  return {
+    component: "dashboard-admin/Admin/Users/Create",
+    url: ROUTES.WEB.ADMIN.USERS_CREATE_PAGE,
+    props: {
+      authUserId,
+      authUser,
+    },
+  };
+};
+
 /** GET /admin/users — guarded list page (authGuard at the router). */
 export const showUsersIndex = async (c: Context) => {
-  const session = c.get("webSession");
-  const authUserId = getAuthUser(session);
-
-  // Profile chip data for the layout (name/email only — never the hash).
-  let authUser: { name: string; email: string } | null = null;
-  if (authUserId !== null) {
-    try {
-      const user = await UserService.findUser(authUserId);
-      authUser = { name: user.name, email: user.email };
-    } catch {
-      authUser = null;
-    }
-  }
+  const { authUserId, authUser } = await getAuthUserSummary(c);
 
   return c.render("dashboard-admin/Admin/Users/Index", {
     ...(await getListProps(c)),
-    authUserId: authUserId ?? 0,
+    authUserId,
     authUser,
   });
 };
 
-/** POST /admin/users — create from the Inertia modal form. */
+/** GET /admin/users/create — guarded create page (authGuard at the router). */
+export const showUserCreate = async (c: Context) => {
+  const { authUserId, authUser } = await getAuthUserSummary(c);
+
+  return c.render("dashboard-admin/Admin/Users/Create", {
+    authUserId,
+    authUser,
+  });
+};
+
+/** POST /admin/users — create from the Inertia page form. */
 export const createUserFromWeb = async (c: Context) => {
   const parsed = CreateBody.safeParse(await c.req.json().catch(() => ({})));
   if (!parsed.success) {
     const errors = toInertiaErrorBag(parsed.error);
     if (c.req.header("X-Inertia")) {
-      return inertiaValidationErrorResponse(c, await indexOriginPage(c), errors);
+      return inertiaValidationErrorResponse(c, await createOriginPage(c), errors);
     }
     throw new ValidationError("Validation failed", errors);
   }
@@ -116,7 +143,7 @@ export const createUserFromWeb = async (c: Context) => {
     if (error instanceof ConflictError) {
       const errors = { email: error.message };
       if (c.req.header("X-Inertia")) {
-        return inertiaValidationErrorResponse(c, await indexOriginPage(c), errors);
+        return inertiaValidationErrorResponse(c, await createOriginPage(c), errors);
       }
       throw new ValidationError("Validation failed", errors);
     }
