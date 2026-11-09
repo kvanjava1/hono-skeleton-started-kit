@@ -218,13 +218,37 @@ export const createProduct = async (c: Context) => {
 
 ## Step 7: Route Definition & Registration
 
-Create the sub-router in `src/routes/api/product/product.router.ts`:
+First, register every endpoint path in the route registry (`src/configs/routes.config.ts`) — the single source of truth for both web and API paths:
+
+```ts
+API: {
+  // ...
+  PRODUCT: {
+    LIST:   '/api/products',
+    CREATE: '/api/products',
+    SHOW:   '/api/products/{id}',
+    UPDATE: '/api/products/{id}',
+    DELETE: '/api/products/{id}',
+  },
+},
+```
+
+Registry conventions (see `ROUTES.API.EXAMPLE.CRUDS` for a live reference):
+
+- **Absolute paths** starting with `/api`, written with the **OpenAPI `{name}` param notation** (not Hono's `:name`) — `@hono/zod-openapi` converts `{id}` to `:id` internally for routing.
+- Action names are method-agnostic (`LIST/CREATE/SHOW/UPDATE/DELETE`, plus feature-specific ones like `JOB`).
+- `ROUTES.SYSTEM` holds the non-API surface (`/metrics`, docs) — never put those in `ROUTES.API`.
+
+Create the sub-router in `src/routes/api/product/product.router.ts`, pulling every path from the registry:
 
 ```ts
 import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import { listProducts, getProduct, createProduct } from '../../../controllers/api/product/product.controller.ts';
 import { ProductIdParam, CreateProductBody } from '../../../validations/product/product.ts';
 import { openApiValidationHook } from '../../../utils/openapi.util.ts';
+import { ROUTES } from '../../../configs/routes.config.ts';
+
+const PRODUCTS = ROUTES.API.PRODUCT;
 
 export const productRouter = new OpenAPIHono({
   defaultHook: openApiValidationHook,
@@ -234,7 +258,7 @@ export const productRouter = new OpenAPIHono({
 productRouter.openapi(
   createRoute({
     method: 'get',
-    path: '/',
+    path: PRODUCTS.LIST,
     tags: ['Products'],
     summary: 'List all products',
     responses: {
@@ -248,7 +272,7 @@ productRouter.openapi(
 productRouter.openapi(
   createRoute({
     method: 'post',
-    path: '/',
+    path: PRODUCTS.CREATE,
     tags: ['Products'],
     summary: 'Create a new product',
     request: {
@@ -267,18 +291,19 @@ productRouter.openapi(
 );
 ```
 
-Mount the router inside `src/routes/api/index.ts`:
+Mount the router inside `src/routes/api/index.ts`. Because the router defines **absolute** registry paths, mount it at `"/"` — any other mount prefix would be duplicated into the OpenAPI spec paths by `@hono/zod-openapi`:
 
 ```ts
 import { productRouter } from './product/product.router.ts';
 
-apiRoutes.route('/products', productRouter);
+apiRoutes.route('/', productRouter);
 ```
 
 Your endpoint now automatically:
 1. Validates incoming requests at runtime (returning a standardized 400 error if input fails schema validation).
-2. Registers itself on the interactive OpenAPI documentation at `GET /api/docs`.
+2. Registers itself on the interactive OpenAPI documentation at `GET /api/docs` (dev/test only — gated by `API_DOCS_ENABLED`).
 3. Adheres to the standard response contract `{ status, message, data }`.
+4. Is covered by the API contract test (`tests/integration/apiContract.test.ts`): the golden path list compares the OpenAPI spec against `ROUTES.API`, so a path change that forgets the registry (or vice versa) fails CI.
 
 ---
 

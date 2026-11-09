@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { apiRoutes } from "./api/index.ts";
+import { createSystemRoutes } from "./system/index.ts";
 import { webRoutes } from "./web/index.ts";
 import { NotFoundError } from "../utils/errors.util.ts";
 import { ROUTES } from "../configs/routes.config.ts";
@@ -10,6 +11,9 @@ import { ROUTES } from "../configs/routes.config.ts";
 export const registerAllRoutes = (app: Hono) => {
   app.route("/", apiRoutes);
   app.route("/", webRoutes);
+  // System surface (/metrics + gated /api/spec, /api/docs) — mounted after
+  // apiRoutes so the OpenAPI registry is already populated for the spec.
+  app.route("/", createSystemRoutes(apiRoutes));
   
   app.notFound((c) => {
     if (c.req.path.startsWith(ROUTES.API.BASE_PATH)) {

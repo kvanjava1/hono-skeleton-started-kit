@@ -15,6 +15,9 @@ import {
   SendEmailBody,
 } from "../../../validations/example/crud.ts";
 import { openApiValidationHook } from "../../../utils/openapi.util.ts";
+import { ROUTES } from "../../../configs/routes.config.ts";
+
+const CRUDS = ROUTES.API.EXAMPLE.CRUDS;
 
 export const crudRoutes = new OpenAPIHono({
   defaultHook: openApiValidationHook,
@@ -24,7 +27,7 @@ export const crudRoutes = new OpenAPIHono({
 crudRoutes.openapi(
   createRoute({
     method: "get",
-    path: "/",
+    path: CRUDS.LIST,
     tags: ["Example CRUD"],
     summary: "List all cruds",
     description:
@@ -40,7 +43,7 @@ crudRoutes.openapi(
 crudRoutes.openapi(
   createRoute({
     method: "get",
-    path: "/{id}",
+    path: CRUDS.SHOW,
     tags: ["Example CRUD"],
     summary: "Get a crud by ID",
     description:
@@ -58,7 +61,7 @@ crudRoutes.openapi(
 crudRoutes.openapi(
   createRoute({
     method: "post",
-    path: "/",
+    path: CRUDS.CREATE,
     tags: ["Example CRUD"],
     summary: "Create a crud",
     description:
@@ -79,7 +82,7 @@ crudRoutes.openapi(
 crudRoutes.openapi(
   createRoute({
     method: "put",
-    path: "/{id}",
+    path: CRUDS.UPDATE,
     tags: ["Example CRUD"],
     summary: "Update a crud",
     description:
@@ -102,7 +105,7 @@ crudRoutes.openapi(
 crudRoutes.openapi(
   createRoute({
     method: "post",
-    path: "/job",
+    path: CRUDS.JOB,
     tags: ["Example CRUD"],
     summary: "Create a crud asynchronously",
     description:
@@ -123,7 +126,7 @@ crudRoutes.openapi(
 crudRoutes.openapi(
   createRoute({
     method: "delete",
-    path: "/{id}",
+    path: CRUDS.DELETE,
     tags: ["Example CRUD"],
     summary: "Delete a crud",
     description:
@@ -141,7 +144,7 @@ crudRoutes.openapi(
 crudRoutes.openapi(
   createRoute({
     method: "post",
-    path: "/send-email",
+    path: CRUDS.SEND_EMAIL,
     tags: ["Example CRUD"],
     summary: "Send example welcome email via queue",
     description:

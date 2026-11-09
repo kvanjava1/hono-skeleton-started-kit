@@ -118,7 +118,9 @@ Transport Driver (`src/libraries/mail/drivers/` -> Log / SMTP / Resend)
 ### 1. Routes (`src/routes/`)
 - Sole responsibility is mapping URL paths, HTTP methods, route-level middlewares, and linking to Controllers.
 - API routes utilize `OpenAPIHono` with `defaultHook: openApiValidationHook` from `src/utils/openapi.util.ts`.
-- Sub-routers live within feature domains (e.g., `src/routes/api/example/crud.router.ts`) and are mounted inside `src/routes/api/index.ts`.
+- Every API path is registered in `ROUTES.API` (`src/configs/routes.config.ts`) with the OpenAPI `{name}` param notation, and routers reference the constants — never string literals (see [API Patterns](./api-patterns.md)).
+- Sub-routers live within feature domains (e.g., `src/routes/api/example/crud.router.ts`) and are mounted inside `src/routes/api/index.ts` at `"/"` (their registry paths are absolute).
+- Non-API operational endpoints (`/metrics`, `/api/spec`, `/api/docs`) live in `src/routes/system/`, are mounted from `src/routes/index.ts`, and are excluded from the OpenAPI spec; the docs endpoints are gated by `API_DOCS_ENABLED` (default `false`).
 
 ### 2. Validations (`src/validations/`)
 - Powered by `@hono/zod-openapi` to automatically bind runtime schema validation to Swagger/Scalar OpenAPI specifications.

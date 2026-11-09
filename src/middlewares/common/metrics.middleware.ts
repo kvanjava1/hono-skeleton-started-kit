@@ -15,7 +15,7 @@ export const metricsMiddleware = async (
   c: Context,
   next: Next,
 ): Promise<void> => {
-  if (!configApp.metricsEnabled || c.req.path === ROUTES.API.METRICS) {
+  if (!configApp.metricsEnabled || c.req.path === ROUTES.SYSTEM.METRICS) {
     await next();
     return;
   }

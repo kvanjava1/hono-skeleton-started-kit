@@ -52,13 +52,15 @@ The application runs in two distinct execution modes:
     │   ├── index.ts              # Master route mounter & 404 handler
     │   ├── web/                  # Web routes (Inertia.js + Svelte pages)
     │   │   └── example/          # CRUD demo at "/" (reuses CrudService)
-    │   └── api/                  # API routes (OpenAPI endpoints)
-    │       ├── health/           # /api/health, /api/health/ready
-    │       ├── docs/             # /api/spec, /api/docs
+    │   ├── api/                  # API routes (OpenAPI endpoints only)
+    │   │   ├── health/           # /api/health, /api/health/ready
+    │   │   └── example/          # CRUD sample routes
+    │   └── system/               # Non-API surface (plain Hono, not in the spec)
     │       ├── metrics/          # /metrics (Prometheus)
-    │       └── example/          # CRUD sample routes
+    │       └── docs/             # /api/spec, /api/docs (gated by API_DOCS_ENABLED)
     ├── controllers/
     │   ├── health/               # Health & readiness handlers
+    │   ├── system/               # Metrics & API docs handlers
     │   └── example/
     │       ├── web/              # Web controllers (render Inertia pages)
     │       └── api/              # API controllers (return JSON via successResponse)
@@ -96,7 +98,8 @@ The application runs in two distinct execution modes:
 - `GET /api/health/ready` — Readiness probe (checks active database and Redis connections).
 - `GET /metrics` — Prometheus metrics (enabled when `METRICS_ENABLED=true`, optionally guarded by `x-metrics-token`).
 
-### 3. API Documentation
+### 3. API Documentation (dev/test only)
+Registered only when `API_DOCS_ENABLED=true` (default `false` — production answers a natural 404 because the routes are never mounted; see `src/routes/system/index.ts`).
 - `GET /api/spec` — OpenAPI 3.0 JSON specification.
 - `GET /api/docs` — Interactive Scalar API Reference UI.
 

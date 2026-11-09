@@ -7,7 +7,7 @@ export const requestLoggerMiddleware = async (
   c: Context,
   next: Next,
 ): Promise<void> => {
-  if (c.req.path === ROUTES.API.METRICS) {
+  if (c.req.path === ROUTES.SYSTEM.METRICS) {
     await next();
     return;
   }

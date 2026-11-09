@@ -2,11 +2,13 @@
  * Application Route Registry
  * Centralized base paths to avoid hardcoded strings and ensure consistency.
  *
- * WEB paths are the single source of truth: the web router, the Svelte
+ * WEB and API paths are the single source of truth: routers, the Svelte
  * client (via `resources/js/lib/routes.ts`), and the `make domain` generator
- * all resolve from here. Param segments use `:name` and are filled by
- * `route()` — a missing param throws instead of leaking "undefined" into
- * URLs. This file must stay dependency-free so the client can import it.
+ * all resolve from here. Param segments use `:name` on WEB (filled by
+ * `route()`) and `{name}` on API (OpenAPI notation — `@hono/zod-openapi`
+ * converts `{id}` to `:id` for Hono routing automatically), and a missing
+ * param throws instead of leaking "undefined" into URLs. This file must
+ * stay dependency-free so the client can import it.
  */
 export const ROUTES = {
   WEB: {
@@ -22,10 +24,30 @@ export const ROUTES = {
   },
   API: {
     BASE_PATH: "/api",
-    HEALTH: "/api/health",
-    METRICS: "/metrics",
+    HEALTH: {
+      LIVENESS: "/api/health",
+      READY: "/api/health/ready",
+    },
     EXAMPLE: {
-      CRUDS: "/api/example/cruds",
+      CRUDS: {
+        LIST: "/api/example/cruds",
+        CREATE: "/api/example/cruds",
+        SHOW: "/api/example/cruds/{id}",
+        UPDATE: "/api/example/cruds/{id}",
+        DELETE: "/api/example/cruds/{id}",
+        JOB: "/api/example/cruds/job",
+        SEND_EMAIL: "/api/example/cruds/send-email",
+      },
+    },
+  },
+  // Non-API operational surface (not part of the OpenAPI contract). Docs
+  // endpoints are gated by API_DOCS_ENABLED at mount time (see
+  // src/routes/system/index.ts).
+  SYSTEM: {
+    METRICS: "/metrics",
+    DOCS: {
+      SPEC: "/api/spec",
+      UI: "/api/docs",
     },
   },
 } as const;

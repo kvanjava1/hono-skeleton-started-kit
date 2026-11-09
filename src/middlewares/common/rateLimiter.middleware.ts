@@ -93,7 +93,7 @@ export const rateLimiterMiddleware = async (
   c: Context,
   next: Next,
 ): Promise<void | Response> => {
-  if (c.req.path === ROUTES.API.METRICS) {
+  if (c.req.path === ROUTES.SYSTEM.METRICS) {
     return next();
   }
 

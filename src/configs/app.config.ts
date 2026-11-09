@@ -19,6 +19,7 @@ export interface ConfigApp {
   logLevel: LogLevel;
   metricsEnabled: boolean;
   metricsToken: string;
+  apiDocsEnabled: boolean;
 }
 
 const parseLogLevel = (value: string): LogLevel => {
@@ -45,6 +46,9 @@ const buildConfigApp = (): ConfigApp => ({
   logLevel: parseLogLevel(getEnv("LOG_LEVEL", LOG_LEVELS.INFO)),
   metricsEnabled: getEnvBool("METRICS_ENABLED", false),
   metricsToken: getEnv("METRICS_TOKEN", ""),
+  // OpenAPI spec + Scalar UI (/api/spec, /api/docs). Default false so
+  // production never exposes the API surface even with a missing env var.
+  apiDocsEnabled: getEnvBool("API_DOCS_ENABLED", false),
 });
 
 let _cachedConfigApp: ConfigApp | null = null;

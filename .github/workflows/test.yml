@@ -18,6 +18,8 @@ jobs:
       CI: true
       NODE_ENV: test
       LOG_LEVEL: error
+      # Docs integration tests hit /api/spec, which only exists when enabled
+      API_DOCS_ENABLED: "true"
 
     steps:
       - name: Checkout repository

@@ -4,6 +4,9 @@ import {
   getReadiness,
 } from "../../../controllers/api/health/health.controller.ts";
 import { openApiValidationHook } from "../../../utils/openapi.util.ts";
+import { ROUTES } from "../../../configs/routes.config.ts";
+
+const HEALTH = ROUTES.API.HEALTH;
 
 export const healthRoutes = new OpenAPIHono({
   defaultHook: openApiValidationHook,
@@ -12,7 +15,7 @@ export const healthRoutes = new OpenAPIHono({
 healthRoutes.openapi(
   createRoute({
     method: "get",
-    path: "/",
+    path: HEALTH.LIVENESS,
     tags: ["Health"],
     summary: "Liveness check",
     description: "Returns 200 while the process is running.",
@@ -26,7 +29,7 @@ healthRoutes.openapi(
 healthRoutes.openapi(
   createRoute({
     method: "get",
-    path: "/ready",
+    path: HEALTH.READY,
     tags: ["Health"],
     summary: "Readiness check",
     description:
