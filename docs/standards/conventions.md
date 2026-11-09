@@ -35,12 +35,12 @@ Bun and TypeScript in this project use explicit ESM paths:
 
 ```ts
 // ✅ Always include the .ts extension on local imports
-import * as CrudService from '../services/example/crud.service.ts';
+import * as UserService from '../services/admin/user.service.ts';
 import { successResponse } from '../../utils/response.util.ts';
 import type { Context } from 'hono';
 
 // ❌ Never omit file extensions
-import * as CrudService from '../services/example/crud.service';
+import * as UserService from '../services/admin/user.service';
 ```
 
 ---

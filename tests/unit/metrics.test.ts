@@ -10,8 +10,8 @@ import {
 
 describe("normalizeRoutePath", () => {
   test("converts :param into {param}", () => {
-    expect(normalizeRoutePath("/api/example/cruds/:id")).toBe(
-      "/api/example/cruds/{id}",
+    expect(normalizeRoutePath("/admin/users/:id")).toBe(
+      "/admin/users/{id}",
     );
   });
 

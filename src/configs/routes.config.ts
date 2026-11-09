@@ -13,28 +13,23 @@
 export const ROUTES = {
   WEB: {
     ROOT: "/",
-    EXAMPLE_CRUD: {
-      INDEX: "/",
-      CREATE: "/cruds",
-      EDIT: "/cruds/:id/edit",
-      UPDATE: "/cruds/:id",
-      DELETE: "/cruds/:id",
+    // Dashboard admin (Inertia web — no API surface). LOGIN and LOGIN_SUBMIT
+    // share one path on purpose: GET renders the page, POST submits it.
+    ADMIN: {
+      LOGIN: "/admin/login",
+      LOGIN_SUBMIT: "/admin/login",
+      LOGOUT: "/admin/logout",
+      USERS: "/admin/users",
+      USERS_CREATE: "/admin/users",
+      USERS_UPDATE: "/admin/users/:id",
+      USERS_DELETE: "/admin/users/:id",
+      USERS_TOGGLE: "/admin/users/:id/toggle",
     },
     // [make:web-domain] generator inserts new domains above this line
   },
+  // No API endpoints yet — add domains here when the first real API lands.
   API: {
     BASE_PATH: "/api",
-    EXAMPLE: {
-      CRUDS: {
-        LIST: "/api/example/cruds",
-        CREATE: "/api/example/cruds",
-        SHOW: "/api/example/cruds/{id}",
-        UPDATE: "/api/example/cruds/{id}",
-        DELETE: "/api/example/cruds/{id}",
-        JOB: "/api/example/cruds/job",
-        SEND_EMAIL: "/api/example/cruds/send-email",
-      },
-    },
   },
   // Non-API operational surface (not part of the OpenAPI contract): health
   // probes, Prometheus metrics, and docs. Docs endpoints are gated by
@@ -55,7 +50,7 @@ export const ROUTES = {
 /**
  * Fills the `:name` segments of a registry pattern with URL-encoded values.
  * Throws when a required param is missing so an invalid URL can never be
- * built silently (e.g. `/cruds/undefined/edit`).
+ * built silently (e.g. `/admin/users/undefined`).
  */
 export const route = (
   pattern: string,

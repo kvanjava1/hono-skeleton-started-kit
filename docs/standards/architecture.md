@@ -119,7 +119,7 @@ Transport Driver (`src/libraries/mail/drivers/` -> Log / SMTP / Resend)
 - Sole responsibility is mapping URL paths, HTTP methods, route-level middlewares, and linking to Controllers.
 - API routes utilize `OpenAPIHono` with `defaultHook: openApiValidationHook` from `src/utils/openapi.util.ts`.
 - Every API path is registered in `ROUTES.API` (`src/configs/routes.config.ts`) with the OpenAPI `{name}` param notation, and routers reference the constants — never string literals (see [API Patterns](./api-patterns.md)).
-- Sub-routers live within feature domains (e.g., `src/routes/api/example/crud.router.ts`) and are mounted inside `src/routes/api/index.ts` at `"/"` (their registry paths are absolute).
+- Sub-routers live within feature domains (e.g., `src/routes/api/<domain>/<name>.router.ts`) and are mounted inside `src/routes/api/index.ts` at `"/"` (their registry paths are absolute).
 - Non-API operational endpoints (`/metrics`, `/api/spec`, `/api/docs`) live in `src/routes/system/`, are mounted from `src/routes/index.ts`, and are excluded from the OpenAPI spec; the docs endpoints are gated by `API_DOCS_ENABLED` (default `false`).
 
 ### 2. Validations (`src/validations/`)
@@ -128,7 +128,7 @@ Transport Driver (`src/libraries/mail/drivers/` -> Log / SMTP / Resend)
 
 ### 3. Controllers (`src/controllers/`)
 - Act as the HTTP boundary: parse input from requests and return HTTP responses.
-- **Web Controllers** render Inertia pages (`c.render("example1/Cruds/Index", props)`) — see [Inertia Patterns](./inertia-patterns.md).
+- **Web Controllers** render Inertia pages (`c.render("dashboard-admin/Admin/Users/Index", props)`) — see [Inertia Patterns](./inertia-patterns.md).
 - **API Controllers** read validated input via `c.req.valid("json")` or `c.req.valid("param")` and return JSON via `successResponse(c, message, data)`.
 - **Prohibited**:
   - Direct database queries.
@@ -149,7 +149,7 @@ Transport Driver (`src/libraries/mail/drivers/` -> Log / SMTP / Resend)
 
 ### 6. Database Schemas (`src/database/schema/`)
 - Contain Drizzle ORM table definitions (distinct from request validation schemas).
-- Organized by feature/domain (e.g., `src/database/schema/example/crud.schema.ts`).
+- Organized by feature/domain (e.g., `src/database/schema/admin/user.schema.ts`).
 
 ### 7. Libraries & Transports (`src/libraries/`)
 - Pure infrastructure adapters and third-party protocol wrappers (e.g., `src/libraries/mail/drivers/` for SMTP, Resend, and Log).

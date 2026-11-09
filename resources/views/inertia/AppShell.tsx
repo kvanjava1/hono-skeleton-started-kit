@@ -26,10 +26,18 @@ export const inertiaRootView: RootView = async (page) => {
   const script = await getScriptEntry(appName);
 
   const head = [
+    // Inter — font identitas template NusaAdmin (satu sumber untuk semua
+    // client app; keputusan di log step-2).
+    `<link rel="preconnect" href="https://fonts.googleapis.com" />`,
+    `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />`,
+    `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />`,
     stylesheet ? `<link rel="stylesheet" href="${stylesheet}" />` : "",
     isDev
       ? `<script type="module" src="${getViteDevServer()}/@vite/client"></script>`
       : "",
+    // Pre-paint theme (port head template NusaAdmin): dark-first — hanya
+    // "light" yang tersimpan memakai tema terang, mencegah flash saat load.
+    `<script>if (localStorage.theme !== 'light') document.documentElement.classList.add('dark');</script>`,
   ]
     .filter(Boolean)
     .join("\n    ");

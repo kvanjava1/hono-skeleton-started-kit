@@ -1,11 +1,6 @@
 import type { Worker } from "bullmq";
 import { createWorker } from "../queues/base.queue.ts";
 import {
-  processCrudCreate,
-  CRUD_CREATE_QUEUE,
-  type CrudCreateJobData,
-} from "../jobs/example/crudCreate.job.ts";
-import {
   processSendEmail,
   SEND_EMAIL_QUEUE,
   type SendEmailJobData,
@@ -17,17 +12,6 @@ const activeWorkers: Worker[] = [];
 
 const startWorkers = () => {
   logger.info("Background Workers starting...");
-
-  const crudWorker = createWorker(CRUD_CREATE_QUEUE, async (job) => {
-    const data = job.data as CrudCreateJobData;
-    await requestContext.run(
-      { requestId: data.requestId ?? "unknown" },
-      async () => {
-        await processCrudCreate(job);
-      },
-    );
-  });
-  activeWorkers.push(crudWorker);
 
   const mailWorker = createWorker(SEND_EMAIL_QUEUE, async (job) => {
     const data = job.data as SendEmailJobData;

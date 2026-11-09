@@ -45,7 +45,7 @@ export const queueJobDurationMs = new Histogram({
 
 /**
  * Converts a Hono route path into a low-cardinality label value.
- * Example: "/api/example/cruds/:id" -> "/api/example/cruds/{id}"
+ * Example: "/admin/users/:id" -> "/admin/users/{id}"
  */
 export const normalizeRoutePath = (routePath: string): string => {
   if (!routePath || routePath === "/*") return "not_found";

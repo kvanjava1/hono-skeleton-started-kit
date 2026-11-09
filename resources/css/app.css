@@ -3,11 +3,134 @@
 /* Kita tetap butuh ini karena file TSX di-render oleh Hono, bukan oleh Vite/JS */
 @source "../views/**/*.{ts,tsx}";
 
+/* Dark mode berbasis class `html.dark` (paritas dengan template NusaAdmin,
+   yang toggle temanya menulis class di <html>), bukan prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary: #3b82f6;
+  /* Port dari tailwind.config template NusaAdmin (Play CDN v3). */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.05), 0 8px 24px -12px rgb(0 0 0 / 0.15);
 }
 
 body {
   background-color: #f3f4f6;
   color: #1f2937;
 }
+
+/* ============================================================
+   Layer komponen reusable — PORT dari NusaAdmin
+   (public/examples/templates/dashboard — READ-ONLY, jangan diubah).
+   Blok <style type="text/tailwindcss"> yang tadinya duplikat di
+   tiap halaman (login/pelanggan/index/settings*) digabung di sini,
+   di-port ke Tailwind v4 (CSS-first; shadow-card via @theme).
+   ============================================================ */
+
+.card { @apply border border-zinc-200 bg-white shadow-card dark:border-zinc-800 dark:bg-zinc-900; }
+
+.btn { @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 text-base font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950/50 dark:focus-visible:ring-zinc-100/50 disabled:pointer-events-none disabled:opacity-60; }
+.btn-primary { @apply bg-zinc-950 text-white shadow-sm hover:bg-zinc-800 active:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200 dark:active:bg-zinc-300; }
+.btn-secondary { @apply border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700; }
+.btn-danger { @apply bg-rose-600 text-white hover:bg-rose-700; }
+
+.icon-btn { @apply grid h-10 w-10 place-items-center text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white; }
+/* Ikon di dalam sidebar mengikuti tema gelap permanen sidebar */
+#sidebar .icon-btn { @apply text-zinc-400 hover:bg-zinc-800 hover:text-white; }
+
+.input { @apply w-full border border-zinc-200 bg-white px-3.5 py-2.5 text-base text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-950 dark:focus:border-zinc-100 focus:outline-none focus:ring-4 focus:ring-zinc-950/10 dark:focus:ring-zinc-100/10 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:placeholder:text-zinc-500; }
+/* State error input — didefinisikan sebagai class (bukan utility ad-hoc)
+   agar selalu menang atas warna border/focus bawaan .input di atas. */
+.input-error { @apply border-rose-500 focus:border-rose-500 focus:ring-rose-500/25 dark:border-rose-500 dark:focus:border-rose-500 dark:focus:ring-rose-500/25; }
+
+.label { @apply mb-1.5 block text-base font-medium text-zinc-700 dark:text-zinc-300; }
+
+.badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 text-sm font-semibold; }
+
+.th { @apply px-4 py-3 text-left text-sm font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400; }
+.td { @apply px-4 py-3 align-middle text-base; }
+
+.nav-link { @apply flex items-center gap-3 px-3 py-2.5 text-base font-medium text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white; }
+.nav-link-active { @apply bg-zinc-100 text-zinc-950 hover:bg-zinc-100 hover:text-zinc-950; }
+.nav-sublink { @apply block px-3 py-2 text-base font-normal text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white; }
+
+.dropdown-panel { @apply absolute right-0 z-50 mt-2 w-56 origin-top-right border border-zinc-200 bg-white p-1.5 shadow-xl dark:border-zinc-700 dark:bg-zinc-900; }
+.dropdown-item { @apply flex items-center gap-2.5 px-3 py-2 text-base text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white; }
+
+/* ============================================================
+   Port dari css/app.css template (lapisan global):
+   scrollbar tipis, transisi tema, helper .tnum, grid tabel.
+   ============================================================ */
+
+/* Scrollbar tipis yang mengikuti tema */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(161 161 170 / 0.35) transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.35);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(161 161 170 / 0.55);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Transisi halus saat berganti light <-> dark (ID mengikuti layout admin) */
+body,
+#sidebar,
+#topbar {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Angka di tabel & statistik memakai lebar digit seragam */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grid tabel — garis vertikal & horizontal agar setiap sel tampak kotak */
+table {
+  border-collapse: collapse;
+}
+table th,
+table td {
+  border-right: 1px solid #e4e4e7;   /* zinc-200 */
+  border-bottom: 1px solid #e4e4e7; /* zinc-200 */
+}
+table th:last-child,
+table td:last-child {
+  border-right: 0;
+}
+table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.dark table th,
+.dark table td {
+  border-right-color: #27272a;   /* zinc-800 */
+  border-bottom-color: #27272a;  /* zinc-800 */
+}
+/* Header gelap memakai latar zinc-800; garis dibuat sedikit lebih terang
+   agar pemisah kolom tetap terlihat. */
+.dark table th {
+  border-right-color: #3f3f46;   /* zinc-700 */
+  border-bottom-color: #3f3f46;  /* zinc-700 */
+}
+
+/* Sembunyikan scrollbar tapi tetap bisa di-scroll */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tidak di-port dari template (tidak dibutuhkan scope ini; keputusan di log step-2):
+   - override glyph checkbox/radio & date-picker dark (butuh plugin forms)
+   - .settings-nav-link (halaman settings, di luar scope phase-1)
+   - Chart.js & particles.js (halaman statistik = fase berikutnya) */

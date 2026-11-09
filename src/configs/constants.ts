@@ -33,6 +33,11 @@ export const MESSAGES = {
   VALIDATION_ERROR: "Validation error",
   DATABASE_ERROR: "Database error",
   JSON_ONLY: "Only application/json Content-Type is accepted",
+  USER_NOT_FOUND: "User not found",
+  USER_EMAIL_TAKEN: "Email already in use",
+  USER_SELF_DELETE: "Tidak dapat menghapus akun yang sedang login",
+  USER_SELF_DISABLE: "Tidak dapat menonaktifkan akun yang sedang login",
+  AUTH_INVALID_CREDENTIALS: "Email atau password salah",
 } as const;
 
 export const LOG_LEVELS = {

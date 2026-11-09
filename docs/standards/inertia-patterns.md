@@ -12,16 +12,16 @@ Inertia is **not an API consumer**. A "page" is a Svelte component served by a n
 - **Subsequent navigation**: requests carry the `X-Inertia` header; the middleware responds with a JSON page object and the client swaps components — no full page reload, no API layer.
 
 ```text
-GET / (first visit)
-  Routes → Web Controller → c.render('example1/Cruds/Index', props)
+GET /admin/users (first visit)
+  Routes → Web Controller → c.render('dashboard-admin/Admin/Users/Index', props)
          → AppShell.tsx (HTML shell + data-page JSON)
-         → Svelte mounts Cruds/Index.svelte
+         → Svelte mounts Admin/Users/Index.svelte
 
-GET /cruds/1/edit (Inertia navigation)
+GET /admin/users?page=2 (Inertia navigation)
   Same handler → JSON page object (X-Inertia: true) → Svelte swaps component
 ```
 
-A full working reference lives in `src/controllers/web/example/crud.controller.ts` (+ `src/routes/web/example/crud.router.ts`): it serves the CRUD demo at `/` **reusing the same `CrudService` and Zod schemas as `/api/example/cruds`** — one service layer, two HTTP boundaries (REST API and Inertia pages).
+A full working reference lives in `src/controllers/web/admin/user.controller.ts` (+ `src/routes/web/admin/user.router.ts` + `src/routes/web/admin/auth.router.ts`): the admin dashboard serves login/logout and User Management entirely through web routes — **no API endpoints involved**.
 
 ---
 
@@ -30,7 +30,7 @@ A full working reference lives in `src/controllers/web/example/crud.controller.t
 | Component | Path | Naming |
 |---|---|---|
 | Client bootstrap (per app) | `resources/js/apps/<app>/app.ts` | `app.ts` |
-| Page components | `resources/js/apps/<app>/pages/` | `PascalCase.svelte` (e.g. `Cruds/Index.svelte`) |
+| Page components | `resources/js/apps/<app>/pages/` | `PascalCase.svelte` (e.g. `Admin/Users/Index.svelte`) |
 | Root view (HTML shell) | `resources/views/inertia/AppShell.tsx` | `AppShell` |
 | Inertia utils | `src/utils/inertia.util.ts` | `camelCase.util.ts` |
 | Web controllers / routes | `src/controllers/web/<domain>/`, `src/routes/web/<domain>/` | existing conventions |
@@ -41,22 +41,24 @@ A full working reference lives in `src/controllers/web/example/crud.controller.t
 
 ```text
 resources/js/apps/
-└── example1/            ← satu client app
+└── dashboard-admin/     ← satu client app
     ├── app.ts           ← bootstrap entry (createInertiaApp)
+    ├── components/      ← komponen presentational reusable (AdminLayout, Modal, ...)
     └── pages/
-        └── Cruds/
-            ├── Index.svelte
-            └── Edit.svelte
+        └── Admin/
+            ├── Login.svelte
+            └── Users/
+                └── Index.svelte
 ```
 
 Page names are **namespaced by app** on the server; the root shell derives which app's entry to load from the page name prefix:
 
 ```ts
-c.render("example1/Cruds/Index", { cruds }) // → resources/js/apps/example1/pages/Cruds/Index.svelte
+c.render("dashboard-admin/Admin/Users/Index", { users }) // → resources/js/apps/dashboard-admin/pages/Admin/Users/Index.svelte
 ```
 
 To add a new client app:
-1. Create a new folder under `apps/` with an `app.ts` (copy `example1/app.ts` as-is — the resolve logic is app-agnostic).
+1. Create a new folder under `apps/` with an `app.ts` (copy `dashboard-admin/app.ts` as-is — the resolve logic is app-agnostic).
 2. Register its entry in `vite.config.ts` → `rollupOptions.input` (`resources/js/apps/<app>/app.ts`).
 3. Serve its pages from a web controller via `c.render("<app>/<PagePath>", props)`.
 
@@ -69,9 +71,12 @@ To add a new client app:
 Controllers use `c.render(component, props)` (added by the Inertia middleware). Props must be **JSON-serializable** — never pass Hono `Context`, connections, or class instances (same rule as queue payloads).
 
 ```ts
-export const showCrudsIndex = async (c: Context) => {
-  const cruds = await CrudService.listCruds();
-  return c.render("example1/Cruds/Index", { cruds });
+export const showUsersIndex = async (c: Context) => {
+  const result = await UserService.listUsers({ page: 1 });
+  return c.render("dashboard-admin/Admin/Users/Index", {
+    users: result.rows.map(toUserView), // DTO — never leak passwordHash
+    total: result.total,
+  });
 };
 ```
 
@@ -109,7 +114,20 @@ Any other request                            →  existing contract: { status, m
 - **Flash**: `flashSuccess()` / `flashError()` write to the session; `getSharedProps(c)` consumes the flash **once per render** and exposes `flash` (+ Laravel-style `errors`) as shared props. The demo pages render a one-shot banner and map `errors` into `form.setError()`.
 - **Service-level `ValidationError` fallback (P17)**: the global error handler now redirects back (303) with the error bag flashed to the session — no more plain-JSON response the client rejects with its modal. Controller-level Zod failures keep the 422 envelope.
 
-> **Phase 3 note:** auth (register/login/logout), old-input handling, and error-page rendering build on this session layer; see `plans/inertia-session-csrf/phase-1/ideas/01-options.md`.
+### Admin pages & web auth (dashboard-admin)
+
+The admin dashboard (`resources/js/apps/dashboard-admin/`) is the first **authenticated** Inertia app. Conventions it introduced:
+
+- **Route namespace**: `ROUTES.WEB.ADMIN` (`/admin/login`, `/admin/logout`, `/admin/users...`) — constants only, no literals. `LOGIN` and `LOGIN_SUBMIT` intentionally share one path (GET renders, POST submits).
+- **Auth claim lives in the existing session cookie**: `WebSession.userId?` + `rotateSessionForAuth()` (fresh CSRF token on login → session-fixation protection; mutates in place because the session middleware persists the reference it captured before the handler) and `clearAuthUser()` on logout. One cookie, CSRF + flash keep working for anonymous visitors.
+- **Guards** (`src/middlewares/web/auth.middleware.ts`): `authGuard` (flash "Silakan login" + redirect `/admin/login`) and `guestGuard` (logged-in visitors are sent to `/admin/users`). Wire them per route in the admin routers; mutations still need `csrfGuard`.
+- **No API endpoints**: User Management is web-only (`src/routes/web/admin/*.router.ts` → `src/controllers/web/admin/*.controller.ts` → `src/services/admin/user.service.ts` → `src/repositories/admin/user.repository.ts`). Services throw `AppError`s; controllers map them (Zod/conflict → 422 error bag; row actions → `flashError` + redirect).
+- **DTO rule**: service rows contain `passwordHash`; controllers MUST map to a view DTO (`toUserView`) before `c.render` — never pass secrets as props.
+- **Reusable component layer**: NusaAdmin (`public/examples/templates/dashboard/`, read-only) was ported into global classes in `resources/css/app.css` (`card`, `btn-*`, `input`, `badge`, `nav-link`, `dropdown-*`, table grid) plus thin presentational Svelte components under `apps/dashboard-admin/components/` (`Button`, `Modal`, `Dropdown`, `Pagination`, `SearchModal`, `AdminLayout`, ...). Template folder stays untouched.
+- **Dark mode**: Tailwind v4 class variant — `@custom-variant dark (&:where(.dark, .dark *))` in `app.css`; the root shell (`AppShell.tsx`) pre-paints `html.dark` from `localStorage.theme` (dark-first) and loads the Inter font once for every app.
+- **Self-protection**: an admin cannot delete or deactivate their own account (service/controller guard + UI hides those row actions).
+
+> **Phase 3 note:** registration, old-input handling, and error-page rendering build on this session layer; see `plans/inertia-session-csrf/phase-1/ideas/01-options.md`.
 
 ---
 
@@ -117,17 +135,17 @@ Any other request                            →  existing contract: { status, m
 
 Every web path is defined exactly once, in `ROUTES.WEB` (`src/configs/routes.config.ts`). The file is dependency-free on purpose so the client bundle can import it.
 
-1. **Define the path once**: `ROUTES.WEB.<DOMAIN>.<ACTION>` with `:name` params (e.g. `/cruds/:id/edit`). Action names are method-agnostic — the HTTP method is chosen at the call site (`router.put`, `form.post`, ...).
-2. **Routers use the constants**, never string literals (see `src/routes/web/example/crud.router.ts`).
+1. **Define the path once**: `ROUTES.WEB.<DOMAIN>.<ACTION>` with `:name` params (e.g. `/admin/users/:id`). Action names are method-agnostic — the HTTP method is chosen at the call site (`router.put`, `form.post`, ...).
+2. **Routers use the constants**, never string literals (see `src/routes/web/admin/user.router.ts`).
 3. **Client code resolves paths with `route()`**: import `{ ROUTES, route }` from `resources/js/lib/routes.ts` (a straight re-export of the registry) — never interpolate strings in Svelte pages.
-4. **Params are mandatory**: `route()` throws when a required param is missing, so `/cruds/undefined/edit` can never be built silently.
+4. **Params are mandatory**: `route()` throws when a required param is missing, so `/admin/users/undefined` can never be built silently.
 5. **`make domain` scaffolds it**: the generator inserts the `ROUTES.WEB.<DOMAIN>` block above the `[make:web-domain]` marker and its web router references the constants.
 6. **Adding a route manually**: add the constant to the registry first, then reference it from the router and the client.
 
 ```svelte
-import { ROUTES, route } from '../../../../lib/routes.ts'
-form.post(route(ROUTES.WEB.EXAMPLE_CRUD.CREATE))
-router.delete(route(ROUTES.WEB.EXAMPLE_CRUD.DELETE, { id: crud.id }))
+import { ROUTES, route } from '../../../../../lib/routes.ts'
+form.post(route(ROUTES.WEB.ADMIN.USERS_CREATE))
+router.delete(route(ROUTES.WEB.ADMIN.USERS_DELETE, { id: user.id }))
 ```
 
 ---
@@ -140,10 +158,10 @@ router.delete(route(ROUTES.WEB.EXAMPLE_CRUD.DELETE, { id: crud.id }))
 ```svelte
 <script lang="ts">
 import { Link, useForm } from '@inertiajs/svelte'
-import { ROUTES, route } from '../../../../lib/routes.ts'
-let { appName = '', cruds = [] }: Props = $props()
-const form = useForm({ title: '', content: '' })
-const submit = () => form.post(route(ROUTES.WEB.EXAMPLE_CRUD.CREATE))
+import { ROUTES, route } from '../../../../../lib/routes.ts'
+let { appName = '', users = [] }: Props = $props()
+const form = useForm({ name: '', email: '', password: '' })
+const submit = () => form.post(route(ROUTES.WEB.ADMIN.USERS_CREATE))
 </script>
 ```
 

@@ -84,7 +84,7 @@ Generates a pre-configured `@hono/zod-openapi` schema with ready-to-use paramete
 
 > **Naming note:** the generator appends a `.validation` suffix, while existing
 > hand-written validations follow `src/validations/<domain>/<name>.ts` without
-> any suffix (e.g. `src/validations/example/crud.ts`). Rename the generated
+> any suffix (e.g. `src/validations/admin/user.ts`). Rename the generated
 > file (and its imports) if you want to match the codebase convention.
 
 ### 6. Create a Migration

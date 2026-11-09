@@ -1,5 +1,6 @@
 import { Hono } from "hono";
-import { exampleCrudWebRoutes } from "./example/crud.router.ts";
+import { adminAuthWebRoutes } from "./admin/auth.router.ts";
+import { adminUserWebRoutes } from "./admin/user.router.ts";
 import { ROUTES } from "../../configs/routes.config.ts";
 import { webSessionMiddleware } from "../../middlewares/web/session.middleware.ts";
 
@@ -17,5 +18,9 @@ export const webRoutes = new Hono();
 // can read `c.get("webSession")`.
 webRoutes.use("*", webSessionMiddleware);
 
-// Mount the Inertia + Svelte CRUD demo at the web root ("/", "/cruds/:id/edit", ...)
-webRoutes.route(ROUTES.WEB.ROOT, exampleCrudWebRoutes);
+// Mount the admin dashboard auth ("/admin/login", "/admin/logout") and
+// User Management ("/admin/users...") — absolute registry paths, mounted
+// at "/" like the system routers. "/" itself has no route by design
+// (the example demo was removed; no replacement root page).
+webRoutes.route(ROUTES.WEB.ROOT, adminAuthWebRoutes);
+webRoutes.route(ROUTES.WEB.ROOT, adminUserWebRoutes);

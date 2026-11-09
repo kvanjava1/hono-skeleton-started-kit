@@ -11,7 +11,7 @@ Skeleton aplikasi Bun + Hono dengan halaman JSX server-rendered, Tailwind CSS v4
 
 - **Bun Runtime** (pinned di `1.4.3`)
 - **Hono Web Framework**
-- **Inertia.js + Svelte 5** — halaman web SPA-feel via middleware resmi `@hono/inertia`, root template tetap Hono JSX; CRUD demo di `/` memakai **service yang sama** dengan `/api/example/cruds` (lihat `docs/standards/inertia-patterns.md`)
+- **Inertia.js + Svelte 5** — halaman web SPA-feel via middleware resmi `@hono/inertia`, root template tetap Hono JSX; dashboard admin (`/admin/login`, `/admin/users`) sebagai aplikasi Inertia referensi (lihat `docs/standards/inertia-patterns.md`)
 - **TypeScript** dengan strict type safety
 - **Hono JSX** untuk Server-Side Rendering (SSR)
 - **Tailwind CSS v4** dikompilasi oleh Vite
@@ -103,27 +103,21 @@ GET /api/spec          # OpenAPI 3.0 JSON spec
 GET /api/docs          # Scalar API Reference (UI interaktif)
 ```
 
-### SPA — Inertia.js + Svelte 5 (Web Layer)
+### SPA — Inertia.js + Svelte 5 (Admin Dashboard)
 
 ```http
-GET    /                    # CRUD demo (Inertia page, reuses CrudService)
-GET    /cruds/{id}/edit     # Edit page
-POST   /cruds               # Create via Inertia form (Zod → 422 error bag)
-PUT    /cruds/{id}          # Update via Inertia form (302 → 303 per protocol)
-DELETE /cruds/{id}          # Soft-delete via Inertia (302 → 303 per protocol)
+GET    /admin/login         # Login page (guest only)
+POST   /admin/login         # Login (CSRF-guarded, generic credential error)
+POST   /admin/logout        # Logout (drops the session userId claim)
+GET    /admin/users         # User Management (authGuard; search/filter/pagination)
+POST   /admin/users         # Create user via Inertia form (Zod → 422 error bag)
+PUT    /admin/users/{id}    # Update user (302 → 303 per protocol)
+DELETE /admin/users/{id}    # Soft-delete user (302 → 303 per protocol)
+POST   /admin/users/{id}/toggle # Activate/deactivate a user
 ```
 
-### CRUD Example (SQLite)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/example/cruds` | Create a new CRUD item |
-| GET | `/api/example/cruds` | List all CRUD items (cached) |
-| GET | `/api/example/cruds/{id}` | Get a CRUD item by ID (cached) |
-| PUT | `/api/example/cruds/{id}` | Update a CRUD item |
-| DELETE | `/api/example/cruds/{id}` | Soft-delete a CRUD item |
-| POST | `/api/example/cruds/job` | Enqueue async CRUD creation via BullMQ |
-| POST | `/api/example/cruds/send-email` | Enqueue example welcome email via BullMQ |
+`/` intentionally has **no page** (the old CRUD demo was removed); the API surface is
+empty until the first real domain is added (`src/routes/api/` wiring stays in place).
 
 ## Documentation
 

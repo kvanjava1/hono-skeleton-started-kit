@@ -18,7 +18,7 @@ export default defineConfig({
     rollupOptions: {
       input: [
         path.resolve(__dirname, 'resources/css/app.css'),
-        path.resolve(__dirname, 'resources/js/apps/example1/app.ts'),
+        path.resolve(__dirname, 'resources/js/apps/dashboard-admin/app.ts'),
       ],
     },
   }

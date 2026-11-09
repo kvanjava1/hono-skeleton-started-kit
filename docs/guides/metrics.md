@@ -32,7 +32,7 @@ Requests lacking a valid token will be rejected with **401 Unauthorized**.
 | `queue_job_duration_ms` | Histogram | `queue` | BullMQ job duration distribution (milliseconds) |
 
 ### Label Conventions:
-- `path`: Uses normalized route patterns (e.g., `/api/example/cruds/{id}`), not raw URL paths like `/api/example/cruds/123`, preventing cardinality explosions in metric backends.
+- `path`: Uses normalized route patterns (e.g., `/admin/users/{id}`), not raw URL paths like `/admin/users/123`, preventing cardinality explosions in metric backends.
 - `kind`: Categorized as `api` for endpoints starting with `/api`, and `web` for SSR pages.
 
 ---

@@ -29,8 +29,8 @@ class FakeWorker {
 
 mock.module("bullmq", () => ({ Queue: FakeQueue, Worker: FakeWorker }));
 
-const { enqueueCrudCreate } = await import(
-  "../../src/jobs/example/crudCreate.job.ts"
+const { enqueueSendEmail } = await import(
+  "../../src/jobs/mail/sendEmail.job.ts"
 );
 const { createWorker } = await import("../../src/queues/base.queue.ts");
 const { requestContext } = await import("../../src/utils/context.util.ts");
@@ -44,24 +44,33 @@ afterAll(() => {
   mock.restore();
 });
 
-describe("enqueueCrudCreate", () => {
+describe("enqueueSendEmail", () => {
   test("forwards requestId from context into the job payload", async () => {
     const jobId = await requestContext.run({ requestId: "test-req-abc" }, () =>
-      enqueueCrudCreate({ title: "Queue Test", content: "x" }),
+      enqueueSendEmail({
+        to: "user@example.com",
+        subject: "Queue Test",
+        html: "<p>x</p>",
+      }),
     );
 
     expect(jobId).toBe("job-1");
     expect(addedJobs).toHaveLength(1);
+    expect(addedJobs[0]!.name).toBe("send");
     expect(addedJobs[0]!.data).toMatchObject({
-      title: "Queue Test",
-      content: "x",
+      to: "user@example.com",
+      subject: "Queue Test",
       requestId: "test-req-abc",
     });
   });
 
   test("omits requestId when there is no request context", async () => {
     addedJobs.length = 0;
-    await enqueueCrudCreate({ title: "No Context", content: "" });
+    await enqueueSendEmail({
+      to: "user@example.com",
+      subject: "No Context",
+      html: "<p>x</p>",
+    });
 
     expect(
       (addedJobs[0]!.data as { requestId?: string }).requestId,

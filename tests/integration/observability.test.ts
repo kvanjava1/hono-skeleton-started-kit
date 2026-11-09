@@ -6,6 +6,7 @@ setupTestEnvironment();
 
 import { app } from "../../src/app.ts";
 import { logger } from "../../src/utils/logger.util.ts";
+import * as UserService from "../../src/services/admin/user.service.ts";
 
 interface LogCall {
   message: string;
@@ -31,15 +32,20 @@ const captureInfoLogs = () => {
 beforeAll(async () => {
   const db = await getSqliteDb("sqlite1");
   db.run(`
-    CREATE TABLE IF NOT EXISTS cruds (
+    CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      content TEXT DEFAULT '',
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      deleted_at TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-      deleted_at TEXT DEFAULT NULL
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+  db.run(
+    `CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users(email) WHERE deleted_at IS NULL;`,
+  );
 });
 
 describe("request log format", () => {
@@ -72,31 +78,31 @@ describe("request log format", () => {
   });
 });
 
-describe("CrudService log format", () => {
+describe("UserService log format", () => {
   test("logs structured business event on create", async () => {
     const { calls, restore } = captureInfoLogs();
-    let status = 0;
+    let createdId = 0;
 
     try {
-      const res = await app.fetch(
-        new Request("http://localhost/api/example/cruds", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ title: "Observed", content: "x" }),
-        }),
-      );
-      status = res.status;
+      const user = await UserService.createUser({
+        name: "Observed User",
+        email: "observed@example.com",
+        password: "secret-observer-1",
+      });
+      createdId = user.id;
     } finally {
       restore();
     }
 
-    expect(status).toBe(201);
+    expect(createdId).toBeGreaterThan(0);
 
     const entry = calls.find(
-      (call) => call.message === "[CrudService] Crud created",
+      (call) => call.message === "[UserService] User created",
     );
     expect(entry).toBeDefined();
-    expect(entry!.data).toMatchObject({ title: "Observed" });
+    expect(entry!.data).toMatchObject({
+      email: "observed@example.com",
+    });
     expect(typeof (entry!.data as { id: number }).id).toBe("number");
   });
 });

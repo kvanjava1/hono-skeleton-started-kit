@@ -30,6 +30,8 @@ export interface WebSessionFlash {
 export interface WebSession {
   csrfToken: string;
   flash: WebSessionFlash;
+  /** Auth claim for the admin dashboard (plan D3) — absent when logged out. */
+  userId?: number;
 }
 
 const createState = (): WebSession => ({
@@ -67,6 +69,7 @@ export const loadWebSession = async (c: Context): Promise<WebSession> => {
     return {
       csrfToken: parsed.csrfToken,
       flash: parsed.flash ?? {},
+      ...(parsed.userId !== undefined ? { userId: parsed.userId } : {}),
     };
   } catch {
     // Tampered/unparseable payload — a valid signature means it was written
@@ -130,4 +133,31 @@ export const flashSuccess = (c: Context, message: string): void => {
 export const flashError = (c: Context, message: string): void => {
   const session = c.get("webSession");
   if (session) setWebFlash(session, "error", message);
+};
+
+/* ==========================================================================
+ * Auth claims (admin dashboard — plan D3). The session stays ONE cookie:
+ * logging in attaches `userId` and rotates the CSRF token; logging out only
+ * removes the claim, so CSRF + flash keep working for anonymous visitors.
+ * ========================================================================== */
+
+/** Reads the authenticated user id from the session, or null when logged out. */
+export const getAuthUser = (session: WebSession): number | null =>
+  session.userId ?? null;
+
+/**
+ * Logs a user in: rotates the CSRF token (session-fixation protection) and
+ * attaches the `userId` claim. Mutates the session object IN PLACE on
+ * purpose — `webSessionMiddleware` captured the reference before the handler
+ * and persists that same object, so a wholesale replacement would be lost.
+ */
+export const rotateSessionForAuth = (session: WebSession, userId: number): void => {
+  session.csrfToken = crypto.randomUUID();
+  session.userId = userId;
+  session.flash = {};
+};
+
+/** Logs the user out: drops the claim, keeps CSRF + flash for the next visit. */
+export const clearAuthUser = (session: WebSession): void => {
+  delete session.userId;
 };
