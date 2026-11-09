@@ -53,14 +53,13 @@ The application runs in two distinct execution modes:
     │   ├── web/                  # Web routes (Inertia.js + Svelte pages)
     │   │   └── example/          # CRUD demo at "/" (reuses CrudService)
     │   ├── api/                  # API routes (OpenAPI endpoints only)
-    │   │   ├── health/           # /api/health, /api/health/ready
     │   │   └── example/          # CRUD sample routes
     │   └── system/               # Non-API surface (plain Hono, not in the spec)
+    │       ├── health/           # /api/health, /api/health/ready
     │       ├── metrics/          # /metrics (Prometheus)
     │       └── docs/             # /api/spec, /api/docs (gated by API_DOCS_ENABLED)
     ├── controllers/
-    │   ├── health/               # Health & readiness handlers
-    │   ├── system/               # Metrics & API docs handlers
+    │   ├── system/               # Health, metrics & API docs handlers
     │   └── example/
     │       ├── web/              # Web controllers (render Inertia pages)
     │       └── api/              # API controllers (return JSON via successResponse)
@@ -93,7 +92,7 @@ The application runs in two distinct execution modes:
 - `GET /` — CRUD demo page (Inertia page reusing `CrudService`, same service as `/api/example/cruds`).
 - `GET /cruds/{id}/edit` + `POST|PUT|DELETE /cruds[...]` — web CRUD mutations via Inertia forms (Zod → `422 { errors }` error bag, same-origin guarded).
 
-### 2. System & Observability
+### 2. System & Observability (not part of the OpenAPI spec)
 - `GET /api/health` — Liveness probe (verifies process is responsive).
 - `GET /api/health/ready` — Readiness probe (checks active database and Redis connections).
 - `GET /metrics` — Prometheus metrics (enabled when `METRICS_ENABLED=true`, optionally guarded by `x-metrics-token`).

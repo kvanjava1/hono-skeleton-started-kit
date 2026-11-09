@@ -24,10 +24,6 @@ export const ROUTES = {
   },
   API: {
     BASE_PATH: "/api",
-    HEALTH: {
-      LIVENESS: "/api/health",
-      READY: "/api/health/ready",
-    },
     EXAMPLE: {
       CRUDS: {
         LIST: "/api/example/cruds",
@@ -40,10 +36,14 @@ export const ROUTES = {
       },
     },
   },
-  // Non-API operational surface (not part of the OpenAPI contract). Docs
-  // endpoints are gated by API_DOCS_ENABLED at mount time (see
-  // src/routes/system/index.ts).
+  // Non-API operational surface (not part of the OpenAPI contract): health
+  // probes, Prometheus metrics, and docs. Docs endpoints are gated by
+  // API_DOCS_ENABLED at mount time (see src/routes/system/index.ts).
   SYSTEM: {
+    HEALTH: {
+      LIVENESS: "/api/health",
+      READY: "/api/health/ready",
+    },
     METRICS: "/metrics",
     DOCS: {
       SPEC: "/api/spec",

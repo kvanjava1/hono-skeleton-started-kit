@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🚀 Added
 - **API route registry & system split (route strategy Phase 1):**
   - `ROUTES.API` is now a full web-style registry: every endpoint path is a constant with the OpenAPI `{name}` notation (`LIST/CREATE/SHOW/UPDATE/DELETE/JOB/SEND_EMAIL`); routers reference the constants instead of string literals.
-  - New `src/routes/system/` for the non-API surface (`/metrics`, `/api/spec`, `/api/docs`), mounted from `src/routes/index.ts` with thin controllers (`src/controllers/system/`) — removes the docs-router self-mount cycle and aligns docs/metrics with the Controller layer standard.
+  - New `src/routes/system/` for the non-API surface (health probes `/api/health[./ready]`, `/metrics`, `/api/spec`, `/api/docs`), mounted from `src/routes/index.ts` with thin controllers (`src/controllers/system/`) — removes the docs-router self-mount cycle and aligns health/metrics/docs with the Controller layer standard; health probes are plain Hono and no longer appear in the OpenAPI spec.
   - `API_DOCS_ENABLED` env flag (default `false`): spec + Scalar UI are registered only when true, so production never exposes them (natural 404). Wired into `.env.example` and CI.
   - API contract test (`tests/integration/apiContract.test.ts`): golden path list comparing the OpenAPI spec against `ROUTES.API`, plus 404/200 gate coverage.
 - **Inertia.js + Svelte 5 Integration (PoC):**
