@@ -8,7 +8,7 @@ Refer to this section when authoring new code, refactoring existing modules, or 
 
 1. **[Architecture Standard](./architecture.md)**
    - Architectural layers (`Routes -> Validations -> Controllers -> Services -> Repositories -> Database`).
-   - Clear boundaries between Web SSR (Hono JSX) and REST API (OpenAPI).
+   - Clear boundaries between Web pages (Inertia.js + Svelte 5) and REST API (OpenAPI).
    - BullMQ background worker architecture.
 
 2. **[Code Conventions](./conventions.md)**
@@ -37,7 +37,7 @@ Refer to this section when authoring new code, refactoring existing modules, or 
 1. **Never Access `process.env` Directly**: Always use typed getters and configs from `src/configs/env.ts` or `src/configs/index.ts`.
 2. **Prefer Functions Over Classes**: Export pure functions unless an interface or stateful abstraction specifically demands a class.
 3. **HTTP Boundary Separation**:
-   - Controllers handle HTTP input/output only (`successResponse` or JSX rendering).
+   - Controllers handle HTTP input/output only (`successResponse` or Inertia page rendering).
    - Services contain pure business logic and must never import or access Hono `Context`.
 4. **Explicit Connection Targeting**: Repositories, migrations, and seeders must explicitly specify connection names (e.g., `getDrizzleDb('sqlite1')`, `getMysqlPool('mysql1')`).
 5. **No Hidden Error Returns**: Never return error indicator objects (e.g. `{ error: true }`) from services; always throw `AppError` subclasses (`NotFoundError`, `ValidationError`, etc.).

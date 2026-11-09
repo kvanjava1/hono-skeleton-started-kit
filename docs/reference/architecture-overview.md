@@ -7,7 +7,7 @@
 - **Framework**: [Hono](https://hono.dev) (`^4.6.0`)
 - **ORM / Query Builder**: [Drizzle ORM](https://orm.drizzle.team) (SQL) + Native MongoDB Driver
 - **Async Queue**: [BullMQ](https://bullmq.io) + Redis
-- **Templating / UI**: Hono JSX SSR + [Tailwind CSS v4](https://tailwindcss.com) (via Vite bundler)
+- **Web UI**: Inertia.js + Svelte 5 (SPA-feel), Hono JSX for the root shell and email templates, Tailwind CSS v4 (via Vite bundler)
 - **API Specification**: `@hono/zod-openapi` + `@scalar/hono-api-reference`
 - **Entry Point**: `src/index.ts`
 
@@ -60,7 +60,7 @@ The application runs in two distinct execution modes:
     ├── controllers/
     │   ├── health/               # Health & readiness handlers
     │   └── example/
-    │       ├── web/              # Web controllers (return HTML/JSX)
+    │       ├── web/              # Web controllers (render Inertia pages)
     │       └── api/              # API controllers (return JSON via successResponse)
     ├── services/                 # Pure domain business logic layer
     ├── repositories/             # Database access layer

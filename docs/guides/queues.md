@@ -35,7 +35,10 @@ Use the Make CLI generator:
 bun run make job SendEmail
 ```
 
-This creates `src/jobs/SendEmail.job.ts`.
+This creates `src/jobs/sendEmail.job.ts` (the generator writes camelCase file
+names to the `src/jobs/` root; existing jobs live in domain subfolders such as
+`src/jobs/mail/` — move the file and adjust its relative imports if you follow
+that layout).
 
 ### Example Job Implementation:
 
@@ -70,7 +73,7 @@ export const processSendEmail = async (job: Job<SendEmailPayload>): Promise<{ su
 Jobs should be enqueued from the **Service Layer**, rather than directly from Controllers or Repositories:
 
 ```ts
-import { sendEmailQueue } from '../../jobs/SendEmail.job.ts';
+import { sendEmailQueue } from '../../jobs/sendEmail.job.ts';
 import { getRequestId } from '../../utils/context.util.ts';
 
 export const triggerWelcomeEmail = async (userEmail: string) => {
@@ -91,7 +94,7 @@ Workers register listeners to process queues in the background:
 
 ```ts
 import { createWorker } from '../queues/base.queue.ts';
-import { processSendEmail, SEND_EMAIL_QUEUE, type SendEmailPayload } from '../jobs/SendEmail.job.ts';
+import { processSendEmail, SEND_EMAIL_QUEUE, type SendEmailPayload } from '../jobs/sendEmail.job.ts';
 import { requestContext } from '../utils/context.util.ts';
 
 // Register inside startWorkers()

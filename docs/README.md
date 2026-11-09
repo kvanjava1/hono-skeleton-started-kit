@@ -18,8 +18,8 @@ flowchart TD
         Router --> MetricsRoute
         
         WebCtrl["Web Controller"]
-        Views["Hono JSX Views + Tailwind"]
-        WebRoute --> WebCtrl --> Views
+        InertiaView["Inertia: AppShell.tsx + Svelte 5 Pages"]
+        WebRoute --> WebCtrl --> InertiaView
         
         ApiCtrl["API Controller"]
         Validation["Zod Validation (@hono/zod-openapi)"]

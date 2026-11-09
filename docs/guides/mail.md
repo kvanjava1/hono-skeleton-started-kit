@@ -59,7 +59,7 @@ This scaffolds two files:
 ## ✉️ Dispatching Emails
 
 ### 1. Asynchronous (Background Queue — Recommended)
-Offloads the rendering and delivery to the BullMQ background worker in $<5\text{ ms}$:
+Offloads the rendering and delivery to the BullMQ background worker in under 5 ms:
 
 ```typescript
 import { Mail } from '../utils/mail.util.ts';

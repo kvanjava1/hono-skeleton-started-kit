@@ -119,16 +119,16 @@ Compatibility note:
 
 ## Running the App
 
-### Development (Hono JSX + Tailwind CSS)
-Run Hono and Vite together so JSX pages render through Hono and Vite serves
-Tailwind CSS with hot updates:
+### Development (Inertia + Svelte + Tailwind CSS)
+Run Hono and Vite together so the Inertia root shell is rendered by Hono and
+Vite serves Tailwind CSS with Svelte hot updates:
 
 ```bash
 bun run dev:all
 ```
 
 - **Hono (SSR + API)**: http://localhost:8080
-- **Vite (Tailwind CSS)**: http://localhost:5173
+- **Vite (Tailwind CSS + Svelte HMR)**: http://localhost:5173
 
 You can also run them separately:
 - `bun run server:code:dev` (Hono only)
@@ -177,11 +177,14 @@ bun run seed pg
 ```bash
 bun run make migration sqlite create_users
 bun run make seeder sqlite UserSeeder
-bun run make controller Product
-bun run make service sqlite Product
-bun run make repository sqlite Product
+bun run make controller api Product     # or: make controller web Product
+bun run make service Product
+bun run make repository Product
 bun run make validation Product
 bun run make job SendEmail
 ```
+
+See [Make CLI](../guides/make-cli.md) for the full command reference and
+generated output paths.
 
 [Back to Getting Started](./README.md)

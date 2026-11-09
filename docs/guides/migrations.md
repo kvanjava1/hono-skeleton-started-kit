@@ -50,6 +50,15 @@ SERVICE_NAME=cli bun run scripts/migrate.ts rollback
 SERVICE_NAME=cli bun run scripts/migrate.ts rollback sqlite
 ```
 
+Fresh (destructive: drops every table of the target's enabled connections,
+clears the `migrations` ledger, then re-runs all migrations for that target;
+supported for `sqlite`, `mysql`, `pg`, `mongo`):
+
+```bash
+bun run migrate fresh sqlite
+bun run migrate fresh mysql
+```
+
 Create a migration file:
 
 ```bash

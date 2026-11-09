@@ -10,7 +10,7 @@ This skeleton provides a CLI-based code generator (`scripts/make.ts`) inspired b
 # Complete Domain Scaffolding (Web + API + Service + Repo + Validation)
 bun run make domain <domain>
 
-# HTTP Boundary (Web & API separated)
+# HTTP Boundary (Web & API separated; kind defaults to `api` when omitted)
 bun run make controller api <domain> [name]
 bun run make controller web <domain> [name]
 
@@ -44,20 +44,21 @@ bun run make domain article
 ```
 *Output*:
 - `src/controllers/api/article/article.controller.ts` (API JSON endpoint)
-- `src/controllers/web/article/article.controller.ts` (Web SSR handler returning echo string)
+- `src/controllers/web/article/article.controller.ts` (Web handler — the stub still returns an HTML echo via `c.html()`; replace it with `c.render(...)` per [Inertia Patterns](../standards/inertia-patterns.md) when you build real pages)
 - `src/routes/api/article/article.router.ts` (OpenAPI sub-router)
-- `src/routes/web/article/article.router.ts` (Web sub-router)
+- `src/routes/web/article/article.router.ts` (Web sub-router, paths resolved from the registry)
 - `src/services/article/article.service.ts` (Business logic)
 - `src/repositories/article/article.repository.ts` (Data access)
 - `src/validations/article/article.validation.ts` (Zod validation)
+- `src/configs/routes.config.ts` — inserts a `ROUTES.WEB.ARTICLE` block above the `[make:web-domain]` marker, so the generated web router resolves paths from the route registry instead of string literals
 
 ### 2. Create Controllers (API vs Web)
 ```bash
-# API Controller (JSON)
+# API Controller (JSON) — the default when kind is omitted
 bun run make controller api product
 # Output: src/controllers/api/product/product.controller.ts
 
-# Web Controller (SSR View / Echo String)
+# Web Controller (currently an HTML echo stub — swap to c.render for real pages)
 bun run make controller web product
 # Output: src/controllers/web/product/product.controller.ts
 ```
@@ -78,8 +79,13 @@ bun run make repository product
 ```bash
 bun run make validation product
 ```
-*Output*: `src/validations/product/product.validation.ts`  
+*Output*: `src/validations/product/product.validation.ts`
 Generates a pre-configured `@hono/zod-openapi` schema with ready-to-use parameter and body schemas.
+
+> **Naming note:** the generator appends a `.validation` suffix, while existing
+> hand-written validations follow `src/validations/<domain>/<name>.ts` without
+> any suffix (e.g. `src/validations/example/crud.ts`). Rename the generated
+> file (and its imports) if you want to match the codebase convention.
 
 ### 6. Create a Migration
 ```bash
@@ -98,8 +104,11 @@ bun run make seeder pg ProductSeeder
 ```bash
 bun run make job ProcessReport
 ```
-*Output*: `src/jobs/processReport.job.ts`  
-Generates a BullMQ queue factory and an asynchronous job processor.
+*Output*: `src/jobs/processReport.job.ts`
+Generates a BullMQ queue factory and an asynchronous job processor. The
+generator writes to the `src/jobs/` root; existing jobs are organized in
+domain subfolders (`src/jobs/example/`, `src/jobs/mail/`) — move the file and
+adjust its relative imports if you follow that layout.
 
 ### 9. Create a Mailable & JSX Template
 ```bash
