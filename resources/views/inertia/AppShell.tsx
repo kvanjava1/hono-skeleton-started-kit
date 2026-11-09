@@ -26,11 +26,7 @@ export const inertiaRootView: RootView = async (page) => {
   const script = await getScriptEntry(appName);
 
   const head = [
-    // Inter — font identitas template NusaAdmin (satu sumber untuk semua
-    // client app; keputusan di log step-2).
-    `<link rel="preconnect" href="https://fonts.googleapis.com" />`,
-    `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />`,
-    `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />`,
+    // Inter dimuat secara self-hosted via app.css (@fontsource-variable/inter)
     stylesheet ? `<link rel="stylesheet" href="${stylesheet}" />` : "",
     isDev
       ? `<script type="module" src="${getViteDevServer()}/@vite/client"></script>`

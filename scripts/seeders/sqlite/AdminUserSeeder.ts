@@ -3,6 +3,7 @@ import { getDrizzleDb } from "../../../src/database/drizzle.ts";
 import { users } from "../../../src/database/schema/admin/user.schema.ts";
 import { configApp } from "../../../src/configs/index.ts";
 import { logger } from "../../../src/utils/logger.util.ts";
+import { PASSWORD_HASH_OPTIONS } from "../../../src/services/admin/user.service.ts";
 
 /**
  * Seeds the first admin account for the dashboard login (plan D2/D3).
@@ -42,9 +43,7 @@ export const seed = async (): Promise<void> => {
     return;
   }
 
-  const passwordHash = await Bun.password.hash(ADMIN_PASSWORD, {
-    algorithm: "argon2id",
-  });
+  const passwordHash = await Bun.password.hash(ADMIN_PASSWORD, PASSWORD_HASH_OPTIONS);
 
   await db.insert(users).values({
     name: ADMIN_NAME,

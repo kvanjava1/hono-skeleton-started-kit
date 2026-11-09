@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
   import { Link, router, useForm } from '@inertiajs/svelte'
   import { ROUTES, route } from '../../../../../lib/routes.ts'
   import AdminLayout from '../../../components/AdminLayout.svelte'
@@ -126,11 +127,13 @@
       })
 
   // Error bag dari alur redirect-back (error level service) mengisi form
-  // yang sedang terbuka.
+  // yang sedang terbuka. Gunakan untrack di Svelte 5 agar tidak loop.
   $effect(() => {
     if (Object.keys(errors).length === 0) return
-    if (createOpen) createForm.setError(errors)
-    else if (editOpen) editForm.setError(errors)
+    untrack(() => {
+      if (createOpen) createForm.setError(errors)
+      else if (editOpen) editForm.setError(errors)
+    })
   })
 
   const toggleActive = (user: UserView) =>

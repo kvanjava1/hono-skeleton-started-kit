@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
   import { useForm } from '@inertiajs/svelte'
   import { ROUTES, route } from '../../../../lib/routes.ts'
   import TextInput from '../../components/TextInput.svelte'
@@ -19,13 +20,20 @@
 
   // Validation errors that arrive via the session flash (redirect-back flow)
   // are surfaced through the shared `errors` prop.
+  // Gunakan untrack() di Svelte 5 agar form.setError tidak memicu infinite update loop.
   $effect(() => {
-    if (Object.keys(errors).length > 0) form.setError(errors)
+    if (Object.keys(errors).length > 0) {
+      untrack(() => {
+        form.setError(errors)
+      })
+    }
   })
 
   // The generic credential failure is stored under the form-level `form` key
   // (anti user-enumeration) which is outside the typed form fields.
-  const formError = $derived((form.errors as Record<string, string | undefined>).form)
+  const formError = $derived(
+    ((form.errors as Record<string, string | undefined>).form) || errors.form
+  )
 
   const login = () => form.post(route(ROUTES.WEB.ADMIN.LOGIN_SUBMIT))
 </script>

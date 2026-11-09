@@ -4,6 +4,9 @@
   // terhubung garis tipis, dan mengeluarkan riak saat diklik/disentuh.
   // Monokrom, mengikuti tema via event "themechange", dihentikan saat tab
   // tersembunyi, dan dilewati bila pengguna meminta reduced-motion.
+  // Animasi partikel dimatikan sementara untuk performa rendering ringan
+  const ENABLED = false
+
   let canvas: HTMLCanvasElement | undefined = $state()
 
   interface Dot {
@@ -24,6 +27,7 @@
   }
 
   $effect(() => {
+    if (!ENABLED) return
     const el = canvas
     if (!el) return
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
@@ -252,4 +256,6 @@
   })
 </script>
 
-<canvas bind:this={canvas} class="pointer-events-none fixed inset-0" aria-hidden="true"></canvas>
+{#if ENABLED}
+  <canvas bind:this={canvas} class="pointer-events-none fixed inset-0" aria-hidden="true"></canvas>
+{/if}

@@ -3,6 +3,7 @@ import { app } from './app.ts';
 import { connectAllDatabases, disconnectAllDatabases } from './database/index.ts';
 import { configApp } from './configs/index.ts';
 import { logger } from './utils/logger.util.ts';
+import { getDummyHash } from './services/admin/user.service.ts';
 
 import { startWorkers, stopWorkers } from './workers/index.ts';
 
@@ -44,6 +45,9 @@ const run = async () => {
       logger.info('Connecting to databases...');
       await connectAllDatabases();
       logger.info('All databases connected');
+
+      // Pre-warm password timing equalizer so first login avoids cold-start latency
+      void getDummyHash();
 
       const server = serve({
         port: configApp.port,

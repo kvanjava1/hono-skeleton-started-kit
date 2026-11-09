@@ -22,23 +22,32 @@ import {
 export type { User, UserListQuery, UserListResult };
 
 /**
- * Argon2id is Bun's default `Bun.password` algorithm; it is stated explicitly
- * so the hashing choice does not depend on runtime defaults.
+ * Argon2id tuning options:
+ * Default Bun is memoryCost 65536 KiB (64MB) and timeCost 2-3 iterations (~220ms),
+ * which can cause CPU saturation during concurrent logins.
+ *
+ * Tuned options:
+ * - memoryCost: 19456 (19MB), timeCost: 2 (~45ms, OWASP recommended moderate)
+ * - memoryCost: 8192 (8MB), timeCost: 1 (~10ms, lightweight profile)
  */
+export const PASSWORD_HASH_OPTIONS = {
+  algorithm: "argon2id" as const,
+  memoryCost: 8192,
+  timeCost: 1,
+};
+
 const hashPassword = (plain: string): Promise<string> =>
-  Bun.password.hash(plain, { algorithm: "argon2id" });
+  Bun.password.hash(plain, PASSWORD_HASH_OPTIONS);
 
 /**
  * Verifying a hash costs real CPU time. When the email does not exist we
  * verify against a throwaway hash anyway so "unknown email" and "wrong
  * password" take a similar amount of time (anti user-enumeration timing
- * equalizer). Computed lazily, once per process.
+ * equalizer). Computed lazily or pre-warmed at server startup.
  */
 let dummyHashPromise: Promise<string> | null = null;
-const getDummyHash = (): Promise<string> => {
-  dummyHashPromise ??= Bun.password.hash("timing-equalizer-dummy", {
-    algorithm: "argon2id",
-  });
+export const getDummyHash = (): Promise<string> => {
+  dummyHashPromise ??= Bun.password.hash("timing-equalizer-dummy", PASSWORD_HASH_OPTIONS);
   return dummyHashPromise;
 };
 
