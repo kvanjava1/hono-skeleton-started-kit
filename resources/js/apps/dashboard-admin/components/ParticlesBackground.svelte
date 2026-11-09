@@ -2,10 +2,8 @@
   // Port 1:1 dari public/examples/templates/dashboard/js/particles.js
   // (sumber read-only). Titik melayang pelan, menghindar dari kursor,
   // terhubung garis tipis, dan mengeluarkan riak saat diklik/disentuh.
-  // Monokrom, mengikuti tema via event "themechange", dihentikan saat tab
-  // tersembunyi, dan dilewati bila pengguna meminta reduced-motion.
-  // Animasi partikel dimatikan sementara untuk performa rendering ringan
-  const ENABLED = false
+  // Dioptimasi: batched canvas pathing, squared-distance checks, dan jumlah partikel proporsional.
+  const ENABLED = true
 
   let canvas: HTMLCanvasElement | undefined = $state()
 
@@ -40,10 +38,13 @@
     const pointer = { x: -9999, y: -9999, active: false }
     let raf: number | null = null
 
-    const LINK_DIST = 110
-    const POINTER_DIST = 150
-    const REPEL_RADIUS = 120
-    const REPEL_FORCE = 0.55
+    const LINK_DIST = 100
+    const LINK_DIST_SQ = LINK_DIST * LINK_DIST
+    const POINTER_DIST = 130
+    const POINTER_DIST_SQ = POINTER_DIST * POINTER_DIST
+    const REPEL_RADIUS = 100
+    const REPEL_RADIUS_SQ = REPEL_RADIUS * REPEL_RADIUS
+    const REPEL_FORCE = 0.5
 
     const isDark = () => document.documentElement.classList.contains('dark')
     let color = isDark() ? '244,244,245' : '24,24,27' // zinc-100 / zinc-950
@@ -54,7 +55,7 @@
     }
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
       el.width = window.innerWidth * dpr
       el.height = window.innerHeight * dpr
       el.style.width = `${window.innerWidth}px`
@@ -65,17 +66,17 @@
 
     const seed = () => {
       const area = window.innerWidth * window.innerHeight
-      const count = Math.min(110, Math.max(40, Math.round(area / 12000)))
+      const count = Math.min(50, Math.max(25, Math.round(area / 32000)))
       dots = []
       for (let i = 0; i < count; i++) {
         dots.push({
           x: Math.random() * window.innerWidth,
           y: Math.random() * window.innerHeight,
-          vx: (Math.random() - 0.5) * 0.35,
-          vy: (Math.random() - 0.5) * 0.35,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
           ix: 0,
           iy: 0,
-          r: 1 + Math.random() * 1.6,
+          r: 1 + Math.random() * 1.5,
         })
       }
     }
@@ -96,9 +97,10 @@
       for (const dot of dots) {
         const dx = dot.x - x
         const dy = dot.y - y
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1
-        if (dist < 160) {
-          const force = ((160 - dist) / 160) * 3.2
+        const distSq = dx * dx + dy * dy
+        if (distSq < 22500) { // 150 * 150
+          const dist = Math.sqrt(distSq) || 1
+          const force = ((150 - dist) / 150) * 3
           dot.ix += (dx / dist) * force
           dot.iy += (dy / dist) * force
         }
@@ -124,8 +126,9 @@
         if (pointer.active) {
           const dx = dot.x - pointer.x
           const dy = dot.y - pointer.y
-          const dist = Math.sqrt(dx * dx + dy * dy) || 1
-          if (dist < REPEL_RADIUS) {
+          const distSq = dx * dx + dy * dy
+          if (distSq < REPEL_RADIUS_SQ) {
+            const dist = Math.sqrt(distSq) || 1
             const force = ((REPEL_RADIUS - dist) / REPEL_RADIUS) * REPEL_FORCE
             dot.ix += (dx / dist) * force
             dot.iy += (dy / dist) * force
@@ -164,8 +167,9 @@
           const other = dots[j]!
           const dx = dot.x - other.x
           const dy = dot.y - other.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < LINK_DIST) {
+          const distSq = dx * dx + dy * dy
+          if (distSq < LINK_DIST_SQ) {
+            const dist = Math.sqrt(distSq)
             const alpha = (1 - dist / LINK_DIST) * 0.14
             ctx.strokeStyle = `rgba(${color},${alpha.toFixed(3)})`
             ctx.beginPath()
@@ -181,8 +185,9 @@
         for (const dot of dots) {
           const dx = dot.x - pointer.x
           const dy = dot.y - pointer.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < POINTER_DIST) {
+          const distSq = dx * dx + dy * dy
+          if (distSq < POINTER_DIST_SQ) {
+            const dist = Math.sqrt(distSq)
             const alpha = (1 - dist / POINTER_DIST) * 0.35
             ctx.strokeStyle = `rgba(${color},${alpha.toFixed(3)})`
             ctx.beginPath()
@@ -193,21 +198,24 @@
         }
       }
 
-      // Titik
+      // Batch render titik (single beginPath + fill)
       ctx.fillStyle = `rgba(${color},0.35)`
+      ctx.beginPath()
       for (const dot of dots) {
-        ctx.beginPath()
+        ctx.moveTo(dot.x + dot.r, dot.y)
         ctx.arc(dot.x, dot.y, dot.r, 0, 6.2832)
-        ctx.fill()
       }
+      ctx.fill()
 
       // Riak klik/sentuhan
-      ctx.lineWidth = 1.5
-      for (const ripple of ripples) {
-        ctx.strokeStyle = `rgba(${color},${ripple.alpha.toFixed(3)})`
-        ctx.beginPath()
-        ctx.arc(ripple.x, ripple.y, ripple.r, 0, 6.2832)
-        ctx.stroke()
+      if (ripples.length > 0) {
+        ctx.lineWidth = 1.5
+        for (const ripple of ripples) {
+          ctx.strokeStyle = `rgba(${color},${ripple.alpha.toFixed(3)})`
+          ctx.beginPath()
+          ctx.arc(ripple.x, ripple.y, ripple.r, 0, 6.2832)
+          ctx.stroke()
+        }
       }
     }
 
