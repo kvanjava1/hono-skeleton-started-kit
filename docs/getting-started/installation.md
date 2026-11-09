@@ -154,7 +154,8 @@ follows that value.
 - API liveness: `GET /api/health`
 - API readiness: `GET /api/health/ready`
 - Prometheus metrics: `GET /metrics` (only when `METRICS_ENABLED=true`)
-- Web root: `GET /` (Inertia.js + Svelte CRUD demo)
+- Admin dashboard: `GET /admin/login` (Inertia.js + Svelte — run the seeder first for the dev account)
+- Web root: `GET /` answers 404 by design (no root page; the example CRUD demo was removed)
 
 ## Run Migrations
 

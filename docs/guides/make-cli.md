@@ -107,8 +107,8 @@ bun run make job ProcessReport
 *Output*: `src/jobs/processReport.job.ts`
 Generates a BullMQ queue factory and an asynchronous job processor. The
 generator writes to the `src/jobs/` root; existing jobs are organized in
-domain subfolders (`src/jobs/example/`, `src/jobs/mail/`) — move the file and
-adjust its relative imports if you follow that layout.
+domain subfolders (e.g. `src/jobs/mail/`) — move the file and adjust its
+relative imports if you follow that layout.
 
 ### 9. Create a Mailable & JSX Template
 ```bash

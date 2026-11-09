@@ -129,7 +129,7 @@ Dokumentasi lengkap terpusat di folder [`docs/`](./docs/README.md):
 
 ## Notes
 
-- Proyek ini dirancang sebagai fondasi. Halaman web memakai **Inertia.js + Svelte 5** (`resources/js/apps/<app>/pages/`, mulai dari CRUD demo di `/`); Hono JSX tersisa untuk root template Inertia (`resources/views/inertia/AppShell.tsx`) dan template email (`resources/views/emails/`).
+- Proyek ini dirancang sebagai fondasi. Halaman web memakai **Inertia.js + Svelte 5** (`resources/js/apps/<app>/pages/`, dimulai dari dashboard admin di `/admin/*`); Hono JSX tersisa untuk root template Inertia (`resources/views/inertia/AppShell.tsx`) dan template email (`resources/views/emails/`).
 - Dukungan database, Redis, cache, queue, migrasi, dan seeding sepenuhnya modular.
 - Tailwind CSS dilayani oleh Vite saat development dan dikompilasi ke `public/build/` untuk production.
 - Worker skeleton tersedia dan siap diisi dengan job domain.
