@@ -12,7 +12,7 @@ import {
   toInertiaErrorBag,
 } from "../../../utils/inertia.util.ts";
 import { flashError, flashSuccess, getAuthUser } from "../../../utils/session.util.ts";
-import { ROUTES } from "../../../configs/routes.config.ts";
+import { ROUTES, route } from "../../../configs/routes.config.ts";
 import { logger } from "../../../utils/logger.util.ts";
 import type { User } from "../../../repositories/admin/user.repository.ts";
 
@@ -102,6 +102,20 @@ const createOriginPage = async (c: Context) => {
   };
 };
 
+/** Origin page description for 422 error-bag re-renders of the edit page. */
+const editOriginPage = async (c: Context, user: UserView) => {
+  const { authUserId, authUser } = await getAuthUserSummary(c);
+  return {
+    component: "dashboard-admin/Admin/Users/Edit",
+    url: route(ROUTES.WEB.ADMIN.USERS_EDIT_PAGE, { id: user.id }),
+    props: {
+      user,
+      authUserId,
+      authUser,
+    },
+  };
+};
+
 /** GET /admin/users — guarded list page (authGuard at the router). */
 export const showUsersIndex = async (c: Context) => {
   const { authUserId, authUser } = await getAuthUserSummary(c);
@@ -123,6 +137,32 @@ export const showUserCreate = async (c: Context) => {
   });
 };
 
+/** GET /admin/users/:id/edit — guarded edit page (authGuard at the router). */
+export const showUserEdit = async (c: Context) => {
+  const idParsed = IdParam.safeParse({ id: c.req.param("id") });
+  if (!idParsed.success) {
+    flashError(c, MESSAGES.USER_NOT_FOUND);
+    return c.redirect(ROUTES.WEB.ADMIN.USERS);
+  }
+
+  try {
+    const user = await UserService.findUser(idParsed.data.id);
+    const { authUserId, authUser } = await getAuthUserSummary(c);
+
+    return c.render("dashboard-admin/Admin/Users/Edit", {
+      user: toUserView(user),
+      authUserId,
+      authUser,
+    });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      flashError(c, MESSAGES.USER_NOT_FOUND);
+      return c.redirect(ROUTES.WEB.ADMIN.USERS);
+    }
+    throw error;
+  }
+};
+
 /** POST /admin/users — create from the Inertia page form. */
 export const createUserFromWeb = async (c: Context) => {
   const parsed = CreateBody.safeParse(await c.req.json().catch(() => ({})));
@@ -137,7 +177,7 @@ export const createUserFromWeb = async (c: Context) => {
   try {
     const user = await UserService.createUser(parsed.data);
     logger.info("[UserWeb] User created via Inertia form", { id: user.id });
-    flashSuccess(c, `Pengguna "${user.name}" dibuat`);
+    flashSuccess(c, `User "${user.name}" created`);
     return c.redirect(ROUTES.WEB.ADMIN.USERS);
   } catch (error) {
     if (error instanceof ConflictError) {
@@ -151,7 +191,7 @@ export const createUserFromWeb = async (c: Context) => {
   }
 };
 
-/** PUT /admin/users/:id — update from the Inertia modal form. */
+/** PUT /admin/users/:id — update from the Inertia edit page form. */
 export const updateUserFromWeb = async (c: Context) => {
   const idParsed = IdParam.safeParse({ id: c.req.param("id") });
   if (!idParsed.success) {
@@ -162,7 +202,12 @@ export const updateUserFromWeb = async (c: Context) => {
   if (!parsed.success) {
     const errors = toInertiaErrorBag(parsed.error);
     if (c.req.header("X-Inertia")) {
-      return inertiaValidationErrorResponse(c, await indexOriginPage(c), errors);
+      try {
+        const user = await UserService.findUser(idParsed.data.id);
+        return inertiaValidationErrorResponse(c, await editOriginPage(c, toUserView(user)), errors);
+      } catch {
+        return inertiaValidationErrorResponse(c, await indexOriginPage(c), errors);
+      }
     }
     throw new ValidationError("Validation failed", errors);
   }
@@ -170,13 +215,18 @@ export const updateUserFromWeb = async (c: Context) => {
   try {
     const user = await UserService.updateUser(idParsed.data.id, parsed.data);
     logger.info("[UserWeb] User updated via Inertia form", { id: user.id });
-    flashSuccess(c, `Pengguna "${user.name}" diperbarui`);
+    flashSuccess(c, `User "${user.name}" updated`);
     return c.redirect(ROUTES.WEB.ADMIN.USERS);
   } catch (error) {
     if (error instanceof ConflictError) {
       const errors = { email: error.message };
       if (c.req.header("X-Inertia")) {
-        return inertiaValidationErrorResponse(c, await indexOriginPage(c), errors);
+        try {
+          const user = await UserService.findUser(idParsed.data.id);
+          return inertiaValidationErrorResponse(c, await editOriginPage(c, toUserView(user)), errors);
+        } catch {
+          return inertiaValidationErrorResponse(c, await indexOriginPage(c), errors);
+        }
       }
       throw new ValidationError("Validation failed", errors);
     }
@@ -208,7 +258,7 @@ export const deleteUserFromWeb = async (c: Context) => {
     const user = await UserService.findUser(id);
     await UserService.deleteUser(id);
     logger.info("[UserWeb] User deleted via Inertia", { id });
-    flashSuccess(c, `Pengguna "${user.name}" dihapus`);
+    flashSuccess(c, `User "${user.name}" deleted`);
   } catch (error) {
     if (error instanceof NotFoundError) {
       flashError(c, MESSAGES.USER_NOT_FOUND);
@@ -235,8 +285,8 @@ export const toggleUserActiveFromWeb = async (c: Context) => {
     flashSuccess(
       c,
       user.isActive
-        ? `Pengguna "${user.name}" diaktifkan`
-        : `Pengguna "${user.name}" dinonaktifkan`,
+        ? `User "${user.name}" activated`
+        : `User "${user.name}" deactivated`,
     );
   } catch (error) {
     if (error instanceof ValidationError) {

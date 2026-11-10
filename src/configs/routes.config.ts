@@ -16,12 +16,14 @@ export const ROUTES = {
     // Dashboard admin (Inertia web — no API surface). LOGIN and LOGIN_SUBMIT
     // share one path on purpose: GET renders the page, POST submits it.
     ADMIN: {
+      DASHBOARD: "/admin",
       LOGIN: "/admin/login",
       LOGIN_SUBMIT: "/admin/login",
       LOGOUT: "/admin/logout",
       USERS: "/admin/users",
       USERS_CREATE_PAGE: "/admin/users/create",
       USERS_CREATE: "/admin/users",
+      USERS_EDIT_PAGE: "/admin/users/:id/edit",
       USERS_UPDATE: "/admin/users/:id",
       USERS_DELETE: "/admin/users/:id",
       USERS_TOGGLE: "/admin/users/:id/toggle",

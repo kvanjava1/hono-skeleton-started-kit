@@ -42,7 +42,7 @@
   <title>Login — {appName}</title>
 </svelte:head>
 
-<div class="grid min-h-screen place-items-center bg-zinc-100 px-4 py-10 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
+<div class="grid min-h-screen place-items-center bg-zinc-200/70 px-4 py-10 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
   <!-- Partikel interaktif (dekoratif, tidak menangkap klik — port login.html) -->
   <ParticlesBackground />
 

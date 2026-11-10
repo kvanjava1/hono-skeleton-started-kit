@@ -45,7 +45,7 @@ export const inertiaRootView: RootView = async (page) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     ${head}
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased">
+  <body class="bg-zinc-200/70 text-zinc-900 antialiased">
     <script data-page="app" type="application/json">${serializePage(page)}</script>
     <div id="app"></div>
     <script type="module" src="${script}"></script>

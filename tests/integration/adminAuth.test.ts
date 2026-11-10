@@ -106,7 +106,7 @@ describe("Admin auth web (login/logout/guards)", () => {
     expect(body.props.errors.form).toBe(MESSAGES.AUTH_INVALID_CREDENTIALS);
   });
 
-  test("POST /admin/login with valid credentials rotates the session and redirects", async () => {
+  test("POST /admin/login with valid credentials rotates the session and redirects to dashboard", async () => {
     const xsrf = jar.get("XSRF-TOKEN")!;
     const res = await app.fetch(
       new Request(`${base}/admin/login`, {
@@ -124,18 +124,39 @@ describe("Admin auth web (login/logout/guards)", () => {
       }),
     );
     expect(res.status).toBe(302);
-    expect(res.headers.get("location")).toBe("/admin/users");
+    expect(res.headers.get("location")).toBe("/admin");
     storeCookies(res);
   });
 
-  test("guestGuard: logged-in visitor on /admin/login is redirected to /admin/users", async () => {
+  test("guestGuard: logged-in visitor on /admin/login is redirected to /admin", async () => {
     const res = await app.fetch(
       new Request(`${base}/admin/login`, {
         headers: { cookie: cookieHeader() },
       }),
     );
     expect(res.status).toBe(302);
-    expect(res.headers.get("location")).toBe("/admin/users");
+    expect(res.headers.get("location")).toBe("/admin");
+  });
+
+  test("GET /admin authenticated renders the dashboard page with Hello greeting", async () => {
+    const res = await app.fetch(
+      new Request(`${base}/admin`, {
+        headers: { cookie: cookieHeader() },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+
+    const text = await res.text();
+    expect(text).toContain('data-page="app"');
+    expect(text).toContain("dashboard-admin\\/Admin\\/Dashboard\\/Index");
+    expect(text).toContain("Admin Test");
+  });
+
+  test("GET /admin anonymous is redirected to /admin/login", async () => {
+    const res = await app.fetch(new Request(`${base}/admin`));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("/admin/login");
   });
 
   test("POST /admin/logout drops the claim; the session becomes anonymous again", async () => {

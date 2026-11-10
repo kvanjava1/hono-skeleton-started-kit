@@ -52,12 +52,12 @@ export const loginAdmin = async (c: Context) => {
 
     const session = c.get("webSession");
     if (!session) {
-      throw new ValidationError("Session unavailable", { form: "Sesi tidak tersedia" });
+      throw new ValidationError("Session unavailable", { form: "Session unavailable" });
     }
     rotateSessionForAuth(session, user.id);
-    flashSuccess(c, `Selamat datang, ${user.name}`);
+    flashSuccess(c, `Welcome back, ${user.name}`);
     logger.info("[AuthWeb] Login success", { userId: user.id });
-    return c.redirect(ROUTES.WEB.ADMIN.USERS);
+    return c.redirect(ROUTES.WEB.ADMIN.DASHBOARD);
   } catch (error) {
     if (error instanceof ValidationError) {
       // Generic credential failure — same message for wrong password,
@@ -76,7 +76,7 @@ export const loginAdmin = async (c: Context) => {
 export const logoutAdmin = async (c: Context) => {
   const session = c.get("webSession");
   if (session) clearAuthUser(session);
-  flashSuccess(c, "Anda telah keluar");
+  flashSuccess(c, "You have been logged out");
   logger.info("[AuthWeb] Logout");
   return c.redirect(ROUTES.WEB.ADMIN.LOGIN);
 };

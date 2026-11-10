@@ -14,6 +14,7 @@ import {
 
 const USERS_COMPONENT = "dashboard-admin\\/Admin\\/Users\\/Index";
 const CREATE_USER_COMPONENT = "dashboard-admin\\/Admin\\/Users\\/Create";
+const EDIT_USER_COMPONENT = "dashboard-admin\\/Admin\\/Users\\/Edit";
 
 beforeAll(async () => {
   const db = await getSqliteDb("sqlite1");
@@ -100,6 +101,19 @@ describe("Admin User Management (web only — no API)", () => {
     expect(res.status).toBe(200);
     const text = await res.text();
     expect(text).toContain(`"component":"${CREATE_USER_COMPONENT}"`);
+  });
+
+  test("logged-in admin sees the Edit User page", async () => {
+    await loginAsOwner();
+    const owner = await findUserByEmail("owner@example.com");
+
+    const res = await app.fetch(
+      new Request(`${base}/admin/users/${owner!.id}/edit`, { headers: { cookie: cookieHeader() } }),
+    );
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain(`"component":"${EDIT_USER_COMPONENT}"`);
+    expect(text).toContain("Admin Owner");
   });
 
   test("POST /admin/users without CSRF is rejected with 403", async () => {

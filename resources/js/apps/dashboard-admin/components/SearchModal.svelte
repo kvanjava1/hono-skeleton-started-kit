@@ -30,10 +30,10 @@
     q = $bindable(''),
     status = $bindable(''),
     statusOptions = [],
-    title = 'Cari',
+    title = 'Search',
     description = '',
-    searchLabel = 'Kata Kunci',
-    searchPlaceholder = 'Cari…',
+    searchLabel = 'Keywords',
+    searchPlaceholder = 'Search…',
     statusLabel = 'Status',
     onApply,
     children,
@@ -61,7 +61,7 @@
           class="!pl-10"
         />
       </div>
-      <p class="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">Kosongkan untuk menampilkan semua data.</p>
+      <p class="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">Leave blank to display all results.</p>
     </div>
 
     {#if statusOptions.length > 0}
@@ -81,11 +81,11 @@
 
     <div class="flex flex-col gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800 sm:flex-row sm:justify-end">
       <button type="button" class="btn btn-secondary w-full sm:w-auto" onclick={() => (open = false)}>
-        Batal
+        Cancel
       </button>
       <button type="submit" class="btn btn-primary w-full sm:w-auto">
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
-        Cari
+        Search
       </button>
     </div>
   </form>

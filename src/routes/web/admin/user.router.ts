@@ -5,6 +5,7 @@ import { authGuard } from "../../../middlewares/web/auth.middleware.ts";
 import {
   showUsersIndex,
   showUserCreate,
+  showUserEdit,
   createUserFromWeb,
   updateUserFromWeb,
   deleteUserFromWeb,
@@ -20,6 +21,7 @@ export const adminUserWebRoutes = new Hono();
 
 adminUserWebRoutes.get(ROUTES.WEB.ADMIN.USERS, authGuard, showUsersIndex);
 adminUserWebRoutes.get(ROUTES.WEB.ADMIN.USERS_CREATE_PAGE, authGuard, showUserCreate);
+adminUserWebRoutes.get(ROUTES.WEB.ADMIN.USERS_EDIT_PAGE, authGuard, showUserEdit);
 adminUserWebRoutes.post(ROUTES.WEB.ADMIN.USERS_CREATE, csrfGuard, authGuard, createUserFromWeb);
 adminUserWebRoutes.put(ROUTES.WEB.ADMIN.USERS_UPDATE, csrfGuard, authGuard, updateUserFromWeb);
 adminUserWebRoutes.delete(ROUTES.WEB.ADMIN.USERS_DELETE, csrfGuard, authGuard, deleteUserFromWeb);

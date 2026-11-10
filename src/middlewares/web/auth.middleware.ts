@@ -14,7 +14,7 @@ import { flashError, getAuthUser } from "../../utils/session.util.ts";
 export const authGuard: MiddlewareHandler = async (c, next) => {
   const session = c.get("webSession");
   if (!session || getAuthUser(session) === null) {
-    flashError(c, "Silakan login terlebih dahulu");
+    flashError(c, "Please log in first");
     return c.redirect(ROUTES.WEB.ADMIN.LOGIN);
   }
   await next();
@@ -27,7 +27,7 @@ export const authGuard: MiddlewareHandler = async (c, next) => {
 export const guestGuard: MiddlewareHandler = async (c, next) => {
   const session = c.get("webSession");
   if (session && getAuthUser(session) !== null) {
-    return c.redirect(ROUTES.WEB.ADMIN.USERS);
+    return c.redirect(ROUTES.WEB.ADMIN.DASHBOARD);
   }
   await next();
 };

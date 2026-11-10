@@ -10,7 +10,7 @@
     onNavigate: (page: number) => void
   }
 
-  let { page, lastPage, total, perPage, label = 'Paginasi', onNavigate }: Props = $props()
+  let { page, lastPage, total, perPage, label = 'Pagination', onNavigate }: Props = $props()
 
   type Item = number | '…'
 
@@ -45,15 +45,15 @@
 
 <div class="flex flex-col items-center justify-between gap-3 border-t border-zinc-200 px-5 py-4 dark:border-zinc-800 sm:flex-row">
   <p class="text-sm text-zinc-500 dark:text-zinc-400">
-    Menampilkan <span class="tnum font-semibold text-zinc-900 dark:text-white">{from}–{to}</span>
-    dari <span class="tnum font-semibold text-zinc-900 dark:text-white">{total}</span> data
+    Showing <span class="tnum font-semibold text-zinc-900 dark:text-white">{from}–{to}</span>
+    of <span class="tnum font-semibold text-zinc-900 dark:text-white">{total}</span> results
   </p>
   <nav class="flex items-center gap-1" aria-label={label}>
     <button
       type="button"
       class="{arrow} border-zinc-200 dark:border-zinc-700"
       disabled={page <= 1}
-      aria-label="Halaman sebelumnya"
+      aria-label="Previous page"
       onclick={() => onNavigate(page - 1)}
     >
       <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
@@ -78,7 +78,7 @@
       type="button"
       class="{arrow} border-zinc-200 dark:border-zinc-700"
       disabled={page >= lastPage}
-      aria-label="Halaman berikutnya"
+      aria-label="Next page"
       onclick={() => onNavigate(page + 1)}
     >
       <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
