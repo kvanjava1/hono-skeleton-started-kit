@@ -77,9 +77,23 @@ beforeAll(async () => {
       password_hash TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'ACTIVE',
       is_active INTEGER NOT NULL DEFAULT 1,
+      banned_until TEXT DEFAULT NULL,
+      status_reason TEXT DEFAULT NULL,
       deleted_at TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_status_histories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      from_status TEXT NOT NULL,
+      to_status TEXT NOT NULL,
+      reason TEXT,
+      banned_until TEXT DEFAULT NULL,
+      changed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
   db.run(`

@@ -33,9 +33,23 @@ describe("Admin UserService", () => {
         password_hash TEXT NOT NULL,
         status TEXT NOT NULL DEFAULT 'ACTIVE',
         is_active INTEGER NOT NULL DEFAULT 1,
+        banned_until TEXT DEFAULT NULL,
+        status_reason TEXT DEFAULT NULL,
         deleted_at TEXT DEFAULT NULL,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+    db.run(`
+      CREATE TABLE IF NOT EXISTS user_status_histories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        from_status TEXT NOT NULL,
+        to_status TEXT NOT NULL,
+        reason TEXT,
+        banned_until TEXT DEFAULT NULL,
+        changed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
     `);
     db.run(
@@ -293,5 +307,83 @@ describe("Admin UserService", () => {
 
     const active = await UserService.listUsers({ status: "active" });
     expect(active.total).toBe(6);
+  });
+
+  it("changeAccountStatus logs history and updates user state", async () => {
+    const admin = await UserService.createUser({
+      name: "Admin Super",
+      email: "admin@example.com",
+      password: "password123",
+    });
+    const target = await UserService.createUser({
+      name: "Bad Actor",
+      email: "bad@example.com",
+      password: "password123",
+    });
+
+    const bannedDate = new Date(Date.now() + 7 * 86400000).toISOString();
+    const updated = await UserService.changeAccountStatus(target.id, {
+      status: "BANNED",
+      reason: "Spamming content",
+      bannedUntil: bannedDate,
+      actingUserId: admin.id,
+    });
+
+    expect(updated.status).toBe("BANNED");
+    expect(updated.isActive).toBe(false);
+    expect(updated.statusReason).toBe("Spamming content");
+    expect(updated.bannedUntil).toBe(bannedDate);
+
+    const history = await UserService.getStatusHistory(target.id);
+    expect(history.length).toBeGreaterThanOrEqual(1);
+    const latest = history[0]!;
+    expect(latest.toStatus).toBe("BANNED");
+    expect(latest.reason).toBe("Spamming content");
+    expect(latest.changedBy).toBe(admin.id);
+  });
+
+  it("verifyCredentials rejects banned users with informative message and auto-lifts expired bans", async () => {
+    const user = await UserService.createUser({
+      name: "Banned User",
+      email: "banned@example.com",
+      password: "secretpassword123",
+    });
+
+    // 1. Permanent ban
+    await UserService.changeAccountStatus(user.id, {
+      status: "BANNED",
+      reason: "Repeated severe violations",
+    });
+    const permErr = await capture(() =>
+      UserService.verifyCredentials("banned@example.com", "secretpassword123"),
+    );
+    expect(permErr).toBeInstanceOf(ValidationError);
+    expect((permErr as ValidationError).message).toContain("permanently banned");
+    expect((permErr as ValidationError).message).toContain("Repeated severe violations");
+
+    // 2. Active temporary ban
+    const futureDate = new Date(Date.now() + 2 * 86400000).toISOString();
+    await UserService.changeAccountStatus(user.id, {
+      status: "BANNED",
+      reason: "Suspended for 2 days",
+      bannedUntil: futureDate,
+    });
+    const tempErr = await capture(() =>
+      UserService.verifyCredentials("banned@example.com", "secretpassword123"),
+    );
+    expect(tempErr).toBeInstanceOf(ValidationError);
+    expect((tempErr as ValidationError).message).toContain("suspended until");
+
+    // 3. Expired temporary ban -> auto-lifts upon login!
+    const pastDate = new Date(Date.now() - 3600000).toISOString();
+    await UserService.changeAccountStatus(user.id, {
+      status: "BANNED",
+      reason: "Expired suspension",
+      bannedUntil: pastDate,
+    });
+    const verified = await UserService.verifyCredentials("banned@example.com", "secretpassword123");
+    expect(verified.status).toBe("ACTIVE");
+    expect(verified.isActive).toBe(true);
+    expect(verified.bannedUntil).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 import * as UserService from "../../../services/admin/user.service.ts";
-import { CreateBody, UpdateBody, IdParam } from "../../../validations/admin/user.ts";
+import { CreateBody, UpdateBody, IdParam, ChangeStatusBody } from "../../../validations/admin/user.ts";
 import {
   ConflictError,
   NotFoundError,
@@ -26,7 +26,10 @@ export interface UserView {
   id: number;
   name: string;
   email: string;
+  status: string;
   isActive: boolean;
+  bannedUntil?: string | null;
+  statusReason?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,7 +38,10 @@ const toUserView = (user: User): UserView => ({
   id: user.id,
   name: user.name,
   email: user.email,
+  status: user.status ?? (user.isActive ? "ACTIVE" : "INACTIVE"),
   isActive: user.isActive,
+  bannedUntil: user.bannedUntil ?? null,
+  statusReason: user.statusReason ?? null,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
 });
@@ -151,6 +157,34 @@ export const showUserEdit = async (c: Context) => {
 
     return c.render("dashboard-admin/Admin/Users/Edit", {
       user: toUserView(user),
+      authUserId,
+      authUser,
+    });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      flashError(c, MESSAGES.USER_NOT_FOUND);
+      return c.redirect(ROUTES.WEB.ADMIN.USERS);
+    }
+    throw error;
+  }
+};
+
+/** GET /admin/users/:id/status — dedicated account status & moderation page */
+export const showUserStatus = async (c: Context) => {
+  const idParsed = IdParam.safeParse({ id: c.req.param("id") });
+  if (!idParsed.success) {
+    flashError(c, MESSAGES.USER_NOT_FOUND);
+    return c.redirect(ROUTES.WEB.ADMIN.USERS);
+  }
+
+  try {
+    const user = await UserService.findUser(idParsed.data.id);
+    const history = await UserService.getStatusHistory(idParsed.data.id);
+    const { authUserId, authUser } = await getAuthUserSummary(c);
+
+    return c.render("dashboard-admin/Admin/Users/Status", {
+      user: toUserView(user),
+      history,
       authUserId,
       authUser,
     });
@@ -299,4 +333,59 @@ export const toggleUserActiveFromWeb = async (c: Context) => {
     }
   }
   return c.redirect(ROUTES.WEB.ADMIN.USERS);
+};
+
+/** POST /admin/users/:id/status — change account status (Active, Inactive, Suspended, Banned). */
+export const changeUserStatusFromWeb = async (c: Context) => {
+  const idParsed = IdParam.safeParse({ id: c.req.param("id") });
+  if (!idParsed.success) {
+    throw new ValidationError("Validation failed", toInertiaErrorBag(idParsed.error));
+  }
+  const id = idParsed.data.id;
+  const parsed = ChangeStatusBody.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) {
+    throw new ValidationError("Validation failed", toInertiaErrorBag(parsed.error));
+  }
+
+  const session = c.get("webSession");
+  const actingUserId = getAuthUser(session) ?? undefined;
+
+  try {
+    const updated = await UserService.changeAccountStatus(id, {
+      status: parsed.data.status,
+      reason: parsed.data.reason,
+      bannedUntil: parsed.data.bannedUntil,
+      actingUserId,
+    });
+    flashSuccess(
+      c,
+      `Account status for "${updated.name}" updated to ${updated.status}`,
+    );
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      flashError(c, error.message);
+    } else if (error instanceof NotFoundError) {
+      flashError(c, MESSAGES.USER_NOT_FOUND);
+    } else {
+      throw error;
+    }
+  }
+  return c.redirect(route(ROUTES.WEB.ADMIN.USERS_STATUS_PAGE, { id }));
+};
+
+/** GET /admin/users/:id/status-history — fetch status history audit log. */
+export const getUserStatusHistoryFromWeb = async (c: Context) => {
+  const idParsed = IdParam.safeParse({ id: c.req.param("id") });
+  if (!idParsed.success) {
+    return c.json({ error: "Invalid user ID" }, 400);
+  }
+  try {
+    const history = await UserService.getStatusHistory(idParsed.data.id);
+    return c.json({ data: history });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return c.json({ error: "User not found" }, 404);
+    }
+    throw error;
+  }
 };

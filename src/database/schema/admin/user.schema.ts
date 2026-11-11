@@ -18,6 +18,8 @@ export const users = sqliteTable("users", {
     .default("ACTIVE")
     .references(() => accountStatuses.code),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  bannedUntil: text("banned_until"),
+  statusReason: text("status_reason"),
   deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),

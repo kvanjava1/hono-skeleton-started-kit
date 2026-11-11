@@ -23,6 +23,8 @@ export interface UserUpdateInput {
   passwordHash?: string;
   status?: AccountStatusCode;
   isActive?: boolean;
+  bannedUntil?: string | null;
+  statusReason?: string | null;
 }
 
 export interface UserListQuery {

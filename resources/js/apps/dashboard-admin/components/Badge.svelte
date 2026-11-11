@@ -1,8 +1,12 @@
+<script module lang="ts">
+  export type BadgeTone = 'emerald' | 'sky' | 'amber' | 'rose' | 'violet' | 'zinc'
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte'
 
   // Palet tone mengikuti pola badge di seluruh dashboard admin:
-  // Emerald untuk ACTIVE/Aktif, Rose untuk SUSPENDED/REVOKED, Amber untuk PENDING, Zinc untuk INACTIVE.
+  // Emerald untuk ACTIVE/Aktif, Rose untuk SUSPENDED/REVOKED/BANNED, Amber untuk PENDING, Zinc untuk INACTIVE.
   const TONES = {
     emerald: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
     sky: 'bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400',
@@ -12,11 +16,11 @@
     zinc: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
   } as const
 
-  export type BadgeTone = keyof typeof TONES
-
   const STATUS_MAP: Record<string, BadgeTone> = {
     ACTIVE: 'emerald',
     active: 'emerald',
+    BANNED: 'rose',
+    banned: 'rose',
     SUSPENDED: 'rose',
     suspended: 'rose',
     REVOKED: 'rose',

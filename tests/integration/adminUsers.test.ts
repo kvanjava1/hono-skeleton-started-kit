@@ -26,9 +26,23 @@ beforeAll(async () => {
       password_hash TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'ACTIVE',
       is_active INTEGER NOT NULL DEFAULT 1,
+      banned_until TEXT DEFAULT NULL,
+      status_reason TEXT DEFAULT NULL,
       deleted_at TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_status_histories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      from_status TEXT NOT NULL,
+      to_status TEXT NOT NULL,
+      reason TEXT,
+      banned_until TEXT DEFAULT NULL,
+      changed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
   db.run(
@@ -311,6 +325,91 @@ describe("Admin User Management (web only — no API)", () => {
     const still = await UserService.findUser(owner!.id);
     expect(still).not.toBeNull();
     expect(still!.email).toBe("owner@example.com");
+  });
+
+  test("POST /admin/users/:id/status updates status and logs history", async () => {
+    const target = await UserService.createUser({
+      name: "Status Target",
+      email: "statustarget@example.com",
+      password: "secretpassword1",
+    });
+
+    const pageRes = await app.fetch(
+      new Request(`${base}/admin/users/${target.id}/status`, {
+        method: "GET",
+        headers: {
+          cookie: cookieHeader(),
+        },
+      }),
+    );
+    expect(pageRes.status).toBe(200);
+    const pageHtml = await pageRes.text();
+    expect(pageHtml).toContain("dashboard-admin\\/Admin\\/Users\\/Status");
+    expect(pageHtml).toContain("Status Target");
+
+    const banRes = await app.fetch(
+      new Request(`${base}/admin/users/${target.id}/status`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: base,
+          cookie: cookieHeader(),
+          "x-xsrf-token": jar.get("XSRF-TOKEN")!,
+        },
+        body: JSON.stringify({
+          status: "BANNED",
+          reason: "Violating community standards",
+          bannedUntil: new Date(Date.now() + 86400000).toISOString(),
+        }),
+      }),
+    );
+    expect(banRes.status).toBe(302);
+    storeCookies(banRes);
+
+    const updated = await UserService.findUser(target.id);
+    expect(updated.status).toBe("BANNED");
+    expect(updated.isActive).toBe(false);
+    expect(updated.statusReason).toBe("Violating community standards");
+
+    // Fetch history
+    const historyRes = await app.fetch(
+      new Request(`${base}/admin/users/${target.id}/status-history`, {
+        method: "GET",
+        headers: {
+          cookie: cookieHeader(),
+        },
+      }),
+    );
+    expect(historyRes.status).toBe(200);
+    const json = (await historyRes.json()) as { data: Array<{ toStatus: string; reason: string }> };
+    expect(json.data.length).toBeGreaterThanOrEqual(1);
+    expect(json.data[0]!.toStatus).toBe("BANNED");
+    expect(json.data[0]!.reason).toBe("Violating community standards");
+  });
+
+  test("POST /admin/users/:id/status self-ban is rejected", async () => {
+    const owner = await findUserByEmail("owner@example.com");
+
+    const res = await app.fetch(
+      new Request(`${base}/admin/users/${owner!.id}/status`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: base,
+          cookie: cookieHeader(),
+          "x-xsrf-token": jar.get("XSRF-TOKEN")!,
+        },
+        body: JSON.stringify({
+          status: "BANNED",
+          reason: "Self ban attempt",
+        }),
+      }),
+    );
+    expect(res.status).toBe(302);
+
+    const still = await UserService.findUser(owner!.id);
+    expect(still.status).toBe("ACTIVE");
+    expect(still.isActive).toBe(true);
   });
 });
 

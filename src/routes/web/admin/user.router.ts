@@ -6,10 +6,13 @@ import {
   showUsersIndex,
   showUserCreate,
   showUserEdit,
+  showUserStatus,
   createUserFromWeb,
   updateUserFromWeb,
   deleteUserFromWeb,
   toggleUserActiveFromWeb,
+  changeUserStatusFromWeb,
+  getUserStatusHistoryFromWeb,
 } from "../../../controllers/web/admin/user.controller.ts";
 
 /**
@@ -22,7 +25,10 @@ export const adminUserWebRoutes = new Hono();
 adminUserWebRoutes.get(ROUTES.WEB.ADMIN.USERS, authGuard, showUsersIndex);
 adminUserWebRoutes.get(ROUTES.WEB.ADMIN.USERS_CREATE_PAGE, authGuard, showUserCreate);
 adminUserWebRoutes.get(ROUTES.WEB.ADMIN.USERS_EDIT_PAGE, authGuard, showUserEdit);
+adminUserWebRoutes.get(ROUTES.WEB.ADMIN.USERS_STATUS_PAGE, authGuard, showUserStatus);
 adminUserWebRoutes.post(ROUTES.WEB.ADMIN.USERS_CREATE, csrfGuard, authGuard, createUserFromWeb);
 adminUserWebRoutes.put(ROUTES.WEB.ADMIN.USERS_UPDATE, csrfGuard, authGuard, updateUserFromWeb);
 adminUserWebRoutes.delete(ROUTES.WEB.ADMIN.USERS_DELETE, csrfGuard, authGuard, deleteUserFromWeb);
 adminUserWebRoutes.post(ROUTES.WEB.ADMIN.USERS_TOGGLE, csrfGuard, authGuard, toggleUserActiveFromWeb);
+adminUserWebRoutes.post(ROUTES.WEB.ADMIN.USERS_STATUS, csrfGuard, authGuard, changeUserStatusFromWeb);
+adminUserWebRoutes.get(ROUTES.WEB.ADMIN.USERS_STATUS_HISTORY, authGuard, getUserStatusHistoryFromWeb);

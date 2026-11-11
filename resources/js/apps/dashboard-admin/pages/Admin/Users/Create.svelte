@@ -20,6 +20,7 @@
     name: '',
     email: '',
     password: '',
+    isActive: true,
   })
 
   $effect(() => {
@@ -93,6 +94,19 @@
             required
           />
           <p class="hint">Minimum 8 characters.</p>
+        </div>
+
+        <div>
+          <label for="create-status" class="label">Initial Status</label>
+          <select
+            id="create-status"
+            class="input"
+            bind:value={form.isActive}
+          >
+            <option value={true}>Active (Can log in immediately)</option>
+            <option value={false}>Inactive (Deactivated / Draft)</option>
+          </select>
+          <p class="hint">Initial account state. Only Active or Inactive accounts can be created.</p>
         </div>
       </div>
 

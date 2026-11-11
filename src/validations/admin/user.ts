@@ -55,6 +55,13 @@ export const UpdateBody = z.object({
     .openapi({ example: false, description: "Activate/deactivate the account" }),
 });
 
+export const ChangeStatusBody = z.object({
+  status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED", "BANNED"]),
+  reason: z.string().max(500).optional(),
+  bannedUntil: z.string().nullable().optional(),
+});
+
 export type IdParamInput = z.infer<typeof IdParam>;
 export type CreateBodyInput = z.infer<typeof CreateBody>;
 export type UpdateBodyInput = z.infer<typeof UpdateBody>;
+export type ChangeStatusBodyInput = z.infer<typeof ChangeStatusBody>;
