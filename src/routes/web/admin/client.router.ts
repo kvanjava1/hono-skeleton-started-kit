@@ -1,0 +1,135 @@
+import { Hono } from "hono";
+import {
+  showClientsIndex,
+  showClientCreate,
+  createClientFromWeb,
+  showClientDetail,
+  toggleClientStatusFromWeb,
+  deleteClientFromWeb,
+  showClientMembers,
+  showClientMemberCreate,
+  showClientMemberEdit,
+  inviteClientMember,
+  updateClientMember,
+  toggleClientMemberStatusFromWeb,
+  removeClientMember,
+  showClientApiKeys,
+  createClientApiKey,
+  revokeClientApiKey,
+} from "../../../controllers/web/admin/client.controller.ts";
+import { authGuard } from "../../../middlewares/web/auth.middleware.ts";
+import { csrfGuard } from "../../../middlewares/web/sameOrigin.middleware.ts";
+import { can } from "../../../middlewares/common/can.middleware.ts";
+import { ROUTES } from "../../../configs/routes.config.ts";
+
+export const clientRouter = new Hono();
+
+clientRouter.get(
+  ROUTES.WEB.ADMIN.CLIENTS,
+  authGuard,
+  can("clients.view"),
+  showClientsIndex,
+);
+clientRouter.get(
+  ROUTES.WEB.ADMIN.CLIENTS_CREATE_PAGE,
+  authGuard,
+  can("clients.create"),
+  showClientCreate,
+);
+clientRouter.post(
+  ROUTES.WEB.ADMIN.CLIENTS_CREATE,
+  csrfGuard,
+  authGuard,
+  can("clients.create"),
+  createClientFromWeb,
+);
+clientRouter.get(
+  ROUTES.WEB.ADMIN.CLIENTS_SHOW_PAGE,
+  authGuard,
+  can("clients.view"),
+  showClientDetail,
+);
+clientRouter.post(
+  ROUTES.WEB.ADMIN.CLIENTS_TOGGLE_STATUS,
+  csrfGuard,
+  authGuard,
+  can("clients.update"),
+  toggleClientStatusFromWeb,
+);
+clientRouter.delete(
+  ROUTES.WEB.ADMIN.CLIENTS_DELETE,
+  csrfGuard,
+  authGuard,
+  can("clients.delete"),
+  deleteClientFromWeb,
+);
+
+// Client-scoped Member Management
+clientRouter.get(
+  ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE,
+  authGuard,
+  can("team.view"),
+  showClientMembers,
+);
+clientRouter.get(
+  ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_CREATE_PAGE,
+  authGuard,
+  can("team.invite"),
+  showClientMemberCreate,
+);
+clientRouter.get(
+  ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_EDIT_PAGE,
+  authGuard,
+  can("team.invite"),
+  showClientMemberEdit,
+);
+clientRouter.post(
+  ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_UPDATE,
+  csrfGuard,
+  authGuard,
+  can("team.invite"),
+  updateClientMember,
+);
+clientRouter.post(
+  ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_TOGGLE_STATUS,
+  csrfGuard,
+  authGuard,
+  can("team.invite"),
+  toggleClientMemberStatusFromWeb,
+);
+clientRouter.post(
+  ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_INVITE,
+  csrfGuard,
+  authGuard,
+  can("team.invite"),
+  inviteClientMember,
+);
+clientRouter.delete(
+  ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_REMOVE,
+  csrfGuard,
+  authGuard,
+  can("team.remove"),
+  removeClientMember,
+);
+
+// Client-scoped API Key Management
+clientRouter.get(
+  ROUTES.WEB.ADMIN.CLIENTS_API_KEYS_PAGE,
+  authGuard,
+  can("apikeys.view"),
+  showClientApiKeys,
+);
+clientRouter.post(
+  ROUTES.WEB.ADMIN.CLIENTS_API_KEYS_CREATE,
+  csrfGuard,
+  authGuard,
+  can("apikeys.create"),
+  createClientApiKey,
+);
+clientRouter.post(
+  ROUTES.WEB.ADMIN.CLIENTS_API_KEYS_REVOKE,
+  csrfGuard,
+  authGuard,
+  can("apikeys.revoke"),
+  revokeClientApiKey,
+);

@@ -1,9 +1,8 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
 
-  // Palet tone mengikuti pola badge di pelanggan.html:
-  // `bg-<warna>-50 text-<warna>-700 dark:bg-<warna>-500/10 dark:text-<warna>-400`
-  // (zinc memakai versi nonaktif: bg-zinc-100 / dark:bg-zinc-800).
+  // Palet tone mengikuti pola badge di seluruh dashboard admin:
+  // Emerald untuk ACTIVE/Aktif, Rose untuk SUSPENDED/REVOKED, Amber untuk PENDING, Zinc untuk INACTIVE.
   const TONES = {
     emerald: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
     sky: 'bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400',
@@ -13,13 +12,34 @@
     zinc: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
   } as const
 
+  export type BadgeTone = keyof typeof TONES
+
+  const STATUS_MAP: Record<string, BadgeTone> = {
+    ACTIVE: 'emerald',
+    active: 'emerald',
+    SUSPENDED: 'rose',
+    suspended: 'rose',
+    REVOKED: 'rose',
+    revoked: 'rose',
+    PENDING: 'amber',
+    pending: 'amber',
+    INACTIVE: 'zinc',
+    inactive: 'zinc',
+  }
+
   interface Props {
-    tone?: keyof typeof TONES
+    tone?: BadgeTone
+    variant?: BadgeTone
+    status?: string
     class?: string
     children: Snippet
   }
 
-  let { tone = 'zinc', class: cls = '', children }: Props = $props()
+  let { tone, variant, status, class: cls = '', children }: Props = $props()
+
+  const resolvedTone = $derived<BadgeTone>(
+    tone ?? variant ?? (status ? (STATUS_MAP[status] ?? 'zinc') : 'zinc')
+  )
 </script>
 
-<span class="badge {TONES[tone]} {cls}">{@render children()}</span>
+<span class="badge {TONES[resolvedTone]} {cls}">{@render children()}</span>

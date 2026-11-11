@@ -31,6 +31,7 @@ describe("Admin UserService", () => {
         name TEXT NOT NULL,
         email TEXT NOT NULL,
         password_hash TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'ACTIVE',
         is_active INTEGER NOT NULL DEFAULT 1,
         deleted_at TEXT DEFAULT NULL,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),

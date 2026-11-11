@@ -71,7 +71,20 @@ export const getSharedProps = (c?: Context) => {
 
   const session = c.get("webSession");
   const flash = session ? consumeWebFlash(session) : {};
-  return { ...base, flash, errors: flash.errors ?? {} };
+  const permissions: string[] = c.get("currentPermissions") ?? [];
+  const isManagement: boolean = c.get("isManagement") ?? true;
+  const currentClient = c.get("currentClient") ?? null;
+
+  return {
+    ...base,
+    flash,
+    errors: flash.errors ?? {},
+    auth: {
+      permissions,
+      isManagement,
+      client: currentClient,
+    },
+  };
 };
 
 /**

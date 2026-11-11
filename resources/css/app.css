@@ -45,6 +45,7 @@ body {
 .input-error { @apply border-rose-500 focus:border-rose-500 focus:ring-rose-500/25 dark:border-rose-500 dark:focus:border-rose-500 dark:focus:ring-rose-500/25; }
 
 .label { @apply mb-1.5 block text-base font-medium text-zinc-700 dark:text-zinc-300; }
+.hint { @apply mt-1.5 block text-sm text-zinc-500 dark:text-zinc-400; }
 
 .badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 text-sm font-semibold; }
 

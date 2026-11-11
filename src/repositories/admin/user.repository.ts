@@ -5,6 +5,7 @@ import {
   type User,
   type NewUser,
 } from "../../database/schema/admin/user.schema.ts";
+import type { AccountStatusCode } from "../../database/schema/common/status.schema.ts";
 
 export type { User, NewUser };
 
@@ -12,6 +13,7 @@ export interface UserCreateInput {
   name: string;
   email: string;
   passwordHash: string;
+  status?: AccountStatusCode;
   isActive?: boolean;
 }
 
@@ -19,14 +21,15 @@ export interface UserUpdateInput {
   name?: string;
   email?: string;
   passwordHash?: string;
+  status?: AccountStatusCode;
   isActive?: boolean;
 }
 
 export interface UserListQuery {
   /** Search term matched against name and email (SQL LIKE %q%). */
   q?: string;
-  /** "active" | "inactive" — omitted means all non-deleted users. */
-  status?: "active" | "inactive";
+  /** "active" | "inactive" | "suspended" | "pending" — omitted means all non-deleted users. */
+  status?: string;
   page?: number;
   perPage?: number;
 }
@@ -54,7 +57,13 @@ export const findAllUsers = async (
     );
   }
   if (query.status) {
-    conditions.push(eq(users.isActive, query.status === "active"));
+    const targetStatus = query.status.toUpperCase();
+    conditions.push(
+      or(
+        eq(users.status, targetStatus),
+        eq(users.isActive, query.status.toLowerCase() === "active"),
+      )!,
+    );
   }
   const where = and(...conditions);
 
@@ -70,9 +79,17 @@ export const findAllUsers = async (
     .select({ value: count() })
     .from(users)
     .where(where);
-  const total = totals?.value ?? 0;
 
-  return { rows, total, page, perPage, lastPage: Math.max(1, Math.ceil(total / perPage)) };
+  const total = Number(totals?.value ?? 0);
+  const lastPage = Math.max(1, Math.ceil(total / perPage));
+
+  return {
+    rows,
+    total,
+    page,
+    perPage,
+    lastPage,
+  };
 };
 
 export const findUserById = async (id: number): Promise<User | null> => {
@@ -101,7 +118,8 @@ export const insertUser = async (input: UserCreateInput): Promise<User> => {
     name: input.name,
     email: input.email,
     passwordHash: input.passwordHash,
-    ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+    status: input.status ?? (input.isActive === false ? "INACTIVE" : "ACTIVE"),
+    isActive: input.isActive ?? (input.status ? input.status === "ACTIVE" : true),
   };
   const rows = await db.insert(users).values(values).returning();
   return rows[0]!;
@@ -117,9 +135,20 @@ export const updateUserById = async (
     return findUserById(id);
   }
 
+  const patch: Record<string, unknown> = {
+    ...input,
+    updatedAt: sql`datetime('now')`,
+  };
+
+  if (input.isActive !== undefined && input.status === undefined) {
+    patch.status = input.isActive ? "ACTIVE" : "INACTIVE";
+  } else if (input.status !== undefined && input.isActive === undefined) {
+    patch.isActive = input.status === "ACTIVE";
+  }
+
   const rows = await db
     .update(users)
-    .set({ ...input, updatedAt: sql`datetime('now')` })
+    .set(patch)
     .where(and(eq(users.id, id), isNull(users.deletedAt)))
     .returning();
 

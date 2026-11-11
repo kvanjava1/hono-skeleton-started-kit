@@ -1,5 +1,10 @@
+<script module lang="ts">
+  // Shared state across all Dropdown instances: hanya 1 dropdown yang boleh terbuka di seluruh halaman
+  let activeCloseFn: (() => void) | null = null
+</script>
+
 <script lang="ts">
-  import type { Snippet } from 'svelte'
+  import { onDestroy, type Snippet } from 'svelte'
 
   // Port dari js/app.js bagian 3 (dropdown generik + data-dropdown-float):
   // menu di-render portal ke <body> dengan position: fixed agar tidak
@@ -59,12 +64,31 @@
     el.style.visibility = ''
   }
 
-  const toggle = (event: MouseEvent) => {
-    event.stopPropagation()
-    open = !open
+  const close = () => {
+    if (activeCloseFn === close) {
+      activeCloseFn = null
+    }
+    open = false
   }
 
-  const close = () => (open = false)
+  const toggle = (event: MouseEvent) => {
+    event.stopPropagation()
+    if (!open) {
+      if (activeCloseFn && activeCloseFn !== close) {
+        activeCloseFn()
+      }
+      activeCloseFn = close
+      open = true
+    } else {
+      close()
+    }
+  }
+
+  onDestroy(() => {
+    if (activeCloseFn === close) {
+      activeCloseFn = null
+    }
+  })
 
   // Posisi dihitung SETELAH menu ter-mount: menu dirender di dalam {#if open},
   // jadi saat toggle() berjalan `menuEl` belum ada — $effect ini menunggu
@@ -76,7 +100,10 @@
   $effect(() => {
     if (!open) return
 
-    const onClick = () => close()
+    const onClick = (e: MouseEvent) => {
+      if (triggerEl?.contains(e.target as Node)) return
+      close()
+    }
     const onKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close()
     }
@@ -111,12 +138,15 @@
   </button>
 
   {#if open}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
       bind:this={menuEl}
       use:portal
       class="dropdown-panel {menuClass}"
       style="position: fixed; right: auto; margin-top: 0;"
       role="menu"
+      tabindex="-1"
+      onclick={() => close()}
     >
       {@render menu()}
     </div>

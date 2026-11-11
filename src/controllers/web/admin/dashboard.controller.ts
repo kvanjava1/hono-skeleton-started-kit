@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import * as UserService from "../../../services/admin/user.service.ts";
+import * as ClientService from "../../../services/admin/client.service.ts";
 import { getAuthUser } from "../../../utils/session.util.ts";
 
 /**
@@ -20,11 +21,13 @@ export const showAdminDashboard = async (c: Context) => {
     }
   }
 
-  // Get total registered users for stats overview
+  // Get total registered users and clients for stats overview
   const userStats = await UserService.listUsers({ page: 1 });
+  const clientStats = await ClientService.listClients({ page: 1 });
 
   return c.render("dashboard-admin/Admin/Dashboard/Index", {
     authUser,
     totalUsers: userStats.total,
+    totalClients: clientStats.total,
   });
 };

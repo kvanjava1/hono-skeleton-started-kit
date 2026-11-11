@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
   import { fade } from 'svelte/transition'
-  import { Link, router } from '@inertiajs/svelte'
+  import { Link, page, router } from '@inertiajs/svelte'
   import { ROUTES, route } from '../../../lib/routes.ts'
   import ThemeToggle from './ThemeToggle.svelte'
   import Dropdown from './Dropdown.svelte'
@@ -13,7 +13,7 @@
     /** Page title for <title> */
     title?: string
     /** Current active navigation section */
-    current?: 'dashboard' | 'users'
+    current?: 'dashboard' | 'clients' | 'users' | 'apikeys' | 'team'
     /** Custom sidebar navigation items snippet */
     nav?: Snippet
     /** Logged in user */
@@ -22,6 +22,15 @@
   }
 
   let { title, current, nav, user, children }: Props = $props()
+
+  const auth = $derived((page?.props as any)?.auth ?? {})
+  const isManagement = $derived(auth.isManagement ?? true)
+  const clientOrg = $derived(auth.client ?? null)
+
+  const can = (permissionCode: string) => {
+    const permissions: string[] = auth?.permissions ?? []
+    return permissions.includes('*') || permissions.includes(permissionCode)
+  }
 
   let sidebarOpen = $state(true)
 
@@ -95,27 +104,81 @@
     </div>
 
     <nav class="flex-1 space-y-6 overflow-y-auto px-4 py-5">
-      <div>
-        <p class="px-3 pb-2 text-xs font-bold uppercase tracking-widest text-zinc-500">Main Menu</p>
-        <ul class="space-y-1">
-          {#if nav}
+      {#if nav}
+        <div>
+          <ul class="space-y-1">
             {@render nav()}
-          {:else}
-            <li>
-              <Link href={route(ROUTES.WEB.ADMIN.DASHBOARD)} class="nav-link {current === 'dashboard' ? 'nav-link-active' : ''}" preserveScroll>
-                <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
-                Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link href={route(ROUTES.WEB.ADMIN.USERS)} class="nav-link {current === 'users' ? 'nav-link-active' : ''}" preserveScroll>
-                <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
-                Users
-              </Link>
-            </li>
-          {/if}
-        </ul>
-      </div>
+          </ul>
+        </div>
+      {:else}
+        {#if isManagement}
+          <div>
+            <p class="px-3 pb-2 text-xs font-bold uppercase tracking-widest text-zinc-500">Management</p>
+            <ul class="space-y-1">
+              <li>
+                <Link href={route(ROUTES.WEB.ADMIN.DASHBOARD)} class="nav-link {current === 'dashboard' ? 'nav-link-active' : ''}" preserveScroll>
+                  <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                  Dashboard
+                </Link>
+              </li>
+              {#if can('clients.view')}
+                <li>
+                  <Link href={route(ROUTES.WEB.ADMIN.CLIENTS)} class="nav-link {current === 'clients' ? 'nav-link-active' : ''}" preserveScroll>
+                    <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>
+                    Clients
+                  </Link>
+                </li>
+              {/if}
+              {#if can('users.view')}
+                <li>
+                  <Link href={route(ROUTES.WEB.ADMIN.USERS)} class="nav-link {current === 'users' ? 'nav-link-active' : ''}" preserveScroll>
+                    <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+                    Users
+                  </Link>
+                </li>
+              {/if}
+            </ul>
+          </div>
+        {:else}
+          <div>
+            <p class="px-3 pb-2 text-xs font-bold uppercase tracking-widest text-zinc-500">
+              {clientOrg?.name ? `Client Menu (${clientOrg.name})` : 'Client Menu'}
+            </p>
+            <ul class="space-y-1">
+              <li>
+                <Link href={route(ROUTES.WEB.ADMIN.DASHBOARD)} class="nav-link {current === 'dashboard' ? 'nav-link-active' : ''}" preserveScroll>
+                  <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                  Dashboard
+                </Link>
+              </li>
+              {#if can('apikeys.view') || can('api_keys.view')}
+                <li>
+                  <Link
+                    href={clientOrg ? route(ROUTES.WEB.ADMIN.CLIENTS_API_KEYS_PAGE, { id: clientOrg.id }) : route(ROUTES.WEB.ADMIN.API_KEYS)}
+                    class="nav-link {current === 'apikeys' ? 'nav-link-active' : ''}"
+                    preserveScroll
+                  >
+                    <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" /></svg>
+                    API Keys
+                  </Link>
+                </li>
+              {/if}
+              {#if can('team.view')}
+                <li>
+                  <Link
+                    href={clientOrg ? route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: clientOrg.id }) : route(ROUTES.WEB.ADMIN.TEAM)}
+                    class="nav-link {current === 'team' ? 'nav-link-active' : ''}"
+                    preserveScroll
+                  >
+                    <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.059 2.772m0 0a5.972 5.972 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
+                    Team Members
+                  </Link>
+                </li>
+              {/if}
+            </ul>
+          </div>
+        {/if}
+      {/if}
     </nav>
   </aside>
 
