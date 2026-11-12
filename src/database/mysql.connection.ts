@@ -38,6 +38,7 @@ export const createMysqlPool = (
     connectionLimit: mysqlConfig.connectionLimit,
     waitForConnections: mysqlConfig.waitForConnections,
     queueLimit: mysqlConfig.queueLimit,
+    idleTimeout: mysqlConfig.idleTimeout,
   });
 
   mysqlPools.set(name, pool);
