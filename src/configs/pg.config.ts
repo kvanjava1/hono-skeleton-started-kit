@@ -6,6 +6,9 @@ const PG_CONNECTION_DEFAULTS = {
       user: "PG_USER_1",
       password: "PG_PASSWORD_1",
       database: "PG_DATABASE_1",
+      maxConnections: "PG_MAX_CONNECTIONS_1",
+      idleTimeout: "PG_IDLE_TIMEOUT_1",
+      connectTimeout: "PG_CONNECT_TIMEOUT_1",
     },
     legacyEnvKeys: {
       host: "PG_HOST",
@@ -13,6 +16,9 @@ const PG_CONNECTION_DEFAULTS = {
       user: "PG_USER",
       password: "PG_PASSWORD",
       database: "PG_DATABASE",
+      maxConnections: "PG_MAX_CONNECTIONS",
+      idleTimeout: "PG_IDLE_TIMEOUT",
+      connectTimeout: "PG_CONNECT_TIMEOUT",
     },
     defaults: {
       host: "localhost",
@@ -20,6 +26,9 @@ const PG_CONNECTION_DEFAULTS = {
       user: "postgres",
       password: "",
       database: "myapp",
+      maxConnections: 10,
+      idleTimeout: 30,
+      connectTimeout: 30,
     },
   },
 } as const;
@@ -64,6 +73,24 @@ const buildConnectionConfig = (
       definition.defaults.database,
       definition.legacyEnvKeys?.database,
     ),
+    maxConnections: getNumberValue(
+      env,
+      definition.envKeys.maxConnections,
+      definition.defaults.maxConnections,
+      definition.legacyEnvKeys?.maxConnections,
+    ),
+    idleTimeout: getNumberValue(
+      env,
+      definition.envKeys.idleTimeout,
+      definition.defaults.idleTimeout,
+      definition.legacyEnvKeys?.idleTimeout,
+    ),
+    connectTimeout: getNumberValue(
+      env,
+      definition.envKeys.connectTimeout,
+      definition.defaults.connectTimeout,
+      definition.legacyEnvKeys?.connectTimeout,
+    ),
   };
 };
 
@@ -73,6 +100,9 @@ export interface PgConnectionConfig {
   user: string;
   password: string;
   database: string;
+  maxConnections: number;
+  idleTimeout: number;
+  connectTimeout: number;
 }
 
 export interface PgConfig {

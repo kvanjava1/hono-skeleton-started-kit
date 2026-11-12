@@ -36,6 +36,9 @@ export const createPgConnection = (
       user: pgConfig.user,
       password: pgConfig.password,
       database: pgConfig.database,
+      max: pgConfig.maxConnections,
+      idle_timeout: pgConfig.idleTimeout,
+      connect_timeout: pgConfig.connectTimeout,
     });
 
     pgConnections.set(name, sql);

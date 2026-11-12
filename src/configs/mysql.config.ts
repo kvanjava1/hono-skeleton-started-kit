@@ -6,6 +6,9 @@ const MYSQL_CONNECTION_DEFAULTS = {
       user: "MYSQL_USER_1",
       password: "MYSQL_PASSWORD_1",
       database: "MYSQL_DATABASE_1",
+      connectionLimit: "MYSQL_CONNECTION_LIMIT_1",
+      queueLimit: "MYSQL_QUEUE_LIMIT_1",
+      idleTimeout: "MYSQL_IDLE_TIMEOUT_1",
     },
     legacyEnvKeys: {
       host: "MYSQL_HOST",
@@ -13,6 +16,9 @@ const MYSQL_CONNECTION_DEFAULTS = {
       user: "MYSQL_USER",
       password: "MYSQL_PASSWORD",
       database: "MYSQL_DATABASE",
+      connectionLimit: "MYSQL_CONNECTION_LIMIT",
+      queueLimit: "MYSQL_QUEUE_LIMIT",
+      idleTimeout: "MYSQL_IDLE_TIMEOUT",
     },
     defaults: {
       host: "localhost",
@@ -20,6 +26,9 @@ const MYSQL_CONNECTION_DEFAULTS = {
       user: "root",
       password: "",
       database: "myapp",
+      connectionLimit: 10,
+      queueLimit: 0,
+      idleTimeout: 30000,
     },
   },
 } as const;
@@ -64,9 +73,25 @@ const buildConnectionConfig = (
       definition.defaults.database,
       definition.legacyEnvKeys?.database,
     ),
-    connectionLimit: 10,
+    connectionLimit: getNumberValue(
+      env,
+      definition.envKeys.connectionLimit,
+      definition.defaults.connectionLimit,
+      definition.legacyEnvKeys?.connectionLimit,
+    ),
     waitForConnections: true,
-    queueLimit: 0,
+    queueLimit: getNumberValue(
+      env,
+      definition.envKeys.queueLimit,
+      definition.defaults.queueLimit,
+      definition.legacyEnvKeys?.queueLimit,
+    ),
+    idleTimeout: getNumberValue(
+      env,
+      definition.envKeys.idleTimeout,
+      definition.defaults.idleTimeout,
+      definition.legacyEnvKeys?.idleTimeout,
+    ),
   };
 };
 
@@ -79,6 +104,7 @@ export interface MysqlConnectionConfig {
   connectionLimit: number;
   waitForConnections: boolean;
   queueLimit: number;
+  idleTimeout: number;
 }
 
 export interface MysqlConfig {
