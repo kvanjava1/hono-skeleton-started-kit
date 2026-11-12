@@ -36,11 +36,21 @@ export const getUserRoles = async (userId: number): Promise<Role[]> => {
   return RbacRepository.findUserRoles(userId);
 };
 
-export const listAllRoles = async (): Promise<Role[]> => {
+export const listAllRoles = async (type?: string): Promise<Role[]> => {
+  if (type) {
+    return RbacRepository.findRolesByType(type);
+  }
   return RbacRepository.findAllRoles();
 };
 
-export const listAllPermissions = async (): Promise<Permission[]> => {
+export const findRole = async (roleId: number): Promise<Role | null> => {
+  return RbacRepository.findRoleById(roleId);
+};
+
+export const listAllPermissions = async (type?: string): Promise<Permission[]> => {
+  if (type) {
+    return RbacRepository.findPermissionsByType(type);
+  }
   return RbacRepository.findAllPermissions();
 };
 

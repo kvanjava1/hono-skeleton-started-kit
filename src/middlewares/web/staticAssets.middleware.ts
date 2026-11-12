@@ -15,6 +15,9 @@ export const setupStaticAssets = (app: Hono) => {
     });
   }
 
+  // Fallback for chunks requested at /assets/* directly
+  app.use("/assets/*", serveStatic({ root: "./public/build" }));
+
   // Serve all public assets from the single root ./public directory
   app.use("/*", serveStatic({ root: "./public" }));
 };

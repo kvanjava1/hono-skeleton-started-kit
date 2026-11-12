@@ -45,10 +45,15 @@ const resolveManifestEntry = (
 
 /**
  * Get the active Vite Dev Server base URL.
- * Defaults to http://localhost:5173, configurable via VITE_DEV_SERVER_URL.
+ * Defaults to http://localhost:5173/build, configurable via VITE_DEV_SERVER_URL.
+ * Vite dev server is configured with base: '/build/' in vite.config.ts, so all
+ * dev assets (@vite/client, CSS, entry scripts) are served under the /build prefix.
  */
 export const getViteDevServer = (): string => {
-  return process.env.VITE_DEV_SERVER_URL || "http://localhost:5173";
+  const base = (
+    process.env.VITE_DEV_SERVER_URL || "http://localhost:5173"
+  ).replace(/\/+$/, "");
+  return base.endsWith("/build") ? base : `${base}/build`;
 };
 
 /**

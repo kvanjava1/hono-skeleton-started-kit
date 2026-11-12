@@ -8,6 +8,7 @@ import {
 } from "../../database/schema/client/client.schema.ts";
 import { apiKeys } from "../../database/schema/client/apiKey.schema.ts";
 import { users } from "../../database/schema/admin/user.schema.ts";
+import { clientUsers } from "../../database/schema/client/clientUser.schema.ts";
 import { roles } from "../../database/schema/admin/rbac.schema.ts";
 
 export type { Client, NewClient };
@@ -134,14 +135,14 @@ export const findClientMembers = async (clientId: number) => {
       id: clientMembers.id,
       userId: clientMembers.userId,
       roleId: clientMembers.roleId,
-      name: users.name,
-      email: users.email,
+      name: clientUsers.name,
+      email: clientUsers.email,
       roleName: roles.name,
       status: clientMembers.status,
       createdAt: clientMembers.createdAt,
     })
     .from(clientMembers)
-    .innerJoin(users, eq(clientMembers.userId, users.id))
+    .innerJoin(clientUsers, eq(clientMembers.userId, clientUsers.id))
     .innerJoin(roles, eq(clientMembers.roleId, roles.id))
     .where(eq(clientMembers.clientId, clientId));
 };
@@ -154,14 +155,14 @@ export const findClientMemberById = async (memberId: number) => {
       clientId: clientMembers.clientId,
       userId: clientMembers.userId,
       roleId: clientMembers.roleId,
-      name: users.name,
-      email: users.email,
+      name: clientUsers.name,
+      email: clientUsers.email,
       roleName: roles.name,
       status: clientMembers.status,
       createdAt: clientMembers.createdAt,
     })
     .from(clientMembers)
-    .innerJoin(users, eq(clientMembers.userId, users.id))
+    .innerJoin(clientUsers, eq(clientMembers.userId, clientUsers.id))
     .innerJoin(roles, eq(clientMembers.roleId, roles.id))
     .where(eq(clientMembers.id, memberId))
     .limit(1);
@@ -224,6 +225,74 @@ export const softDeleteClientById = async (id: number): Promise<boolean> => {
     .update(clients)
     .set({ deletedAt: sql`datetime('now')` })
     .where(and(eq(clients.id, id), isNull(clients.deletedAt)))
+    .returning();
+  return rows.length > 0;
+};
+
+export const countClientMembers = async (clientId: number): Promise<number> => {
+  const db = await getDrizzleDb("sqlite1");
+  const [res] = await db
+    .select({ value: count() })
+    .from(clientMembers)
+    .where(eq(clientMembers.clientId, clientId));
+  return Number(res?.value ?? 0);
+};
+
+export const countClientApiKeys = async (clientId: number): Promise<number> => {
+  const db = await getDrizzleDb("sqlite1");
+  const [res] = await db
+    .select({ value: count() })
+    .from(apiKeys)
+    .where(eq(apiKeys.clientId, clientId));
+  return Number(res?.value ?? 0);
+};
+
+export const findMembership = async (clientId: number, userId: number) => {
+  const db = await getDrizzleDb("sqlite1");
+  const rows = await db
+    .select()
+    .from(clientMembers)
+    .where(and(eq(clientMembers.clientId, clientId), eq(clientMembers.userId, userId)))
+    .limit(1);
+  return rows[0] ?? null;
+};
+
+export const insertClientMember = async (data: {
+  clientId: number;
+  userId: number;
+  roleId: number;
+  status?: string;
+}) => {
+  const db = await getDrizzleDb("sqlite1");
+  const rows = await db
+    .insert(clientMembers)
+    .values({
+      clientId: data.clientId,
+      userId: data.userId,
+      roleId: data.roleId,
+      status: data.status ?? "ACTIVE",
+    })
+    .returning();
+  return rows[0]!;
+};
+
+export const deleteClientMember = async (memberId: number): Promise<boolean> => {
+  const db = await getDrizzleDb("sqlite1");
+  const rows = await db
+    .delete(clientMembers)
+    .where(eq(clientMembers.id, memberId))
+    .returning();
+  return rows.length > 0;
+};
+
+export const deleteClientMemberByClientAndUser = async (
+  clientId: number,
+  userId: number,
+): Promise<boolean> => {
+  const db = await getDrizzleDb("sqlite1");
+  const rows = await db
+    .delete(clientMembers)
+    .where(and(eq(clientMembers.clientId, clientId), eq(clientMembers.userId, userId)))
     .returning();
   return rows.length > 0;
 };

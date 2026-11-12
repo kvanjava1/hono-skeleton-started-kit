@@ -1,8 +1,8 @@
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { accountStatuses } from "../common/status.schema.ts";
-import { users } from "../admin/user.schema.ts";
 import { roles } from "../admin/rbac.schema.ts";
+import { clientUsers } from "./clientUser.schema.ts";
 
 /**
  * Clients (Organizations / Companies subscribing to APIs).
@@ -15,6 +15,8 @@ export const clients = sqliteTable("clients", {
     .notNull()
     .default("ACTIVE")
     .references(() => accountStatuses.code),
+  suspendedUntil: text("suspended_until"),
+  statusReason: text("status_reason"),
   deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
   updatedAt: text("updated_at").notNull().default(sql`(datetime('now'))`),
@@ -33,7 +35,7 @@ export const clientMembers = sqliteTable(
       .references(() => clients.id, { onDelete: "cascade" }),
     userId: integer("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => clientUsers.id, { onDelete: "cascade" }),
     roleId: integer("role_id")
       .notNull()
       .references(() => roles.id, { onDelete: "restrict" }),

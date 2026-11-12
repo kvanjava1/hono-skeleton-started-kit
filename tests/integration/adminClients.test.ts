@@ -80,6 +80,22 @@ beforeAll(async () => {
     );
   `);
   db.run(`
+    CREATE TABLE IF NOT EXISTS client_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'ACTIVE',
+      is_active INTEGER NOT NULL DEFAULT 1,
+      banned_until TEXT DEFAULT NULL,
+      status_reason TEXT DEFAULT NULL,
+      last_active_client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+      deleted_at TEXT DEFAULT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  db.run(`
     CREATE TABLE IF NOT EXISTS user_status_histories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -134,9 +150,23 @@ beforeAll(async () => {
       name TEXT NOT NULL,
       slug TEXT NOT NULL UNIQUE,
       status TEXT NOT NULL DEFAULT 'ACTIVE',
+      suspended_until TEXT DEFAULT NULL,
+      status_reason TEXT DEFAULT NULL,
       deleted_at TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS client_status_histories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      from_status TEXT NOT NULL,
+      to_status TEXT NOT NULL,
+      reason TEXT,
+      suspended_until TEXT DEFAULT NULL,
+      changed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
   db.run(`
@@ -282,5 +312,68 @@ describe("Admin Client Management", () => {
     const text = await res.text();
     expect(text).toContain("dashboard-admin\\/Admin\\/Clients\\/Show");
     expect(text).toContain("Acme Corp");
+  });
+
+  test("admin can view client status configuration page", async () => {
+    const clientList = await ClientService.listClients({ q: "Acme" });
+    const client = clientList.rows[0]!;
+
+    const res = await app.fetch(
+      new Request(`${base}/admin/clients/${client.id}/status`, {
+        method: "GET",
+        headers: {
+          cookie: cookieHeader(),
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain("dashboard-admin\\/Admin\\/Clients\\/Status");
+    expect(text).toContain("Acme Corp");
+  });
+
+  test("admin can update client status with reason and duration via POST /admin/clients/:id/status", async () => {
+    const clientList = await ClientService.listClients({ q: "Acme" });
+    const client = clientList.rows[0]!;
+    const suspendedDate = new Date(Date.now() + 14 * 86400000).toISOString();
+
+    const res = await app.fetch(
+      new Request(`${base}/admin/clients/${client.id}/status`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: base,
+          cookie: cookieHeader(),
+          "x-xsrf-token": jar.get("XSRF-TOKEN")!,
+        },
+        body: JSON.stringify({
+          status: "SUSPENDED",
+          reason: "Payment failure and overdue invoices",
+          suspendedUntil: suspendedDate,
+        }),
+      }),
+      { redirect: "manual" },
+    );
+    expect(res.status).toBe(302);
+
+    const updated = await ClientService.findClient(client.id);
+    expect(updated.status).toBe("SUSPENDED");
+    expect(updated.statusReason).toBe("Payment failure and overdue invoices");
+    expect(updated.suspendedUntil).toBe(suspendedDate);
+
+    // Verify history log via JSON endpoint
+    const historyRes = await app.fetch(
+      new Request(`${base}/admin/clients/${client.id}/status-history`, {
+        method: "GET",
+        headers: {
+          cookie: cookieHeader(),
+        },
+      }),
+    );
+    expect(historyRes.status).toBe(200);
+    const historyJson = (await historyRes.json()) as { data: any[] };
+    expect(historyJson.data.length).toBeGreaterThanOrEqual(1);
+    expect(historyJson.data[0].reason).toBe("Payment failure and overdue invoices");
+    expect(historyJson.data[0].toStatus).toBe("SUSPENDED");
   });
 });

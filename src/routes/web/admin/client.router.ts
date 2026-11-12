@@ -4,6 +4,9 @@ import {
   showClientCreate,
   createClientFromWeb,
   showClientDetail,
+  showClientStatus,
+  changeClientStatusFromWeb,
+  getClientStatusHistoryFromWeb,
   toggleClientStatusFromWeb,
   deleteClientFromWeb,
   showClientMembers,
@@ -48,6 +51,25 @@ clientRouter.get(
   authGuard,
   can("clients.view"),
   showClientDetail,
+);
+clientRouter.get(
+  ROUTES.WEB.ADMIN.CLIENTS_STATUS_PAGE,
+  authGuard,
+  can("clients.view"),
+  showClientStatus,
+);
+clientRouter.post(
+  ROUTES.WEB.ADMIN.CLIENTS_STATUS,
+  csrfGuard,
+  authGuard,
+  can("clients.update"),
+  changeClientStatusFromWeb,
+);
+clientRouter.get(
+  ROUTES.WEB.ADMIN.CLIENTS_STATUS_HISTORY,
+  authGuard,
+  can("clients.view"),
+  getClientStatusHistoryFromWeb,
 );
 clientRouter.post(
   ROUTES.WEB.ADMIN.CLIENTS_TOGGLE_STATUS,

@@ -40,5 +40,12 @@ export const IdParam = z.object({
     .transform((val) => Number.parseInt(val, 10)),
 });
 
+export const ChangeClientStatusBody = z.object({
+  status: ClientStatusEnum,
+  reason: z.string().max(500).optional(),
+  suspendedUntil: z.string().nullable().optional(),
+});
+
 export type CreateClientInput = z.input<typeof CreateClientBody>;
 export type UpdateClientInput = z.infer<typeof UpdateClientBody>;
+export type ChangeClientStatusBodyInput = z.infer<typeof ChangeClientStatusBody>;

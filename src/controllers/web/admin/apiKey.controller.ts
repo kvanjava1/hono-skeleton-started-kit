@@ -1,9 +1,10 @@
 import type { Context } from "hono";
 import * as ApiKeyService from "../../../services/client/apiKey.service.ts";
-import * as ClientRepository from "../../../repositories/admin/client.repository.ts";
+import * as ClientService from "../../../services/admin/client.service.ts";
 import * as UserService from "../../../services/admin/user.service.ts";
 import { getAuthUser, flashSuccess, flashError } from "../../../utils/session.util.ts";
 import { ROUTES } from "../../../configs/routes.config.ts";
+import { logger } from "../../../utils/logger.util.ts";
 import { z } from "zod";
 
 const CreateKeySchema = z.object({
@@ -11,12 +12,7 @@ const CreateKeySchema = z.object({
 });
 
 const resolveClientForUser = async (userId: number) => {
-  const client = await ClientRepository.findClientByUserId(userId);
-  if (client) return client;
-
-  // Fallback for superadmin: fetch first client
-  const all = await ClientRepository.findAllClients({ perPage: 1 });
-  return all.rows[0] ?? null;
+  return ClientService.resolveClientForUser(userId);
 };
 
 const getAuthUserSummary = async (c: Context) => {
@@ -82,6 +78,11 @@ export const createApiKeyFromWeb = async (c: Context) => {
       `API Key "${generated.name}" created! TOKEN:${generated.rawToken}`,
     );
   } catch (err: any) {
+    logger.warn("[AdminApiKeyWeb] Failed to create API key", {
+      clientId: client.id,
+      authUserId,
+      error: err?.message,
+    });
     flashError(c, err?.message || "Failed to create API key");
   }
 
@@ -102,6 +103,11 @@ export const revokeApiKeyFromWeb = async (c: Context) => {
     await ApiKeyService.revokeApiKey(idRaw, client.id);
     flashSuccess(c, "API key has been revoked.");
   } catch (err: any) {
+    logger.warn("[AdminApiKeyWeb] Failed to revoke API key", {
+      clientId: client.id,
+      keyId: idRaw,
+      error: err?.message,
+    });
     flashError(c, err?.message || "Failed to revoke key.");
   }
 

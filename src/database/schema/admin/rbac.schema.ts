@@ -18,10 +18,12 @@ export const roles = sqliteTable("roles", {
 /**
  * RBAC: Atomic permissions catalog.
  * e.g., code: 'clients.view', 'users.create', 'apikeys.view'.
+ * `type`: 'admin' for platform staff, 'client' for tenant portal.
  */
 export const permissions = sqliteTable("permissions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   code: text("code").notNull().unique(),
+  type: text("type").notNull().default("admin"), // 'admin' | 'client'
   group: text("group").notNull(), // e.g. 'users', 'clients', 'apikeys', 'team'
   description: text("description"),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),

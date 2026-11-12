@@ -65,6 +65,7 @@ export const createApiKey = async (
 
 export const verifyApiKey = async (rawToken: string) => {
   if (!rawToken || !rawToken.startsWith("hon_live_")) {
+    logger.warn("[ApiKeyService] API key rejected: invalid format");
     throw new UnauthorizedError("Invalid API key format.");
   }
 
@@ -72,6 +73,7 @@ export const verifyApiKey = async (rawToken: string) => {
   const result = await ApiKeyRepository.findApiKeyByHash(hash);
 
   if (!result) {
+    logger.warn("[ApiKeyService] API key rejected: key not found");
     throw new UnauthorizedError("Invalid API key.");
   }
 
@@ -79,6 +81,10 @@ export const verifyApiKey = async (rawToken: string) => {
 
   // 1. Verify Client Status
   if (client.status !== ACCOUNT_STATUSES.ACTIVE) {
+    logger.warn("[ApiKeyService] API key rejected: client organization inactive or suspended", {
+      clientId: client.id,
+      clientStatus: client.status,
+    });
     throw new ForbiddenError(
       `Client organization "${client.name}" is ${client.status.toLowerCase()}. Access denied.`,
     );
@@ -86,6 +92,10 @@ export const verifyApiKey = async (rawToken: string) => {
 
   // 2. Verify Key Status
   if (key.status !== ACCOUNT_STATUSES.ACTIVE) {
+    logger.warn("[ApiKeyService] API key rejected: key inactive or revoked", {
+      keyId: key.id,
+      keyStatus: key.status,
+    });
     throw new ForbiddenError(
       `API key "${key.name}" is ${key.status.toLowerCase()}.`,
     );
@@ -93,6 +103,10 @@ export const verifyApiKey = async (rawToken: string) => {
 
   // 3. Verify Key Expiration if set
   if (key.expiresAt && new Date(key.expiresAt).getTime() < Date.now()) {
+    logger.warn("[ApiKeyService] API key rejected: key expired", {
+      keyId: key.id,
+      expiresAt: key.expiresAt,
+    });
     throw new UnauthorizedError("API key has expired.");
   }
 

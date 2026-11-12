@@ -74,6 +74,9 @@ export const getSharedProps = (c?: Context) => {
   const permissions: string[] = c.get("currentPermissions") ?? [];
   const isManagement: boolean = c.get("isManagement") ?? true;
   const currentClient = c.get("currentClient") ?? null;
+  const clientUser = c.get("clientUser") ?? null;
+  const currentRole = c.get("currentRole") ?? null;
+  const userWorkspaces = c.get("userWorkspaces") ?? [];
 
   return {
     ...base,
@@ -83,6 +86,9 @@ export const getSharedProps = (c?: Context) => {
       permissions,
       isManagement,
       client: currentClient,
+      clientUser,
+      currentRole,
+      workspaces: userWorkspaces,
     },
   };
 };

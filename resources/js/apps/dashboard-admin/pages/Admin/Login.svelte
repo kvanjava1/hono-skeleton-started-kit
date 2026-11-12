@@ -39,7 +39,7 @@
 </script>
 
 <svelte:head>
-  <title>Login — {appName}</title>
+  <title>Admin Login — {appName || 'Administration'}</title>
 </svelte:head>
 
 <div class="grid min-h-screen place-items-center bg-zinc-200/70 px-4 py-10 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
@@ -52,13 +52,17 @@
   </div>
 
   <main class="relative w-full max-w-md">
-    <!-- Logo + sambutan (port login.html) -->
+    <!-- Brand Pill Boxy & Title -->
     <div class="mb-8 flex flex-col items-center text-center">
-      <span class="grid h-14 w-14 place-items-center bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950">
-        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
-      </span>
-      <h1 class="mt-4 text-3xl font-extrabold tracking-tight">Selamat datang kembali</h1>
-      <p class="mt-1.5 text-base text-zinc-500 dark:text-zinc-400">Masuk untuk melanjutkan ke panel admin.</p>
+      <div class="mx-auto flex h-12 w-fit items-center border border-black bg-black px-5 text-sm font-mono font-bold tracking-widest text-white dark:border-white dark:bg-white dark:text-black">
+        ADMIN BACKOFFICE
+      </div>
+      <h1 class="mt-6 text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+        Sign in to Administration
+      </h1>
+      <p class="mt-2 text-base text-zinc-500 dark:text-zinc-400">
+        Manage platform resources, clients, roles, and system configurations.
+      </p>
     </div>
 
     <div class="card p-6 sm:p-8">
@@ -75,7 +79,7 @@
 
       <form class="space-y-5" onsubmit={e => { e.preventDefault(); login() }}>
         <div>
-          <label for="email" class="label">Email</label>
+          <label for="email" class="label">Email Address</label>
           <TextInput
             id="email"
             type="email"
@@ -87,7 +91,7 @@
           />
         </div>
         <div>
-          <label for="password" class="label">Sandi</label>
+          <label for="password" class="label">Password</label>
           <PasswordInput
             id="password"
             bind:value={form.password}
@@ -97,9 +101,16 @@
           />
         </div>
         <Button type="submit" disabled={form.processing} class="w-full">
-          {form.processing ? 'Memproses…' : 'Masuk'}
+          {form.processing ? 'Verifying…' : 'Sign In'}
         </Button>
       </form>
+
+      <div class="mt-6 border-t border-zinc-200 pt-5 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+        Client or API Consumer?
+        <a href={route(ROUTES.WEB.CLIENT.LOGIN)} class="font-semibold text-zinc-900 underline hover:text-black dark:text-white">
+          Access Client Portal →
+        </a>
+      </div>
     </div>
   </main>
 </div>

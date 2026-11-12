@@ -9,10 +9,12 @@ import {
 import {
   clearAuthUser,
   flashSuccess,
+  getAuthUser,
   rotateSessionForAuth,
 } from "../../../utils/session.util.ts";
 import { ROUTES } from "../../../configs/routes.config.ts";
 import { logger } from "../../../utils/logger.util.ts";
+import { recordActivity } from "../../../services/common/activityLog.service.ts";
 
 /** Shared origin-page description for 422 error-bag responses on login. */
 const loginOriginPage = () => ({
@@ -57,11 +59,28 @@ export const loginAdmin = async (c: Context) => {
     rotateSessionForAuth(session, user.id);
     flashSuccess(c, `Welcome back, ${user.name}`);
     logger.info("[AuthWeb] Login success", { userId: user.id });
+
+    recordActivity({
+      actorId: user.id,
+      actorType: "admin",
+      actorName: user.name,
+      actorEmail: user.email,
+      action: "auth.login",
+      scope: "personal",
+      description: "Admin logged in successfully",
+      ipAddress: c.req.header("x-forwarded-for") || "unknown",
+      userAgent: c.req.header("user-agent"),
+    });
+
     return c.redirect(ROUTES.WEB.ADMIN.DASHBOARD);
   } catch (error) {
     if (error instanceof ValidationError) {
       // Generic credential failure — same message for wrong password,
       // unknown email, and deactivated accounts (plan D3).
+      logger.warn("[AuthWeb] Login failed: invalid credentials or account restricted", {
+        email: parsed.data.email,
+        ip: c.req.header("x-forwarded-for") || "unknown",
+      });
       const errors = { form: error.message };
       if (c.req.header("X-Inertia")) {
         return inertiaValidationErrorResponse(c, loginOriginPage(), errors);
@@ -75,8 +94,22 @@ export const loginAdmin = async (c: Context) => {
 /** POST /admin/logout — drops the userId claim, keeps CSRF + flash, redirects. */
 export const logoutAdmin = async (c: Context) => {
   const session = c.get("webSession");
+  const authUserId = session ? getAuthUser(session) : undefined;
   if (session) clearAuthUser(session);
   flashSuccess(c, "You have been logged out");
-  logger.info("[AuthWeb] Logout");
+  logger.info("[AuthWeb] Logout", { userId: authUserId });
+
+  if (authUserId) {
+    recordActivity({
+      actorId: authUserId,
+      actorType: "admin",
+      action: "auth.logout",
+      scope: "personal",
+      description: "Admin logged out",
+      ipAddress: c.req.header("x-forwarded-for") || "unknown",
+      userAgent: c.req.header("user-agent"),
+    });
+  }
+
   return c.redirect(ROUTES.WEB.ADMIN.LOGIN);
 };

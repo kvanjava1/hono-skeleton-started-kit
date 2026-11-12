@@ -1,15 +1,10 @@
 import type { Context } from "hono";
-import * as ClientRepository from "../../../repositories/admin/client.repository.ts";
-import * as UserRepository from "../../../repositories/admin/user.repository.ts";
+import * as ClientService from "../../../services/admin/client.service.ts";
 import * as UserService from "../../../services/admin/user.service.ts";
-import * as RbacRepository from "../../../repositories/admin/rbac.repository.ts";
-import { getDrizzleDb } from "../../../database/drizzle.ts";
-import { clientMembers } from "../../../database/schema/client/client.schema.ts";
+import * as RbacService from "../../../services/admin/rbac.service.ts";
 import { getAuthUser, flashSuccess, flashError } from "../../../utils/session.util.ts";
 import { ROUTES } from "../../../configs/routes.config.ts";
-import { ACCOUNT_STATUSES } from "../../../database/schema/common/status.schema.ts";
-import { PASSWORD_HASH_OPTIONS } from "../../../services/admin/user.service.ts";
-import { eq } from "drizzle-orm";
+import { logger } from "../../../utils/logger.util.ts";
 import { z } from "zod";
 
 const InviteMemberSchema = z.object({
@@ -17,14 +12,6 @@ const InviteMemberSchema = z.object({
   email: z.string().trim().toLowerCase().email("Valid email required"),
   roleId: z.number().int().positive(),
 });
-
-const resolveClientForUser = async (userId: number) => {
-  const client = await ClientRepository.findClientByUserId(userId);
-  if (client) return client;
-
-  const all = await ClientRepository.findAllClients({ perPage: 1 });
-  return all.rows[0] ?? null;
-};
 
 const getAuthUserSummary = async (c: Context) => {
   const session = c.get("webSession");
@@ -44,15 +31,14 @@ const getAuthUserSummary = async (c: Context) => {
 
 export const showTeamIndex = async (c: Context) => {
   const { authUserId, authUser } = await getAuthUserSummary(c);
-  const client = await resolveClientForUser(authUserId);
+  const client = await ClientService.resolveClientForUser(authUserId);
 
   let members: any[] = [];
   if (client) {
-    members = await ClientRepository.findClientMembers(client.id);
+    members = await ClientService.listMembers(client.id);
   }
 
-  const allRoles = await RbacRepository.findAllRoles();
-  const clientRoles = allRoles.filter((r) => r.type === "client");
+  const clientRoles = await RbacService.listAllRoles("client");
 
   return c.render("dashboard-admin/Admin/Team/Index", {
     client,
@@ -65,7 +51,7 @@ export const showTeamIndex = async (c: Context) => {
 
 export const inviteTeamMemberFromWeb = async (c: Context) => {
   const { authUserId } = await getAuthUserSummary(c);
-  const client = await resolveClientForUser(authUserId);
+  const client = await ClientService.resolveClientForUser(authUserId);
 
   if (!client) {
     flashError(c, "No client organization associated with your account.");
@@ -80,31 +66,21 @@ export const inviteTeamMemberFromWeb = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.TEAM);
   }
 
-  // Find or create user
-  let user = await UserRepository.findUserByEmail(parsed.data.email);
-  if (!user) {
-    const defaultPassword = Bun.randomUUIDv7();
-    const passwordHash = await Bun.password.hash(defaultPassword, PASSWORD_HASH_OPTIONS);
-    user = await UserRepository.insertUser({
+  try {
+    const { user } = await ClientService.inviteMember({
+      clientId: client.id,
       name: parsed.data.name,
       email: parsed.data.email,
-      passwordHash,
-      status: ACCOUNT_STATUSES.ACTIVE,
-    });
-  }
-
-  // Attach to client_members
-  const db = await getDrizzleDb("sqlite1");
-  try {
-    await db.insert(clientMembers).values({
-      clientId: client.id,
-      userId: user.id,
       roleId: parsed.data.roleId,
-      status: ACCOUNT_STATUSES.ACTIVE,
     });
     flashSuccess(c, `Team member "${user.name}" added successfully.`);
-  } catch {
-    flashError(c, "User is already a member of this team.");
+  } catch (err: any) {
+    logger.warn("[AdminTeamWeb] Failed to add team member", {
+      clientId: client.id,
+      email: parsed.data.email,
+      error: err?.message,
+    });
+    flashError(c, err?.message || "Failed to add team member.");
   }
 
   return c.redirect(ROUTES.WEB.ADMIN.TEAM);
@@ -117,9 +93,16 @@ export const removeTeamMemberFromWeb = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.TEAM);
   }
 
-  const db = await getDrizzleDb("sqlite1");
-  await db.delete(clientMembers).where(eq(clientMembers.id, memberId));
-  flashSuccess(c, "Member removed from team.");
+  try {
+    await ClientService.removeMember(memberId);
+    flashSuccess(c, "Member removed from team.");
+  } catch (err: any) {
+    logger.warn("[AdminTeamWeb] Failed to remove team member", {
+      memberId,
+      error: err?.message,
+    });
+    flashError(c, err?.message || "Failed to remove member.");
+  }
 
   return c.redirect(ROUTES.WEB.ADMIN.TEAM);
 };

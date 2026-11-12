@@ -32,6 +32,12 @@ export interface WebSession {
   flash: WebSessionFlash;
   /** Auth claim for the admin dashboard (plan D3) — absent when logged out. */
   userId?: number;
+  /** Explicit admin staff auth claim (Dual-guard isolation). */
+  adminUserId?: number;
+  /** Explicit external client portal auth claim (Dual-guard isolation). */
+  clientUserId?: number;
+  /** Currently active workspace / organization ID for the client portal. */
+  currentClientId?: number;
 }
 
 const createState = (): WebSession => ({
@@ -70,6 +76,9 @@ export const loadWebSession = async (c: Context): Promise<WebSession> => {
       csrfToken: parsed.csrfToken,
       flash: parsed.flash ?? {},
       ...(parsed.userId !== undefined ? { userId: parsed.userId } : {}),
+      ...(parsed.adminUserId !== undefined ? { adminUserId: parsed.adminUserId } : {}),
+      ...(parsed.clientUserId !== undefined ? { clientUserId: parsed.clientUserId } : {}),
+      ...(parsed.currentClientId !== undefined ? { currentClientId: parsed.currentClientId } : {}),
     };
   } catch {
     // Tampered/unparseable payload — a valid signature means it was written
@@ -143,7 +152,19 @@ export const flashError = (c: Context, message: string): void => {
 
 /** Reads the authenticated user id from the session, or null when logged out. */
 export const getAuthUser = (session: WebSession): number | null =>
-  session.userId ?? null;
+  session.adminUserId ?? session.userId ?? null;
+
+/** Reads admin staff user id specifically. */
+export const getAdminAuthUser = (session: WebSession): number | null =>
+  session.adminUserId ?? session.userId ?? null;
+
+/** Reads client portal user id specifically. */
+export const getClientAuthUser = (session: WebSession): number | null =>
+  session.clientUserId ?? null;
+
+/** Reads active client organization id for client portal. */
+export const getActiveClientId = (session: WebSession): number | null =>
+  session.currentClientId ?? null;
 
 /**
  * Logs a user in: rotates the CSRF token (session-fixation protection) and
@@ -154,10 +175,47 @@ export const getAuthUser = (session: WebSession): number | null =>
 export const rotateSessionForAuth = (session: WebSession, userId: number): void => {
   session.csrfToken = crypto.randomUUID();
   session.userId = userId;
+  session.adminUserId = userId;
   session.flash = {};
 };
 
-/** Logs the user out: drops the claim, keeps CSRF + flash for the next visit. */
+/** Logs an admin user in (Guard 1). */
+export const rotateSessionForAdminAuth = (session: WebSession, adminUserId: number): void => {
+  session.csrfToken = crypto.randomUUID();
+  session.adminUserId = adminUserId;
+  session.userId = adminUserId;
+  session.flash = {};
+};
+
+/** Logs a client tenant user in (Guard 2). */
+export const rotateSessionForClientAuth = (
+  session: WebSession,
+  clientUserId: number,
+  currentClientId?: number,
+): void => {
+  session.csrfToken = crypto.randomUUID();
+  session.clientUserId = clientUserId;
+  if (currentClientId !== undefined) {
+    session.currentClientId = currentClientId;
+  }
+  session.flash = {};
+};
+
+/** Switches the active workspace / organization for client portal. */
+export const switchSessionWorkspace = (session: WebSession, clientId: number): void => {
+  session.currentClientId = clientId;
+};
+
+/** Logs the admin user out: drops only admin claim, keeps client session intact if logged in. */
 export const clearAuthUser = (session: WebSession): void => {
   delete session.userId;
+  delete session.adminUserId;
+};
+
+export const clearAdminAuthUser = clearAuthUser;
+
+/** Logs the client user out: drops only client portal claims. */
+export const clearClientAuthUser = (session: WebSession): void => {
+  delete session.clientUserId;
+  delete session.currentClientId;
 };

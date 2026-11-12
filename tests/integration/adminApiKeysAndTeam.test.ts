@@ -85,6 +85,22 @@ beforeAll(async () => {
     );
   `);
   db.run(`
+    CREATE TABLE IF NOT EXISTS client_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'ACTIVE',
+      is_active INTEGER NOT NULL DEFAULT 1,
+      banned_until TEXT DEFAULT NULL,
+      status_reason TEXT DEFAULT NULL,
+      last_active_client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+      deleted_at TEXT DEFAULT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  db.run(`
     CREATE TABLE IF NOT EXISTS user_status_histories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -139,6 +155,8 @@ beforeAll(async () => {
       name TEXT NOT NULL,
       slug TEXT NOT NULL UNIQUE,
       status TEXT NOT NULL DEFAULT 'ACTIVE',
+      suspended_until TEXT DEFAULT NULL,
+      status_reason TEXT DEFAULT NULL,
       deleted_at TEXT DEFAULT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -217,15 +235,14 @@ beforeAll(async () => {
   });
   testClientId = client.id;
 
-  // Seed initial member
-  const picUser = await UserService.createUser({
-    name: "Acme Pic",
-    email: "pic@acme-key.com",
-    password: "pic-password-123",
-  });
-  db.run("INSERT INTO client_members (client_id, user_id, role_id) VALUES (?, ?, 2)", [
+  // Seed initial member in client_users
+  const picPasswordHash = await Bun.password.hash("pic-password-123", { algorithm: "argon2id" });
+  db.run(
+    "INSERT INTO client_users (id, name, email, password_hash) VALUES (10, 'Acme Pic', 'pic@acme-key.com', ?)",
+    [picPasswordHash],
+  );
+  db.run("INSERT INTO client_members (client_id, user_id, role_id) VALUES (?, 10, 2)", [
     client.id,
-    picUser.id,
   ]);
 });
 

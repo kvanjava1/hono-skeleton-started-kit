@@ -91,14 +91,43 @@ export const findUserRoles = async (userId: number): Promise<Role[]> => {
   return db.select().from(roles).where(inArray(roles.id, roleIds));
 };
 
+export const findRolePermissions = async (roleId: number): Promise<Permission[]> => {
+  const db = await getDrizzleDb("sqlite1");
+  const rolePerms = await db
+    .select({ permissionId: rolePermissions.permissionId })
+    .from(rolePermissions)
+    .where(eq(rolePermissions.roleId, roleId));
+
+  const permIds = rolePerms.map((rp) => rp.permissionId);
+  if (permIds.length === 0) return [];
+
+  return db.select().from(permissions).where(inArray(permissions.id, permIds));
+};
+
 export const findAllRoles = async (): Promise<Role[]> => {
   const db = await getDrizzleDb("sqlite1");
   return db.select().from(roles);
 };
 
+export const findRoleById = async (roleId: number): Promise<Role | null> => {
+  const db = await getDrizzleDb("sqlite1");
+  const [role] = await db.select().from(roles).where(eq(roles.id, roleId)).limit(1);
+  return role ?? null;
+};
+
+export const findRolesByType = async (type: string): Promise<Role[]> => {
+  const db = await getDrizzleDb("sqlite1");
+  return db.select().from(roles).where(eq(roles.type, type));
+};
+
 export const findAllPermissions = async (): Promise<Permission[]> => {
   const db = await getDrizzleDb("sqlite1");
   return db.select().from(permissions);
+};
+
+export const findPermissionsByType = async (type: string): Promise<Permission[]> => {
+  const db = await getDrizzleDb("sqlite1");
+  return db.select().from(permissions).where(eq(permissions.type, type));
 };
 
 export const assignRoleToUser = async (

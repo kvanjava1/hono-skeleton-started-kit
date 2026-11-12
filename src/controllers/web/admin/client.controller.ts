@@ -1,20 +1,16 @@
 import type { Context } from "hono";
 import * as ClientService from "../../../services/admin/client.service.ts";
-import * as ClientRepository from "../../../repositories/admin/client.repository.ts";
 import * as UserService from "../../../services/admin/user.service.ts";
-import * as UserRepository from "../../../repositories/admin/user.repository.ts";
-import * as RbacRepository from "../../../repositories/admin/rbac.repository.ts";
+import * as RbacService from "../../../services/admin/rbac.service.ts";
 import * as ApiKeyService from "../../../services/client/apiKey.service.ts";
-import { getDrizzleDb } from "../../../database/drizzle.ts";
-import { clientMembers } from "../../../database/schema/client/client.schema.ts";
-import { users } from "../../../database/schema/admin/user.schema.ts";
-import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   CreateClientBody,
   UpdateClientBody,
+  ChangeClientStatusBody,
   IdParam,
 } from "../../../validations/admin/client.ts";
+import { NotFoundError, ValidationError } from "../../../utils/errors.util.ts";
 import {
   inertiaValidationErrorResponse,
   toInertiaErrorBag,
@@ -24,7 +20,6 @@ import { flashError, flashSuccess, getAuthUser } from "../../../utils/session.ut
 import { ROUTES, route } from "../../../configs/routes.config.ts";
 import { logger } from "../../../utils/logger.util.ts";
 import { ACCOUNT_STATUSES } from "../../../database/schema/common/status.schema.ts";
-import { PASSWORD_HASH_OPTIONS } from "../../../services/admin/user.service.ts";
 
 const getAuthUserSummary = async (c: Context) => {
   const session = c.get("webSession");
@@ -138,6 +133,89 @@ export const showClientDetail = async (c: Context) => {
   }
 };
 
+/** GET /admin/clients/:id/status — dedicated client status & moderation page */
+export const showClientStatus = async (c: Context) => {
+  const idParsed = IdParam.safeParse({ id: c.req.param("id") });
+  if (!idParsed.success) {
+    flashError(c, "Client not found");
+    return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
+  }
+
+  try {
+    const client = await ClientService.findClient(idParsed.data.id);
+    const history = await ClientService.getClientStatusHistory(idParsed.data.id);
+    const { authUserId, authUser } = await getAuthUserSummary(c);
+
+    return c.render("dashboard-admin/Admin/Clients/Status", {
+      client,
+      history,
+      authUserId,
+      authUser,
+    });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      flashError(c, "Client not found");
+      return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
+    }
+    throw error;
+  }
+};
+
+/** POST /admin/clients/:id/status — change client status (Active, Inactive, Suspended, Pending) */
+export const changeClientStatusFromWeb = async (c: Context) => {
+  const idParsed = IdParam.safeParse({ id: c.req.param("id") });
+  if (!idParsed.success) {
+    throw new ValidationError("Validation failed", toInertiaErrorBag(idParsed.error));
+  }
+  const id = idParsed.data.id;
+  const parsed = ChangeClientStatusBody.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) {
+    throw new ValidationError("Validation failed", toInertiaErrorBag(parsed.error));
+  }
+
+  const session = c.get("webSession");
+  const actingUserId = getAuthUser(session) ?? undefined;
+
+  try {
+    const updated = await ClientService.changeClientStatus(id, {
+      status: parsed.data.status,
+      reason: parsed.data.reason,
+      suspendedUntil: parsed.data.suspendedUntil,
+      actingUserId,
+    });
+    flashSuccess(
+      c,
+      `Organization status for "${updated.name}" updated to ${updated.status}`,
+    );
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      flashError(c, error.message);
+    } else if (error instanceof NotFoundError) {
+      flashError(c, "Client not found");
+    } else {
+      throw error;
+    }
+  }
+  return c.redirect(route(ROUTES.WEB.ADMIN.CLIENTS_STATUS_PAGE, { id }));
+};
+
+/** GET /admin/clients/:id/status-history — fetch client status history audit log */
+export const getClientStatusHistoryFromWeb = async (c: Context) => {
+  const idParsed = IdParam.safeParse({ id: c.req.param("id") });
+  if (!idParsed.success) {
+    return c.json({ error: "Invalid client ID" }, 400);
+  }
+  try {
+    const history = await ClientService.getClientStatusHistory(idParsed.data.id);
+    return c.json({ data: history });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return c.json({ error: "Client not found" }, 404);
+    }
+    throw error;
+  }
+};
+
 /** POST /admin/clients/:id/toggle-status — Toggle Active / Suspended */
 export const toggleClientStatusFromWeb = async (c: Context) => {
   const idParsed = IdParam.safeParse({ id: c.req.param("id") });
@@ -158,7 +236,11 @@ export const toggleClientStatusFromWeb = async (c: Context) => {
       c,
       `Client "${client.name}" is now ${newStatus.toLowerCase()}.`,
     );
-  } catch {
+  } catch (err: any) {
+    logger.warn("[ClientWeb] Toggle client status failed", {
+      clientId: idParsed.data.id,
+      error: err?.message,
+    });
     flashError(c, "Failed to update client status.");
   }
 
@@ -176,7 +258,11 @@ export const deleteClientFromWeb = async (c: Context) => {
   try {
     await ClientService.deleteClient(idParsed.data.id);
     flashSuccess(c, "Client deleted successfully.");
-  } catch {
+  } catch (err: any) {
+    logger.warn("[ClientWeb] Delete client failed", {
+      clientId: idParsed.data.id,
+      error: err?.message,
+    });
     flashError(c, "Failed to delete client.");
   }
 
@@ -208,9 +294,8 @@ const memberCreateOriginPage = async (
   clientId: number,
 ): Promise<InertiaOriginPage> => {
   const { authUserId, authUser } = await getAuthUserSummary(c);
-  const client = await ClientRepository.findClientById(clientId);
-  const allRoles = await RbacRepository.findAllRoles();
-  const clientRoles = allRoles.filter((r) => r.type === "client");
+  const client = await ClientService.findClient(clientId);
+  const clientRoles = await RbacService.listAllRoles("client");
   return {
     component: "dashboard-admin/Admin/Clients/MemberCreate",
     url: route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_CREATE_PAGE, { id: clientId }),
@@ -231,15 +316,16 @@ export const showClientMembers = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const client = await ClientRepository.findClientById(idParsed.data.id);
-  if (!client) {
+  let client;
+  try {
+    client = await ClientService.findClient(idParsed.data.id);
+  } catch {
     flashError(c, "Client not found");
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const members = await ClientRepository.findClientMembers(client.id);
-  const allRoles = await RbacRepository.findAllRoles();
-  const clientRoles = allRoles.filter((r) => r.type === "client");
+  const members = await ClientService.listMembers(client.id);
+  const clientRoles = await RbacService.listAllRoles("client");
   const { authUserId, authUser } = await getAuthUserSummary(c);
 
   return c.render("dashboard-admin/Admin/Clients/Members", {
@@ -259,14 +345,15 @@ export const showClientMemberCreate = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const client = await ClientRepository.findClientById(idParsed.data.id);
-  if (!client) {
+  let client;
+  try {
+    client = await ClientService.findClient(idParsed.data.id);
+  } catch {
     flashError(c, "Client not found");
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const allRoles = await RbacRepository.findAllRoles();
-  const clientRoles = allRoles.filter((r) => r.type === "client");
+  const clientRoles = await RbacService.listAllRoles("client");
   const { authUserId, authUser } = await getAuthUserSummary(c);
 
   return c.render("dashboard-admin/Admin/Clients/MemberCreate", {
@@ -285,8 +372,10 @@ export const inviteClientMember = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const client = await ClientRepository.findClientById(idParsed.data.id);
-  if (!client) {
+  let client;
+  try {
+    client = await ClientService.findClient(idParsed.data.id);
+  } catch {
     flashError(c, "Client not found");
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
@@ -308,29 +397,23 @@ export const inviteClientMember = async (c: Context) => {
     return c.json({ errors }, 422);
   }
 
-  let user = await UserRepository.findUserByEmail(parsed.data.email);
-  if (!user) {
-    const passwordHash = await Bun.password.hash(parsed.data.password, PASSWORD_HASH_OPTIONS);
-    user = await UserRepository.insertUser({
+  try {
+    const { user } = await ClientService.inviteMember({
+      clientId: client.id,
       name: parsed.data.name,
       email: parsed.data.email,
-      passwordHash,
-      status: ACCOUNT_STATUSES.ACTIVE,
-    });
-  }
-
-  const db = await getDrizzleDb("sqlite1");
-  try {
-    await db.insert(clientMembers).values({
-      clientId: client.id,
-      userId: user.id,
       roleId: parsed.data.roleId,
-      status: ACCOUNT_STATUSES.ACTIVE,
+      password: parsed.data.password,
     });
     flashSuccess(c, `Team member "${user.name}" added to ${client.name}.`);
     return c.redirect(membersPageUrl);
-  } catch {
-    flashError(c, "User is already a member of this client.");
+  } catch (err: any) {
+    logger.warn("[ClientWeb] Invite member failed", {
+      clientId: client.id,
+      email: parsed.data.email,
+      error: err?.message,
+    });
+    flashError(c, err?.message || "Failed to add member to client.");
     return c.redirect(createPageUrl);
   }
 };
@@ -361,20 +444,21 @@ export const showClientMemberEdit = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const client = await ClientRepository.findClientById(idParsed.data.id);
-  if (!client) {
-    flashError(c, "Client not found");
+  let client;
+  let member;
+  try {
+    client = await ClientService.findClient(idParsed.data.id);
+    member = await ClientService.findMember(memberIdRaw);
+    if (member.clientId !== client.id) {
+      flashError(c, "Member not found");
+      return c.redirect(route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: client.id }));
+    }
+  } catch {
+    flashError(c, "Client or member not found");
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const member = await ClientRepository.findClientMemberById(memberIdRaw);
-  if (!member || member.clientId !== client.id) {
-    flashError(c, "Member not found");
-    return c.redirect(route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: client.id }));
-  }
-
-  const allRoles = await RbacRepository.findAllRoles();
-  const clientRoles = allRoles.filter((r) => r.type === "client");
+  const clientRoles = await RbacService.listAllRoles("client");
   const { authUserId, authUser } = await getAuthUserSummary(c);
 
   return c.render("dashboard-admin/Admin/Clients/MemberEdit", {
@@ -395,16 +479,18 @@ export const updateClientMember = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const client = await ClientRepository.findClientById(idParsed.data.id);
-  if (!client) {
-    flashError(c, "Client not found");
+  let client;
+  let member;
+  try {
+    client = await ClientService.findClient(idParsed.data.id);
+    member = await ClientService.findMember(memberIdRaw);
+    if (member.clientId !== client.id) {
+      flashError(c, "Member not found");
+      return c.redirect(route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: client.id }));
+    }
+  } catch {
+    flashError(c, "Client or member not found");
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
-  }
-
-  const member = await ClientRepository.findClientMemberById(memberIdRaw);
-  if (!member || member.clientId !== client.id) {
-    flashError(c, "Member not found");
-    return c.redirect(route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: client.id }));
   }
 
   const membersPageUrl = route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: client.id });
@@ -421,32 +507,25 @@ export const updateClientMember = async (c: Context) => {
     return c.redirect(editPageUrl);
   }
 
-  // Update user in users table
-  const userUpdates: { name: string; email: string; passwordHash?: string } = {
-    name: parsed.data.name,
-    email: parsed.data.email,
-  };
-
-  if (parsed.data.password && parsed.data.password.trim().length >= 8) {
-    userUpdates.passwordHash = await Bun.password.hash(
-      parsed.data.password.trim(),
-      PASSWORD_HASH_OPTIONS,
-    );
+  try {
+    await ClientService.updateMember(member.id, {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      roleId: parsed.data.roleId,
+      status: parsed.data.status,
+      password: parsed.data.password || undefined,
+    });
+    flashSuccess(c, `Team member "${parsed.data.name}" updated successfully.`);
+  } catch (err: any) {
+    logger.warn("[ClientWeb] Update member failed", {
+      clientId: client.id,
+      memberId: member.id,
+      error: err?.message,
+    });
+    flashError(c, err?.message || "Failed to update member.");
+    return c.redirect(editPageUrl);
   }
 
-  const db = await getDrizzleDb("sqlite1");
-  await db
-    .update(users)
-    .set({ ...userUpdates, updatedAt: sql`datetime('now')` })
-    .where(eq(users.id, member.userId));
-
-  // Update client_members table (roleId and status)
-  await ClientRepository.updateClientMemberById(member.id, {
-    roleId: parsed.data.roleId,
-    status: parsed.data.status,
-  });
-
-  flashSuccess(c, `Team member "${parsed.data.name}" updated successfully.`);
   return c.redirect(membersPageUrl);
 };
 
@@ -459,26 +538,23 @@ export const toggleClientMemberStatusFromWeb = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const client = await ClientRepository.findClientById(idParsed.data.id);
-  if (!client) {
-    flashError(c, "Client not found");
-    return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
+  try {
+    await ClientService.findClient(idParsed.data.id);
+    const toggled = await ClientService.toggleMemberStatus(memberIdRaw);
+    flashSuccess(
+      c,
+      `Team member "${toggled.name}" status changed to ${toggled.status}.`,
+    );
+  } catch (err: any) {
+    logger.warn("[ClientWeb] Toggle member status failed", {
+      clientId: idParsed.data.id,
+      memberId: memberIdRaw,
+      error: err?.message,
+    });
+    flashError(c, err?.message || "Failed to update member status.");
   }
 
-  const member = await ClientRepository.findClientMemberById(memberIdRaw);
-  if (!member || member.clientId !== client.id) {
-    flashError(c, "Member not found");
-    return c.redirect(route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: client.id }));
-  }
-
-  const nextStatus = member.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
-  await ClientRepository.updateClientMemberById(member.id, { status: nextStatus });
-
-  flashSuccess(
-    c,
-    `Team member "${member.name}" status changed to ${nextStatus}.`,
-  );
-  return c.redirect(route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: client.id }));
+  return c.redirect(route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: idParsed.data.id }));
 };
 
 /** DELETE /admin/clients/:id/members/:memberId — Remove member from client */
@@ -491,12 +567,18 @@ export const removeClientMember = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const db = await getDrizzleDb("sqlite1");
-  await db.delete(clientMembers).where(
-    and(eq(clientMembers.id, memberIdRaw), eq(clientMembers.clientId, idParsed.data.id))
-  );
+  try {
+    await ClientService.removeMember(memberIdRaw);
+    flashSuccess(c, "Member removed from client team.");
+  } catch (err: any) {
+    logger.warn("[ClientWeb] Remove member failed", {
+      clientId: idParsed.data.id,
+      memberId: memberIdRaw,
+      error: err?.message,
+    });
+    flashError(c, err?.message || "Failed to remove member.");
+  }
 
-  flashSuccess(c, "Member removed from client team.");
   return c.redirect(route(ROUTES.WEB.ADMIN.CLIENTS_MEMBERS_PAGE, { id: idParsed.data.id }));
 };
 
@@ -508,8 +590,10 @@ export const showClientApiKeys = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const client = await ClientRepository.findClientById(idParsed.data.id);
-  if (!client) {
+  let client;
+  try {
+    client = await ClientService.findClient(idParsed.data.id);
+  } catch {
     flashError(c, "Client not found");
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
@@ -533,8 +617,10 @@ export const createClientApiKey = async (c: Context) => {
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
 
-  const client = await ClientRepository.findClientById(idParsed.data.id);
-  if (!client) {
+  let client;
+  try {
+    client = await ClientService.findClient(idParsed.data.id);
+  } catch {
     flashError(c, "Client not found");
     return c.redirect(ROUTES.WEB.ADMIN.CLIENTS);
   }
@@ -560,6 +646,10 @@ export const createClientApiKey = async (c: Context) => {
       `API Key "${generated.name}" created! TOKEN:${generated.rawToken}`,
     );
   } catch (err: any) {
+    logger.warn("[ClientWeb] Create API key failed", {
+      clientId: client.id,
+      error: err?.message,
+    });
     flashError(c, err?.message || "Failed to create API key");
   }
 
@@ -580,6 +670,11 @@ export const revokeClientApiKey = async (c: Context) => {
     await ApiKeyService.revokeApiKey(keyIdRaw, idParsed.data.id);
     flashSuccess(c, "API key has been revoked.");
   } catch (err: any) {
+    logger.warn("[ClientWeb] Revoke API key failed", {
+      clientId: idParsed.data.id,
+      keyId: keyIdRaw,
+      error: err?.message,
+    });
     flashError(c, err?.message || "Failed to revoke key.");
   }
 

@@ -70,17 +70,6 @@
     }
   }
 
-  const toggleStatus = () => {
-    const action = client.status === 'ACTIVE' ? 'suspend' : 'activate'
-    if (!confirm(`Are you sure you want to ${action} client "${client.name}"?`)) return
-
-    router.post(
-      route(ROUTES.WEB.ADMIN.CLIENTS_TOGGLE_STATUS, { id: client.id }),
-      {},
-      { preserveScroll: true },
-    )
-  }
-
   const destroyClient = () => {
     if (
       !confirm(
@@ -136,15 +125,9 @@
       <Link href={route(ROUTES.WEB.ADMIN.CLIENTS)}>
         <Button variant="secondary">Back to Clients</Button>
       </Link>
-      {#if client.status === 'ACTIVE'}
-        <Button variant="secondary" onclick={toggleStatus}>
-          Suspend Client
-        </Button>
-      {:else}
-        <Button variant="primary" onclick={toggleStatus}>
-          Activate Client
-        </Button>
-      {/if}
+      <Link href={route(ROUTES.WEB.ADMIN.CLIENTS_STATUS_PAGE, { id: client.id })}>
+        <Button variant="secondary">Manage Status</Button>
+      </Link>
     </div>
   </div>
 

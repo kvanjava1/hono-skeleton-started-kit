@@ -2,6 +2,7 @@ import type { Context, Next } from "hono";
 import { ForbiddenError, UnauthorizedError } from "../../utils/errors.util.ts";
 import { getAuthUser } from "../../utils/session.util.ts";
 import * as RbacService from "../../services/admin/rbac.service.ts";
+import { logger } from "../../utils/logger.util.ts";
 
 /**
  * Universal Authorization Middleware:
@@ -21,6 +22,11 @@ export const can = (requiredPermission: string) => {
       ) {
         return await next();
       }
+      logger.warn("[RbacGuard] Permission denied for API client", {
+        requiredPermission,
+        path: c.req?.path ?? "unknown",
+        method: c.req?.method ?? "unknown",
+      });
       throw new ForbiddenError(
         `You do not have permission to perform '${requiredPermission}'`,
       );
@@ -31,11 +37,20 @@ export const can = (requiredPermission: string) => {
     const authUserId = session ? getAuthUser(session) : null;
 
     if (!authUserId) {
+      logger.warn("[RbacGuard] Authentication required for protected route", {
+        requiredPermission,
+        path: c.req?.path ?? "unknown",
+      });
       throw new UnauthorizedError("Authentication required.");
     }
 
     const hasAccess = await RbacService.hasPermission(authUserId, requiredPermission);
     if (!hasAccess) {
+      logger.warn("[RbacGuard] Permission denied for user", {
+        authUserId,
+        requiredPermission,
+        path: c.req?.path ?? "unknown",
+      });
       throw new ForbiddenError(
         `You do not have permission to perform '${requiredPermission}'`,
       );

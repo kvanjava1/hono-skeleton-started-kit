@@ -5,6 +5,8 @@ import { adminDashboardWebRoutes } from "./admin/dashboard.router.ts";
 import { clientRouter } from "./admin/client.router.ts";
 import { apiKeyRouter } from "./admin/apiKey.router.ts";
 import { teamRouter } from "./admin/team.router.ts";
+import { adminLogsWebRoutes } from "./admin/logs.router.ts";
+import { clientPortalWebRoutes } from "./client/portal.router.ts";
 import { ROUTES } from "../../configs/routes.config.ts";
 import { webSessionMiddleware } from "../../middlewares/web/session.middleware.ts";
 
@@ -29,3 +31,5 @@ webRoutes.route(ROUTES.WEB.ROOT, adminUserWebRoutes);
 webRoutes.route(ROUTES.WEB.ROOT, clientRouter);
 webRoutes.route(ROUTES.WEB.ROOT, apiKeyRouter);
 webRoutes.route(ROUTES.WEB.ROOT, teamRouter);
+webRoutes.route(ROUTES.WEB.ROOT, adminLogsWebRoutes);
+webRoutes.route(ROUTES.WEB.ROOT, clientPortalWebRoutes);

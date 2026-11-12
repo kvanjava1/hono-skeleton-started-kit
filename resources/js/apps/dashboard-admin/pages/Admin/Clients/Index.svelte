@@ -77,13 +77,6 @@
       { preserveScroll: true },
     )
 
-  const toggleStatus = (client: ClientListItem) =>
-    router.post(
-      route(ROUTES.WEB.ADMIN.CLIENTS_TOGGLE_STATUS, { id: client.id }),
-      {},
-      { preserveScroll: true },
-    )
-
   const destroy = (client: ClientListItem) => {
     if (!confirm(`Delete client organization "${client.name}"?`)) return
     router.delete(route(ROUTES.WEB.ADMIN.CLIENTS_DELETE, { id: client.id }), {
@@ -232,10 +225,9 @@
                       <Link href={route(ROUTES.WEB.ADMIN.CLIENTS_API_KEYS_PAGE, { id: client.id })} class="dropdown-item">
                         Manage Keys
                       </Link>
-                      <div class="my-1.5 h-px bg-zinc-100 dark:bg-zinc-800"></div>
-                      <button type="button" class="dropdown-item w-full text-left" onclick={() => toggleStatus(client)}>
-                        {client.status === 'ACTIVE' ? 'Suspend Client' : 'Activate Client'}
-                      </button>
+                      <Link href={route(ROUTES.WEB.ADMIN.CLIENTS_STATUS_PAGE, { id: client.id })} class="dropdown-item">
+                        Organization Status
+                      </Link>
                       <div class="my-1.5 h-px bg-zinc-100 dark:bg-zinc-800"></div>
                       <button type="button" class="dropdown-item w-full text-left !text-rose-600 dark:!text-rose-400" onclick={() => destroy(client)}>
                         Delete

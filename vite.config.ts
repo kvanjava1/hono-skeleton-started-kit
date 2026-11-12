@@ -4,6 +4,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import path from 'path'
 
 export default defineConfig({
+  base: '/build/',
   server: {
     port: 5173,
     strictPort: true,
@@ -19,6 +20,7 @@ export default defineConfig({
       input: [
         path.resolve(__dirname, 'resources/css/app.css'),
         path.resolve(__dirname, 'resources/js/apps/dashboard-admin/app.ts'),
+        path.resolve(__dirname, 'resources/js/apps/dashboard-client/app.ts'),
       ],
     },
   }
