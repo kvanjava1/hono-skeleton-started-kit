@@ -85,4 +85,24 @@ LOG_LEVEL=info    # Options: debug | info | warn | error (default: info)
 
 ---
 
+## 🗄️ Database Activity & Audit Logs
+
+In addition to server-side file logs (`storages/logs/`), business and security events are persisted in the `activity_logs` database table (`src/database/schema/common/activityLog.schema.ts`) via `recordActivity()` in `src/services/common/activityLog.service.ts`. This allows administrators, client organizations, and users to inspect audit trails directly from the web UI without needing filesystem access.
+
+### Event Scopes
+
+| Scope | Visibility | Typical Events |
+|---|---|---|
+| `global` | Admin only | Client creation (`client.create`), organization status moderation (`client.status.change`), client deletion (`client.delete`). |
+| `organization` | Admin & Client members | API key creation/revocation (`api_key.create`, `api_key.revoke`), team member invitations/removals/role changes (`team.member.*`). |
+| `personal` | Admin & Acting user | Login sessions (`auth.login`), workspace switches (`workspace.switch`), personal security events. |
+
+### Audit Log Web Surfaces
+
+- **`GET /admin/logs`** (`admin.logs.view` permission): Global audit trail with modal-based filtering by keyword, organization, and scope, plus JSON metadata inspection.
+- **`GET /client/logs`** (`client.logs.view` permission): Organization-scoped audit trail showing team member actions within the active workspace.
+- **`GET /client/account/activity`**: Personal security activity log for the authenticated client user's own logins and workspace switches.
+
+---
+
 [Back to Guides](../README.md)

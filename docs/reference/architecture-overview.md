@@ -26,8 +26,10 @@ The application runs in two distinct execution modes:
 │   │   └── app.css               # Tailwind CSS entrypoint
 │   ├── js/
 │   │   └── apps/                 # Inertia client apps (Svelte 5), one folder per app
-│   │       └── dashboard-admin/  # Admin dashboard: app.ts + pages/ (Admin/Login, Admin/Users/Index)
-│   │                             #   + components/ (AdminLayout, Button, Modal, Dropdown, ...)
+│   │       ├── dashboard-admin/  # Admin dashboard: app.ts + pages/ (Login, Dashboard, Users, Clients, Logs)
+│   │       │                     #   + components/ (AdminLayout, Button, Modal, SearchModal, Dropdown, ...)
+│   │       └── dashboard-client/ # Client portal: app.ts + pages/ (Auth, Dashboard, ApiKeys, Team, Logs, Account/Activity)
+│   │                             #   + components/ (ClientLayout, WorkspaceSwitcher, Dropdown)
 │   └── views/                    # Hono JSX (.tsx)
 │       ├── emails/               # Responsive HTML email templates
 │       │   ├── layouts/
@@ -52,7 +54,8 @@ The application runs in two distinct execution modes:
     ├── routes/
     │   ├── index.ts              # Master route mounter & 404 handler
     │   ├── web/                  # Web routes (Inertia.js + Svelte pages)
-    │   │   └── admin/            # Admin dashboard (auth guards + User Management, web-only)
+    │   │   ├── admin/            # Admin dashboard (auth guards, Users, Clients, Logs)
+    │   │   └── client/           # Client portal (portal.router.ts)
     │   ├── api/                  # API routes (OpenAPI endpoints only — currently empty)
     │   └── system/               # Non-API surface (plain Hono, not in the spec)
     │       ├── health/           # /api/health, /api/health/ready
@@ -61,10 +64,11 @@ The application runs in two distinct execution modes:
     ├── controllers/
     │   ├── system/               # Health, metrics & API docs handlers
     │   ├── web/                  # Web controllers (render Inertia pages)
-    │   │   └── admin/            # Admin auth + User Management
+    │   │   ├── admin/            # Admin auth, Users, Clients, Team, API Keys, Logs
+    │   │   └── client/           # Client auth, Dashboard, Workspace, Team, API Keys, Logs
     │   └── api/                  # API controllers (return JSON via successResponse)
-    ├── services/                 # Pure domain business logic layer (admin/)
-    ├── repositories/             # Database access layer (admin/)
+    ├── services/                 # Pure domain business logic layer (admin/, client/, common/)
+    ├── repositories/             # Database access layer (admin/, client/, common/)
     ├── validations/              # Zod schemas & request validations (@hono/zod-openapi)
     ├── libraries/                # Technical adapters & 3rd-party transports (mail drivers)
     ├── mail/                     # Mailable classes (envelope, content, template linkage)
@@ -72,12 +76,14 @@ The application runs in two distinct execution modes:
     │   ├── index.ts              # Parallel connection initialization registry
     │   ├── drizzle.ts            # Drizzle ORM client wrapper (getDrizzleDb)
     │   ├── schema/               # Drizzle ORM table definitions
-    │   │   └── admin/            # users (Argon2id hash, is_active, soft delete)
+    │   │   ├── admin/            # users, roles, permissions, user_status_history
+    │   │   ├── client/           # clients, client_users, api_keys, client_status_history
+    │   │   └── common/           # activity_logs
     │   └── *.connection.ts       # Driver connection factories (sqlite, mysql, pg, mongo, redis)
     ├── middlewares/
-    │   ├── common/               # Context, logger, metrics, rateLimiter, errorHandler
-    │   ├── web/                  # Web-specific middlewares (static assets)
-    │   └── api/                  # API-specific middlewares (Content-Type validation)
+    │   ├── common/               # Context, logger, metrics, rateLimiter, errorHandler, can (RBAC)
+    │   ├── web/                  # Web-specific middlewares (static assets, authGuard, clientAuth)
+    │   └── api/                  # API-specific middlewares (Content-Type validation, apiClientGuard)
     ├── utils/                    # Utilities: mail facade, logger, response, async, metrics, cache
     ├── queues/                   # BullMQ queue creators & connection options
     ├── jobs/                     # Job definitions & payload interfaces (mail, example)
@@ -88,25 +94,36 @@ The application runs in two distinct execution modes:
 
 ## Default Endpoints (Application Surface)
 
-### 1. Admin Dashboard (Inertia.js + Svelte 5 — web surface, no API)
+### 1. Admin Dashboard (Inertia.js + Svelte 5 — web surface)
 `/` has no page by design (the example CRUD demo was removed with no replacement).
 
 - `GET /admin/login` / `POST /admin/login` — session-cookie login (`Bun.password` Argon2id, generic credential error, CSRF + Origin guarded; the session CSRF token is rotated on login).
 - `POST /admin/logout` — drops the session `userId` claim.
-- `GET /admin/users` + `POST|PUT|DELETE /admin/users[...]`, `POST /admin/users/{id}/toggle` — User Management (search, status filter, pagination, create/edit modals, activate/deactivate, soft delete). All behind `authGuard`; admins cannot delete or deactivate their own account.
-- Data: `users` table on `sqlite1` (soft delete via `deleted_at`; partial unique index on `email` so soft-deleted emails are reusable). First account comes from the `AdminUserSeeder` (dev only — refuses to run in production).
+- `GET /admin/users` + `POST|PUT|DELETE /admin/users[...]`, `POST /admin/users/{id}/status` — User Management & Account Status moderation with audit history. All behind `authGuard`; admins cannot delete or suspend their own account.
+- `GET /admin/clients` + `POST|PUT|DELETE /admin/clients[...]`, `POST /admin/clients/{id}/status` — Client organization management, team member management, M2M API key management, and Organization Status moderation.
+- `GET /admin/logs` — Global Audit Logs (filterable via modal by keyword, organization, and scope).
+- Data: `users`, `clients`, `client_users`, `api_keys`, `activity_logs`, `*_status_history`, and RBAC tables on `sqlite1`.
 
-### 2. System & Observability (not part of the OpenAPI spec)
+### 2. Client Portal (`dashboard-client`, Inertia.js + Svelte 5)
+- `GET /client/login` / `POST /client/login`, `POST /client/logout` — Client user authentication with workspace context.
+- `GET /client` — Organization overview dashboard.
+- `POST /client/workspace/switch` — Multi-workspace switcher across organizations the user belongs to.
+- `GET /client/api-keys` + `POST /client/api-keys`, `POST /client/api-keys/{id}/revoke` — M2M API Key generation (one-time token reveal) and revocation.
+- `GET /client/team` + `POST /client/team/invite`, `PUT /client/team/{id}/role`, `DELETE /client/team/{id}` — Organization team member management.
+- `GET /client/logs` — Organization Audit Trail (collaborator actions within the active workspace).
+- `GET /client/account/activity` — Personal Security Activity (user's own login and workspace events).
+
+### 3. System & Observability (not part of the OpenAPI spec)
 - `GET /api/health` — Liveness probe (verifies process is responsive).
 - `GET /api/health/ready` — Readiness probe (checks active database and Redis connections).
 - `GET /metrics` — Prometheus metrics (enabled when `METRICS_ENABLED=true`, optionally guarded by `x-metrics-token`).
 
-### 3. API Documentation (dev/test only)
+### 4. API Documentation (dev/test only)
 Registered only when `API_DOCS_ENABLED=true` (default `false` — production answers a natural 404 because the routes are never mounted; see `src/routes/system/index.ts`).
 - `GET /api/spec` — OpenAPI 3.0 JSON specification.
 - `GET /api/docs` — Interactive Scalar API Reference UI.
 
-### 4. API domains
+### 5. API domains
 None registered yet — `ROUTES.API` holds only `BASE_PATH` (`/api`) and `src/routes/api/index.ts` mounts no domain. The wiring (registry → router → controller → service → repository) stays in place for the first real API; the mail worker (`send-email` queue) and the mail system remain available independently.
 
 ---
