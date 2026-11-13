@@ -68,4 +68,22 @@ Redis connections support enhanced environment configurations:
 
 ---
 
+## 🏊 Connection Pooling (MySQL & PostgreSQL)
+
+Both MySQL and PostgreSQL connections are initialized as **singleton connection pools** (`Map<ConnectionName, Pool>`) and cached by Drizzle ORM (`drizzleMysqlClients` / `drizzlePgClients`). Incoming HTTP requests reuse pooled connections instead of opening new TCP connections per request, preventing connection exhaustion and memory spikes.
+
+### MySQL (`mysql2/promise`)
+Configured in `src/configs/mysql.config.ts` and `src/database/mysql.connection.ts`:
+- `MYSQL_CONNECTION_LIMIT_1` (fallback `MYSQL_CONNECTION_LIMIT`): Max concurrent connections in pool (default: `10`).
+- `MYSQL_QUEUE_LIMIT_1` (fallback `MYSQL_QUEUE_LIMIT`): Max queued connection requests when pool is full; `0` = unlimited (default: `0`).
+- `MYSQL_IDLE_TIMEOUT_1` (fallback `MYSQL_IDLE_TIMEOUT`): Idle connection timeout in milliseconds before closing (default: `30000`).
+
+### PostgreSQL (`postgres.js`)
+Configured in `src/configs/pg.config.ts` and `src/database/pg.connection.ts`:
+- `PG_MAX_CONNECTIONS_1` (fallback `PG_MAX_CONNECTIONS`): Max concurrent connections in pool (default: `10`).
+- `PG_IDLE_TIMEOUT_1` (fallback `PG_IDLE_TIMEOUT`): Idle connection timeout in seconds before closing (default: `30`).
+- `PG_CONNECT_TIMEOUT_1` (fallback `PG_CONNECT_TIMEOUT`): Initial connection timeout in seconds (default: `30`).
+
+---
+
 [Back to Reference](./README.md)
